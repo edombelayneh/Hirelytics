@@ -1,8 +1,8 @@
 class Applicant:
-    def __init__(self, name, email):
+    def __init__(self, name, email, status):
         self.name = name
         self.email = email
-        self.status = 'Applied'
+        self.status = status
 
     def update_status(self, new_status):
         self.status = new_status

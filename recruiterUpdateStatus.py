@@ -23,10 +23,14 @@ class RecruiterUpdateStatus:
 if __name__ == '__main__':
     applicant1 = Applicant("Jane Doe", "jandoe@test.com", "Applied")
     applicant2 = Applicant("Riley Jones", "rileyj@test.com", "In Review")
-    applicant3 = Applicant("Charles Simon", "charlessi@test.com", "Hired")
+    applicant3 = Applicant("Charles Simon", "charlessi@test.com", "Interview Scheduled")
+    applicant4 = Applicant("Amanda May", "charlessi@test.com", "Offer Extended")
+
     recruiter = Recruiter("Chloe Anderson", "chloeanderson@hirelytics.com", "Hirelytics")
     recruiter_update_status = RecruiterUpdateStatus(applicant1, recruiter)
     recruiter_update_status = RecruiterUpdateStatus(applicant2, recruiter)
     recruiter_update_status = RecruiterUpdateStatus(applicant3, recruiter)
+    recruiter_update_status = RecruiterUpdateStatus(applicant4, recruiter)
+
 
     recruiter_update_status.recruiter_update_status()
