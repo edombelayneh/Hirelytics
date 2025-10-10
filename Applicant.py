@@ -1,13 +1,14 @@
 
 class Applicant():
-    def __init__(self, name, email):
+    def __init__(self, name, email, status):
         self.name = name
         self.email = email
-        self.status = 'Applied'
+        self.status = status
 
     def update_status(self, new_status):
         self.status = new_status
         print(f"Applicant {self.name} status updated to {self.status}.")
+
     def get_status(self):
         return self.status
     def get_email(self):
@@ -18,6 +19,7 @@ class Applicant():
         self.email = email
     def set_name(self, name):
         self.name = name
+        
     def __str__(self):
         return f"Applicant(Name: {self.name}, Email: {self.email}, Status: {self.status})"
     def __repr__(self):

@@ -37,7 +37,12 @@ class Recruiter_Update_Status:
         return True
 
 if __name__ == '__main__':
-    applicant = Applicant("Jane Doe", "jandoe@test.com")
+    applicant1 = Applicant("Jane Doe", "jandoe@test.com", "Applied")
+    applicant2 = Applicant("Riley Jones", "rileyj@test.com", "In Review")
+    applicant3 = Applicant("Charles Simon", "charlessi@test.com", "Hired")
     recruiter = Recruiter("Chloe Anderson", "chloeanderson@hirelytics.com", "Hirelytics")
-    recruiter_update_status = Recruiter_Update_Status(applicant, recruiter)
+    recruiter_update_status = Recruiter_Update_Status(applicant1, recruiter)
+    recruiter_update_status = Recruiter_Update_Status(applicant2, recruiter)
+    recruiter_update_status = Recruiter_Update_Status(applicant3, recruiter)
+
     recruiter_update_status.recruiter_update_status()

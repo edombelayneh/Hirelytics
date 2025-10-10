@@ -5,12 +5,16 @@ class Recruiter():
         self.email = email
         self.organization = organization
         self.applicants = []
+
     def add_applicant(self, applicant):
         self.applicants.append(applicant)
+
     def remove_applicant(self, applicant):
         self.applicants.remove(applicant)
+
     def notify(self, applicant, message):
-        print(f"Notification to {applicant.get_email()}: {message}")
+        print(f"Notification from {applicant.get_email()}: {message}")
+
     def get_applicants(self):
         return self.applicants
     def get_name(self):
@@ -25,6 +29,7 @@ class Recruiter():
         self.email = email
     def set_organization(self, organization):
         self.organization = organization
+        
     def __str__(self):
         return f"Recruiter(Name: {self.name}, Email: {self.email}, Organization: {self.organization})"
     def __repr__(self):
