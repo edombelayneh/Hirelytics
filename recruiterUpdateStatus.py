@@ -14,10 +14,20 @@ class RecruiterUpdateStatus:
             'Offer Extended': 'Hired'
         }
         current = self.applicant.status
-        new_status = transitions.get(current, 'Rejected')
-        self.applicant.update_status(new_status)
-        self.recruiter.notify(self.applicant, f"Your application status is now {new_status}.")
-        return new_status
+        if current == 'Applied':
+            next_status = 'In Review'
+        elif current == 'In Review':
+            next_status = 'Interview Scheduled'
+        elif current == 'Interview Scheduled':
+            next_status = 'Offer Extended'
+        elif current == 'Offer Extended':
+            next_status = 'Hired'
+        else:
+            next_status = 'Rejected'
+        # new_status = transitions.get(current, 'Rejected')
+        self.applicant.update_status(next_status)
+        self.recruiter.notify(self.applicant, f"Your application status is now {next_status}.")
+        return next_status
 
 
 if __name__ == '__main__':
