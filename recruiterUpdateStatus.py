@@ -1,5 +1,5 @@
-import Applicant
-import Recruiter
+from Applicant import Applicant
+from Recruiter import Recruiter
 
 class Recruiter_Update_Status:
     def __init__(self, applicant, recruiter):
@@ -37,8 +37,7 @@ class Recruiter_Update_Status:
         return True
 
 if __name__ == '__main__':
-    applicant = Applicant()
-    recruiter = Recruiter()
+    applicant = Applicant("Jane Doe", "jandoe@test.com")
+    recruiter = Recruiter("Chloe Anderson", "chloeanderson@hirelytics.com", "Hirelytics")
     recruiter_update_status = Recruiter_Update_Status(applicant, recruiter)
     recruiter_update_status.recruiter_update_status()
-    
