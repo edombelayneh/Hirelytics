@@ -8,7 +8,7 @@ import {
 	Users,
 	CheckCircle,
 } from 'lucide-react';
-import { getDashboardStats } from '../data/jobData';
+import { getDashboardStats } from '../JobData/JobData';
 
 export function SummaryCards() {
 	const stats = getDashboardStats();
