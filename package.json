@@ -10,12 +10,12 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.34.1",
-    "@tailwindcss/postcss": "^4.1.16",
+    "@tailwindcss/postcss": "^4.0.0-alpha.29",
     "lucide-react": "^0.548.0",
     "next": "16.0.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "tailwindcss": "^4.0.0"
+    "tailwindcss": "^4.0.0-alpha.29"
   },
   "devDependencies": {
     "@types/node": "^20",
