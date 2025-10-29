@@ -12,12 +12,16 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { getDashboardStats, getApplicationsByMonth, getStatusDistribution } from "../data/mockData";
+import { getDashboardStatsFromList, getApplicationsByMonthFromList, getStatusDistributionFromList, JobApplication } from "../data/mockData";
 
-export function HeroPanel() {
-  const stats = getDashboardStats();
-  const monthlyData = getApplicationsByMonth();
-  const statusData = getStatusDistribution();
+interface HeroPanelProps {
+  applications: JobApplication[];
+}
+
+export function HeroPanel({ applications }: HeroPanelProps) {
+  const stats = getDashboardStatsFromList(applications);
+  const monthlyData = getApplicationsByMonthFromList(applications);
+  const statusData = getStatusDistributionFromList(applications);
 
   const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 

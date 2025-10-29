@@ -19,10 +19,13 @@ import {
 } from "./ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { ExternalLink, Search, Filter } from "lucide-react";
-import { mockJobApplications, JobApplication } from "../data/mockData";
+import { JobApplication } from "../JobData/data/mockData";
 
-export function ApplicationsTable() {
-  const [applications, setApplications] = useState<JobApplication[]>(mockJobApplications);
+interface ApplicationsTableProps {
+  applications: JobApplication[];
+}
+
+export function ApplicationsTable({ applications }: ApplicationsTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
