@@ -1,22 +1,22 @@
-"use client";
+'use client';
 
-import { Toaster as Sonner, ToasterProps, toast } from "sonner@2.0.3";
+import { Toaster as Sonner, ToasterProps, toast } from 'sonner';
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  return (
-    <Sonner
-      theme="light"
-      className="toaster group"
-      style={
-        {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-        } as React.CSSProperties
-      }
-      {...props}
-    />
-  );
+	return (
+		<Sonner
+			theme='light'
+			className='toaster group'
+			style={
+				{
+					'--normal-bg': 'var(--popover)',
+					'--normal-text': 'var(--popover-foreground)',
+					'--normal-border': 'var(--border)',
+				} as React.CSSProperties
+			}
+			{...props}
+		/>
+	);
 };
 
 export { Toaster, toast };
