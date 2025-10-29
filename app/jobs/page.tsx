@@ -4,7 +4,7 @@ import { ApplicationsTable } from '../components/ApplicationsTable';
 import { Button } from '../components/ui/button';
 import { Plus, Download, Settings } from 'lucide-react';
 
-export default function jobs() {
+function jobs() {
 	return (
 		<div className='min-h-screen bg-background'>
 			{/* Header */}
@@ -61,3 +61,5 @@ export default function jobs() {
 		</div>
 	);
 }
+
+export default jobs;

@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { HomePage } from './home/page';
+import HomePage from './home/page';
 import AvailableJobsPage from './jobs/page';
-import { MyApplicationsPage } from './applications/page';
+import MyApplicationsPage from './applications/page';
 import { Navbar } from './components/Navbar';
 import { Toaster, toast } from './components/ui/sonner';
 import { JobApplication } from './data/mockData';
@@ -14,7 +14,7 @@ import { getCurrentDateString } from './utils/dateFormatter';
 
 type Page = 'home' | 'available' | 'applications';
 
-export default function LandingPage() {
+function LandingPage() {
 	const [currentPage, setCurrentPage] = useState<Page>('home');
 	const [applications, setApplications] = useState<JobApplication[]>([]);
 	const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set());
@@ -105,3 +105,5 @@ export default function LandingPage() {
 		</div>
 	);
 }
+
+export default LandingPage;
