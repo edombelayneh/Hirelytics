@@ -4,7 +4,7 @@ import { ApplicationsTable } from '../components/ApplicationsTable';
 import { Button } from '../components/ui/button';
 import { Plus, Download, Settings } from 'lucide-react';
 
-export default function jobs() {
+function jobs() {
 	return (
 		<div className='min-h-screen bg-background'>
 			{/* Header */}
@@ -44,20 +44,22 @@ export default function jobs() {
 					<h2 className='text-xl font-semibold mb-4'>
 						Dashboard Overview
 					</h2>
-					<HeroPanel />
+					<HeroPanel applications={[]} />
 				</section>
 
 				{/* Summary Cards */}
 				<section>
 					<h2 className='text-xl font-semibold mb-4'>Key Metrics</h2>
-					<SummaryCards />
+					<SummaryCards applications={[]} />
 				</section>
 
 				{/* Applications Table */}
 				<section>
-					<ApplicationsTable />
+					<ApplicationsTable applications={[]} />
 				</section>
 			</main>
 		</div>
 	);
 }
+
+export default jobs;
