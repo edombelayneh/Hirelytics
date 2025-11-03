@@ -1,65 +1,109 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import HomePage from './home/page';
+import AvailableJobsPage from './jobs/page';
+import MyApplicationsPage from './applications/page';
+import { Navbar } from './components/Navbar';
+import { Toaster, toast } from './components/ui/sonner';
+import { JobApplication } from './data/mockData';
+import { AvailableJob } from './data/availableJobs';
+import { parseLocation } from './utils/locationParser';
+import { getCurrentDateString } from './utils/dateFormatter';
+
+type Page = 'home' | 'available' | 'applications';
+
+function LandingPage() {
+	const [currentPage, setCurrentPage] = useState<Page>('home');
+	const [applications, setApplications] = useState<JobApplication[]>([]);
+	const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set());
+
+	// Handle hash-based routing
+	useEffect(() => {
+		const handleHashChange = () => {
+			const hash = window.location.hash.slice(1); // Remove the '#'
+			if (hash === '/applications') {
+				setCurrentPage('applications');
+			} else if (hash === '/jobs') {
+				setCurrentPage('available');
+			} else {
+				setCurrentPage('home');
+			}
+		};
+
+		// Set initial page based on hash
+		handleHashChange();
+
+		// Listen for hash changes
+		window.addEventListener('hashchange', handleHashChange);
+
+		return () => {
+			window.removeEventListener('hashchange', handleHashChange);
+		};
+	}, []);
+
+	const handleApply = (job: AvailableJob) => {
+		const { city, country } = parseLocation(job.location);
+
+		// Create new application
+		const newApplication: JobApplication = {
+			id: `app-${Date.now()}`,
+			company: job.company,
+			country,
+			city,
+			jobLink: job.applyLink,
+			position: job.title,
+			applicationDate: getCurrentDateString(),
+			status: 'Applied',
+			contactPerson: '',
+			notes: `Applied via job board. ${job.type} position.`,
+			jobSource: 'Other',
+			outcome: 'Pending',
+		};
+
+		setApplications((prev) => [newApplication, ...prev]);
+		setAppliedJobIds((prev) => new Set(prev).add(job.id));
+
+		toast.success(
+			`Successfully applied to ${job.title} at ${job.company}!`,
+			{
+				description: 'Your application has been added to the tracker.',
+			}
+		);
+	};
+
+	return (
+		<div className='min-h-screen bg-background'>
+			<Toaster />
+
+			{/* Header - Show on all pages */}
+			<Navbar
+				currentPage={currentPage}
+				applicationCount={applications.length}
+			/>
+
+			{/* Main Content */}
+			<main
+				className={
+					currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''
+				}
+			>
+				{currentPage === 'home' && <HomePage />}
+
+				{currentPage === 'available' && (
+					<AvailableJobsPage
+					//onApply={handleApply}
+					//appliedJobIds={appliedJobIds}
+					/>
+				)}
+
+				{currentPage === 'applications' && (
+					<MyApplicationsPage applications={applications} />
+				)}
+			</main>
+		</div>
+	);
 }
+
+export default LandingPage;
