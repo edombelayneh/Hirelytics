@@ -1,362 +1,668 @@
-import { Button } from '../components/ui/button';
-import { Card } from '../components/ui/card';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
 import {
-	Briefcase,
-	BarChart3,
-	Target,
-	TrendingUp,
-	CheckCircle2,
-	Calendar,
-	FileText,
-	Link as LinkIcon,
-	MapPin,
-	ArrowRight,
-	Sparkles,
-	LineChart,
-	Bell,
-} from 'lucide-react';
-import { motion } from 'framer-motion';
+  Brain,
+  Clock,
+  Globe,
+  Zap,
+  Shield,
+  BarChart3,
+  Briefcase,
+  ClipboardList,
+  CheckCircle2,
+  LineChart,
+  ArrowRight,
+  Users,
+  Target,
+  TrendingUp,
+  Home
+} from "lucide-react";
 
-function HomePage() {
-	const features = [
-		{
-			icon: Briefcase,
-			title: 'Browse Available Jobs',
-			description:
-				'Explore curated job listings from top companies and apply with a single click.',
-			color: 'text-blue-500',
-		},
-		{
-			icon: BarChart3,
-			title: 'Track Applications',
-			description:
-				'Monitor all your applications in one place with detailed status tracking.',
-			color: 'text-purple-500',
-		},
-		{
-			icon: TrendingUp,
-			title: 'Visualize Progress',
-			description:
-				'See your job search progress through interactive charts and analytics.',
-			color: 'text-green-500',
-		},
-		{
-			icon: Target,
-			title: 'Set Goals',
-			description:
-				'Track response rates, interview conversion, and achieve your targets.',
-			color: 'text-orange-500',
-		},
-		{
-			icon: FileText,
-			title: 'Detailed Notes',
-			description:
-				'Keep track of contacts, interview notes, and important details.',
-			color: 'text-pink-500',
-		},
-		{
-			icon: Calendar,
-			title: 'Timeline View',
-			description:
-				'Visualize your application journey over time with date tracking.',
-			color: 'text-cyan-500',
-		},
-	];
-
-	const stats = [
-		{ value: '10+', label: 'Available Jobs' },
-		{ value: '100%', label: 'Free Forever' },
-		{ value: 'Real-time', label: 'Updates' },
-		{ value: 'All-in-One', label: 'Dashboard' },
-	];
-
-	return (
-		<div className='min-h-screen'>
-			{/* Hero Section */}
-			<section className='relative overflow-hidden border-b bg-gradient-to-b from-background via-background to-muted/20'>
-				<div className='absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.1))]' />
-
-				<div className='container relative mx-auto px-6 py-24'>
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5 }}
-						className='mx-auto max-w-4xl text-center'
-					>
-						<motion.div
-							initial={{ opacity: 0, scale: 0.9 }}
-							animate={{ opacity: 1, scale: 1 }}
-							transition={{ delay: 0.1, duration: 0.5 }}
-							className='mb-6 inline-flex items-center gap-2 rounded-full border bg-background/50 px-4 py-2 backdrop-blur'
-						>
-							<Sparkles className='h-4 w-4 text-yellow-500' />
-							<span className='text-sm'>
-								Your All-in-One Job Search Command Center
-							</span>
-						</motion.div>
-
-						<h1 className='mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent'>
-							Welcome to{' '}
-							<span className='bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent'>
-								Hirelytics
-							</span>
-						</h1>
-
-						<p className='mb-10 text-xl text-muted-foreground max-w-2xl mx-auto'>
-							Transform your job search with intelligent tracking,
-							powerful analytics, and organized application
-							management. Land your dream job faster.
-						</p>
-
-						<div className='flex flex-col sm:flex-row items-center justify-center gap-4 mb-12'>
-							<Button
-								size='lg'
-								className='group gap-2'
-								onClick={() =>
-									(window.location.hash = '#/jobs')
-								}
-							>
-								<Briefcase className='h-5 w-5' />
-								Browse Available Jobs
-								<ArrowRight className='h-4 w-4 transition-transform group-hover:translate-x-1' />
-							</Button>
-
-							<Button
-								size='lg'
-								variant='outline'
-								className='gap-2'
-								onClick={() =>
-									(window.location.hash = '#/applications')
-								}
-							>
-								<BarChart3 className='h-5 w-5' />
-								View My Applications
-							</Button>
-						</div>
-
-						{/* Stats */}
-						<div className='grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto'>
-							{stats.map((stat, index) => (
-								<motion.div
-									key={stat.label}
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{
-										delay: 0.2 + index * 0.1,
-										duration: 0.5,
-									}}
-									className='text-center'
-								>
-									<div className='text-3xl font-bold text-primary mb-1'>
-										{stat.value}
-									</div>
-									<div className='text-sm text-muted-foreground'>
-										{stat.label}
-									</div>
-								</motion.div>
-							))}
-						</div>
-					</motion.div>
-				</div>
-			</section>
-
-			{/* Features Section */}
-			<section className='container mx-auto px-6 py-20'>
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					whileInView={{ opacity: 1, y: 0 }}
-					viewport={{ once: true }}
-					transition={{ duration: 0.5 }}
-					className='text-center mb-16'
-				>
-					<h2 className='mb-4'>Everything You Need to Succeed</h2>
-					<p className='text-xl text-muted-foreground max-w-2xl mx-auto'>
-						Powerful features designed to streamline your job search
-						and maximize your success rate.
-					</p>
-				</motion.div>
-
-				<div className='grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16'>
-					{features.map((feature, index) => {
-						const Icon = feature.icon;
-						return (
-							<motion.div
-								key={feature.title}
-								initial={{ opacity: 0, y: 20 }}
-								whileInView={{ opacity: 1, y: 0 }}
-								viewport={{ once: true }}
-								transition={{
-									delay: index * 0.1,
-									duration: 0.5,
-								}}
-							>
-								<Card className='p-6 h-full hover:shadow-lg transition-shadow border-2 hover:border-primary/50'>
-									<div
-										className={`inline-flex rounded-lg bg-muted p-3 mb-4 ${feature.color}`}
-									>
-										<Icon className='h-6 w-6' />
-									</div>
-									<h3 className='mb-2'>{feature.title}</h3>
-									<p className='text-muted-foreground'>
-										{feature.description}
-									</p>
-								</Card>
-							</motion.div>
-						);
-					})}
-				</div>
-			</section>
-
-			{/* How It Works Section */}
-			<section className='border-y bg-muted/30'>
-				<div className='container mx-auto px-6 py-20'>
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						viewport={{ once: true }}
-						transition={{ duration: 0.5 }}
-						className='text-center mb-16'
-					>
-						<h2 className='mb-4'>How It Works</h2>
-						<p className='text-xl text-muted-foreground max-w-2xl mx-auto'>
-							Three simple steps to organize your job search like
-							a pro.
-						</p>
-					</motion.div>
-
-					<div className='grid md:grid-cols-3 gap-8 max-w-5xl mx-auto'>
-						{[
-							{
-								step: '01',
-								title: 'Browse Jobs',
-								description:
-									'Explore our curated list of job openings from top companies across various industries.',
-								icon: Briefcase,
-							},
-							{
-								step: '02',
-								title: 'Apply & Track',
-								description:
-									'Apply with one click and automatically add applications to your tracking dashboard.',
-								icon: CheckCircle2,
-							},
-							{
-								step: '03',
-								title: 'Monitor Progress',
-								description:
-									'Track status updates, view analytics, and manage your entire job search journey.',
-								icon: LineChart,
-							},
-						].map((step, index) => {
-							const Icon = step.icon;
-							return (
-								<motion.div
-									key={step.step}
-									initial={{ opacity: 0, y: 20 }}
-									whileInView={{ opacity: 1, y: 0 }}
-									viewport={{ once: true }}
-									transition={{
-										delay: index * 0.2,
-										duration: 0.5,
-									}}
-									className='relative text-center'
-								>
-									<div className='mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground'>
-										<Icon className='h-8 w-8' />
-									</div>
-									<div className='absolute -top-4 left-1/2 -translate-x-1/2 text-6xl opacity-10'>
-										{step.step}
-									</div>
-									<h3 className='mb-3'>{step.title}</h3>
-									<p className='text-muted-foreground'>
-										{step.description}
-									</p>
-								</motion.div>
-							);
-						})}
-					</div>
-				</div>
-			</section>
-
-			{/* CTA Section */}
-			<section className='container mx-auto px-6 py-20'>
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					whileInView={{ opacity: 1, y: 0 }}
-					viewport={{ once: true }}
-					transition={{ duration: 0.5 }}
-				>
-					<Card className='relative overflow-hidden border-2'>
-						<div className='absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10' />
-						<div className='relative p-12 text-center'>
-							<h2 className='mb-4'>
-								Ready to Transform Your Job Search?
-							</h2>
-							<p className='text-xl text-muted-foreground mb-8 max-w-2xl mx-auto'>
-								Join thousands of job seekers who have organized
-								their applications and landed their dream jobs
-								with Hirelytics.
-							</p>
-							<div className='flex flex-col sm:flex-row items-center justify-center gap-4'>
-								<Button
-									size='lg'
-									className='gap-2'
-									onClick={() =>
-										(window.location.hash = '#/jobs')
-									}
-								>
-									Get Started Now
-									<ArrowRight className='h-5 w-5' />
-								</Button>
-								<Button
-									size='lg'
-									variant='outline'
-									onClick={() =>
-										(window.location.hash =
-											'#/applications')
-									}
-								>
-									View Dashboard
-								</Button>
-							</div>
-						</div>
-					</Card>
-				</motion.div>
-			</section>
-
-			{/* Footer */}
-			<footer className='border-t bg-muted/30 py-12'>
-				<div className='container mx-auto px-6'>
-					<div className='flex flex-col md:flex-row items-center justify-between gap-4'>
-						<div>
-							<h3 className='mb-2'>Hirelytics</h3>
-							<p className='text-sm text-muted-foreground'>
-								Your intelligent job application tracker
-							</p>
-						</div>
-						<div className='flex gap-6 text-sm text-muted-foreground'>
-							<a
-								href='#/jobs'
-								className='hover:text-foreground transition-colors'
-							>
-								Available Jobs
-							</a>
-							<a
-								href='#/applications'
-								className='hover:text-foreground transition-colors'
-							>
-								My Applications
-							</a>
-						</div>
-					</div>
-					<div className='mt-8 pt-8 border-t text-center text-sm text-muted-foreground'>
-						© {new Date().getFullYear()} Hirelytics. Built with ❤️
-						for job seekers.
-					</div>
-				</div>
-			</footer>
-		</div>
-	);
+// Define types for the use cases
+interface UseCaseResult {
+  image?: string;
+  alt?: string;
+  title: string;
+  description: string;
+  icon?: React.ReactNode;
+  points?: string[];
 }
 
-export default HomePage;
+interface UseCase {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  benefits: string[];
+  results: UseCaseResult;
+}
+
+type UseCaseKey = "applicant-dashboard" | "recruiter-console" | "ai-feedback-assistant" | "analytics-insights";
+
+export default function App() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<UseCaseKey>("applicant-dashboard");
+
+  // CTA handlers - UPDATED TO MATCH page.tsx HASH ROUTING
+  const goGetStarted = () => (window.location.hash = "#/jobs");
+  const goDashboard = () => (window.location.hash = "#/applications");
+  const goJobs = () => (window.location.hash = "#/jobs");
+  const goApplications = () => (window.location.hash = "#/applications");
+  const goHome = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Palette helpers
+  const accents = {
+    teal: "#A9EEF2",
+    gold: "#F0D044",
+    pink: "#EF56C2",
+  };
+
+  // Use Cases with unique content for each (removed mobile and compliance)
+  const useCases: Record<UseCaseKey, UseCase> = {
+    "applicant-dashboard": {
+      icon: <ClipboardList className="h-6 w-6" />,
+      title: "Applicant Dashboard",
+      description: "Centralized control center for your entire job search. Track every application, monitor status changes in real-time, and never miss an update across all your job applications.",
+      benefits: [
+        "Unified view of all applications across platforms",
+        "Real-time status updates and notifications",
+        "Customizable tracking categories and tags",
+        "Exportable application history and analytics",
+      ],
+      results: {
+        image: "/Applicantinterface.png",
+        alt: "Applicant Dashboard Interface",
+        title: "Intuitive Applicant Experience",
+        description: "Our clean, user-friendly interface makes job tracking simple and efficient"
+      }
+    },
+    "recruiter-console": {
+      icon: <Users className="h-6 w-6" />,
+      title: "Recruiter Console",
+      description: "Streamlined interface designed for high-volume hiring teams. Process applications faster with batch actions, automated workflows, and intelligent candidate routing.",
+      benefits: [
+        "One-click bulk status updates",
+        "Automated candidate communication templates",
+        "Team collaboration and assignment tools",
+        "Integration with existing HR systems",
+      ],
+      results: {
+        image: "/Recruiterinterface.png",
+        alt: "Applicant Dashboard Interface",
+        title: "Improved Hiring Operations",
+        description: "Empower recruiters with automation-driven workflows and real-time insights."
+      
+      }
+    },
+    "ai-feedback-assistant": {
+      icon: <Brain className="h-6 w-6" />,
+      title: "AI Feedback Assistant",
+      description: "Transform brief recruiter notes into comprehensive, constructive feedback. Our AI analyzes patterns to provide actionable insights that help candidates improve future applications.",
+      benefits: [
+        "Natural language processing of recruiter comments",
+        "Personalized improvement suggestions",
+        "Skill gap analysis and learning recommendations",
+        "Tone-optimized feedback delivery",
+      ],
+      results: {
+        image: "/Postinterview.png",
+        alt: "Applicant Dashboard Interface",
+        title: "Insightful Post-Interview Feedback",
+        description: "Transform interviews into learning opportunities for improvement and career development."
+      
+      }
+    },
+    "analytics-insights": {
+      icon: <BarChart3 className="h-6 w-6" />,
+      title: "Analytics & Insights",
+      description: "Comprehensive data visualization and reporting tools that transform hiring metrics into actionable intelligence. Track funnel performance, identify bottlenecks, and optimize your strategy.",
+      benefits: [
+        "Real-time hiring funnel analytics",
+        "Customizable dashboard and reports",
+        "Predictive hiring trend analysis",
+        "Competitive benchmarking data",
+      ],
+      results: {
+        icon: <LineChart className="h-10 w-10 text-gray-800" />,
+        title: "Data-Driven Results",
+        description: "Organizations using analytics see:",
+        points: [
+          "34% reduction in time-to-hire",
+          "27% improvement in candidate quality",
+          "52% better resource allocation",
+          "41% cost savings in hiring process"
+        ]
+      }
+    },
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-white text-black">
+      {/* Navbar */}
+      <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <img 
+              src="/logo.png" 
+              alt="Hirelytics logo" 
+              className="h-10 w-10"
+            />
+            <span className="text-xl font-semibold tracking-tight">
+              Hirelytics
+            </span>
+          </div>
+
+          {/* Desktop Nav - UPDATED WITH HASH ROUTING */}
+          <ul className="hidden items-center gap-8 text-gray-700 font-medium lg:flex">
+            <li>
+              <button 
+                onClick={goHome}
+                className="hover:text-black transition-colors duration-200 flex items-center gap-1"
+              >
+                <Home size={16} />
+                Home
+              </button>
+            </li>
+            <li>
+              <button 
+                onClick={goJobs}
+                className="hover:text-black transition-colors duration-200 flex items-center gap-1"
+              >
+                <Briefcase size={16} />
+                Available Jobs
+              </button>
+            </li>
+            <li>
+              <button 
+                onClick={goApplications}
+                className="hover:text-black transition-colors duration-200 flex items-center gap-1"
+              >
+                <ClipboardList size={16} />
+                My Applications
+              </button>
+            </li>
+          </ul>
+
+          {/* Actions */}
+          <div className="hidden lg:flex">
+            <button className="rounded-lg border border-black px-4 py-2 hover:bg-gray-100">
+              Sign In
+            </button>
+          </div>
+
+          {/* Mobile menu toggle */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="rounded-lg p-2 hover:bg-gray-100 lg:hidden"
+            aria-label="Toggle navigation"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              {menuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
+
+        {/* Mobile Menu - UPDATED WITH HASH ROUTING */}
+        {menuOpen && (
+          <div className="border-t border-gray-200 px-6 pb-4 lg:hidden">
+            <ul className="flex flex-col gap-3 py-3 font-medium text-gray-700">
+              <li>
+                <button 
+                  onClick={() => { goHome(); setMenuOpen(false); }}
+                  className="flex items-center gap-2 w-full text-left"
+                >
+                  <Home size={16} />
+                  Home
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => { goJobs(); setMenuOpen(false); }}
+                  className="flex items-center gap-2 w-full text-left"
+                >
+                  <Briefcase size={16} />
+                  Available Jobs
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => { goApplications(); setMenuOpen(false); }}
+                  className="flex items-center gap-2 w-full text-left"
+                >
+                  <ClipboardList size={16} />
+                  My Applications
+                </button>
+              </li>
+            </ul>
+            <button className="w-full rounded-lg border border-black px-4 py-2 hover:bg-gray-100">
+              Sign In
+            </button>
+          </div>
+        )}
+      </nav>
+
+      {/* Hero Section */}
+      <header className="relative overflow-hidden px-6 py-20 text-center">
+        {/* soft background accents */}
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <div
+            className="absolute -top-16 -left-16 h-72 w-72 rounded-full blur-3xl"
+            style={{ background: `${accents.teal}22` }}
+          />
+          <div
+            className="absolute -bottom-20 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full blur-3xl"
+            style={{ background: `${accents.gold}22` }}
+          />
+          <div
+            className="absolute top-10 -right-16 h-72 w-72 rounded-full blur-3xl"
+            style={{ background: `${accents.pink}22` }}
+          />
+        </div>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mx-auto mb-6 max-w-4xl text-5xl font-bold leading-tight"
+        >
+          Make Hiring Faster, Fairer, and Clearer
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.05 }}
+          className="mx-auto mb-10 max-w-2xl text-lg text-gray-700"
+        >
+          Hirelytics bridges recruiters and applicants with real-time status
+          updates, automated AI feedback, and a shared view of progress—so
+          everyone knows what's happening and why.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.1 }}
+          className="flex flex-wrap items-center justify-center gap-4"
+        >
+          {/* UPDATED WITH HASH ROUTING */}
+          <button
+            onClick={goJobs}
+            className="group flex items-center gap-3 rounded-lg bg-[#63c1c6ff] px-6 py-3 font-semibold text-white shadow hover:-translate-y-0.5 hover:shadow-md transition"
+          >
+            <Briefcase className="h-5 w-5" />
+            Browse Available Jobs
+            <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+          </button>
+
+          {/* UPDATED WITH HASH ROUTING */}
+          <button
+            onClick={goApplications}
+            className="flex items-center gap-3 rounded-lg border border-gray-300 bg-white px-6 py-3 font-semibold text-black hover:bg-gray-50 transition"
+          >
+            <ClipboardList className="h-5 w-5" />
+            View My Applications
+          </button>
+        </motion.div>
+      </header>
+
+      {/* Features Section */}
+      <section id="features" className="px-6 py-20">
+        <div className="mx-auto mb-14 max-w-7xl text-center">
+          <h2 className="mb-3 text-4xl font-bold">What Makes Hirelytics Different</h2>
+          <p className="mx-auto max-w-2xl text-gray-700">
+            Built for both applicants and recruiters—transparent, efficient, and guided by AI.
+          </p>
+        </div>
+
+        <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[
+            {
+              icon: <Brain className="h-6 w-6" />,
+              title: "AI Feedback Engine",
+              description:
+                "Turns recruiter notes into constructive guidance so applicants learn exactly how to improve the next time.",
+              color: "teal",
+            },
+            {
+              icon: <Clock className="h-6 w-6" />,
+              title: "Real-Time Status Updates",
+              description:
+                "Applicants see updates the moment actions are taken—no more guessing or inbox refreshing.",
+              color: "pink",
+            },
+            {
+              icon: <Globe className="h-6 w-6" />,
+              title: "Smart Job Aggregation",
+              description:
+                "Track roles from multiple platforms in one streamlined view—fewer tabs, more clarity.",
+              color: "gold",
+            },
+            {
+              icon: <Zap className="h-6 w-6" />,
+              title: "Recruiter Efficiency",
+              description:
+                "Bulk updates and one-click actions reduce manual work during peak hiring seasons.",
+              color: "teal",
+            },
+            {
+              icon: <BarChart3 className="h-6 w-6" />,
+              title: "Applicant Insights",
+              description:
+                "Visual analytics show activity trends, response rates, and progress over time.",
+              color: "pink",
+            },
+            {
+              icon: <Shield className="h-6 w-6" />,
+              title: "Compliance & Security",
+              description:
+                "Role-based access, encryption, and audit trails protect users and support privacy needs.",
+              color: "gold",
+            },
+          ].map((f, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: i * 0.05 }}
+              className="group rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md"
+            >
+              <div
+                className="mb-4 inline-flex rounded-lg p-3"
+                style={{
+                  background:
+                    f.color === "teal"
+                      ? `${accents.teal}33`
+                      : f.color === "pink"
+                      ? `${accents.pink}33`
+                      : `${accents.gold}33`,
+                  color:
+                    f.color === "teal"
+                      ? "#0b6e77"
+                      : f.color === "pink"
+                      ? "#7a1b57"
+                      : "#6f5b00",
+                }}
+              >
+                {f.icon}
+              </div>
+              <h3 className="mb-2 text-xl font-semibold text-black">{f.title}</h3>
+              <p className="text-gray-700">{f.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="bg-gray-50 px-6 py-20">
+        <div className="mx-auto mb-14 max-w-7xl text-center">
+          <h2 className="mb-3 text-4xl font-bold">How It Works</h2>
+          <p className="mx-auto max-w-2xl text-gray-700">
+            A shared workflow that respects everyone's time—clear steps, clear outcomes.
+          </p>
+        </div>
+
+        <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-3">
+          {[
+            {
+              step: "01",
+              title: "Apply & Sync",
+              description:
+                "Add roles from anywhere. Your dashboard keeps every application organized and up to date.",
+              Icon: Briefcase,
+              badge: accents.teal,
+            },
+            {
+              step: "02",
+              title: "Review & Update",
+              description:
+                "Recruiters evaluate candidates and update status in one click. Actions reflect instantly.",
+              Icon: Users,
+              badge: accents.pink,
+            },
+            {
+              step: "03",
+              title: "AI Feedback",
+              description:
+                "Applicants receive structured, constructive feedback generated from recruiter notes.",
+              Icon: Brain,
+              badge: accents.gold,
+            },
+          ].map(({ step, title, description, Icon, badge }, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: i * 0.08 }}
+              className="relative rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition hover:shadow-md"
+            >
+              <div
+                className="mx-auto mb-6 grid h-16 w-16 place-items-center rounded-full text-white shadow"
+                style={{ background: badge }}
+              >
+                <Icon className="h-8 w-8" />
+              </div>
+              <div className="pointer-events-none absolute right-6 top-4 text-4xl font-bold text-gray-200">
+                {step}
+              </div>
+              <h3 className="mb-2 text-xl font-semibold text-black">{title}</h3>
+              <p className="text-gray-700">{description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Use Cases Section */}
+      <section id="use-cases" className="px-6 py-20">
+        <div className="mx-auto mb-10 max-w-7xl text-center">
+          <h2 className="mb-3 text-4xl font-bold">Use Cases</h2>
+          <p className="mx-auto max-w-2xl text-gray-700">
+            Platform modules designed for both sides of the hiring process.
+          </p>
+        </div>
+
+        {/* Tabs - Only 4 use cases now */}
+        <div className="mx-auto mb-10 flex max-w-5xl flex-wrap justify-center gap-3">
+          {(Object.entries(useCases) as [UseCaseKey, UseCase][]).map(([key, uc]) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-medium transition ${
+                activeTab === key
+                  ? "bg-black text-white shadow"
+                  : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+              }`}
+            >
+              <span>{uc.icon}</span>
+              <span>{uc.title}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Active tab panel - UPDATED WITH WHITE BACKGROUND ON RIGHT */}
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="mx-auto max-w-5xl overflow-hidden rounded-2xl border border-gray-200 shadow-sm"
+        >
+          <div className="flex flex-col lg:flex-row">
+            <div className="w-full p-8 lg:w-1/2 lg:p-10">
+              <div className="mb-4 flex items-center gap-3">
+                <div
+                  className="grid h-10 w-10 place-items-center rounded-lg"
+                  style={{ background: `${accents.teal}33` }}
+                >
+                  {useCases[activeTab].icon}
+                </div>
+                <h3 className="text-2xl font-bold">{useCases[activeTab].title}</h3>
+              </div>
+              <p className="mb-6 text-lg text-gray-700">
+                {useCases[activeTab].description}
+              </p>
+
+              <h4 className="mb-3 font-semibold">Key Benefits</h4>
+              <ul className="mb-8 space-y-2">
+                {useCases[activeTab].benefits.map((b: string, i: number) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 h-5 w-5" style={{ color: accents.teal }} />
+                    <span className="text-gray-800">{b}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* UPDATED WITH HASH ROUTING */}
+              <button
+                onClick={goGetStarted}
+                className="group flex items-center gap-2 rounded-lg bg-black px-6 py-3 font-semibold text-white hover:opacity-90"
+              >
+                Learn More
+                <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+              </button>
+            </div>
+
+            {/* UPDATED RIGHT PANEL - WHITE BACKGROUND WITH BLACK TEXT */}
+            <div className="w-full bg-white p-8 lg:w-1/2 lg:p-10">
+              {useCases[activeTab].results.image ? (
+                // Updated image display for applicant-dashboard - now with white background
+                <div className="max-w-md mx-auto rounded-2xl bg-white p-8 text-center border border-gray-200">
+                  <div className="mb-4 flex justify-center">
+                    <img 
+                      src={useCases[activeTab].results.image} 
+                      alt={useCases[activeTab].results.alt}
+                      className="rounded-xl shadow-2xl border-4 border-gray-100 max-w-full h-auto"
+                      style={{ maxWidth: '280px' }}
+                    />
+                  </div>
+                  <h4 className="mb-2 text-xl font-bold text-gray-800">{useCases[activeTab].results.title}</h4>
+                  <p className="text-gray-700">{useCases[activeTab].results.description}</p>
+                </div>
+              ) : (
+                // Updated results content for other use cases - white background with black text
+                <div className="max-w-md mx-auto rounded-2xl bg-white p-8 text-center border border-gray-200">
+                  {useCases[activeTab].results.icon}
+                  <h4 className="mb-2 text-xl font-bold text-gray-800">{useCases[activeTab].results.title}</h4>
+                  <p className="mb-4 text-gray-700">
+                    {useCases[activeTab].results.description}
+                  </p>
+                  <div className="space-y-2 text-gray-800 text-left">
+                    {useCases[activeTab].results.points?.map((point: string, index: number) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-gray-600" />
+                        <span>{point}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="px-6 py-20">
+        <div className="mx-auto max-w-4xl rounded-2xl border border-gray-200 bg-white p-10 text-center shadow-sm">
+          <h2 className="mb-4 text-4xl font-bold">Start Building a Better Hiring Experience</h2>
+          <p className="mx-auto mb-8 max-w-2xl text-gray-700">
+            Bring transparency to applicants and efficiency to recruiters—with AI that clarifies each step.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            {/* UPDATED WITH HASH ROUTING */}
+            <button
+              onClick={goGetStarted}
+              className="group flex items-center gap-2 rounded-lg bg-[#63c1c6ff] px-8 py-3 font-semibold text-white shadow hover:-translate-y-0.5 hover:shadow-md transition"
+            >
+              Get Started Now
+              <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+            </button>
+            
+            {/* UPDATED WITH HASH ROUTING */}
+            <button
+              onClick={goDashboard}
+              className="rounded-lg border border-gray-300 bg-white px-8 py-3 font-semibold text-black hover:bg-gray-50 transition"
+            >
+              View Dashboard
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="mt-auto border-t border-gray-200 bg-white px-6 py-14">
+        <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-4">
+          <div>
+            <div className="mb-3 flex items-center gap-3">
+              <img 
+                src="/logo.png" 
+                alt="Hirelytics logo" 
+                className="h-9 w-9"
+              />
+              <span className="text-lg font-semibold">Hirelytics</span>
+            </div>
+            <p className="text-sm text-gray-600">
+              A shared platform where recruiters save time and applicants stay informed
+              through AI-powered tracking, real-time updates, and constructive feedback.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="mb-3 font-semibold text-black">Product</h4>
+            <ul className="space-y-2 text-gray-600">
+              <li><a href="#features" className="hover:text-black">Features</a></li>
+              <li><a href="#use-cases" className="hover:text-black">Use Cases</a></li>
+              <li><a href="/api" className="hover:text-black">API</a></li>
+              <li><a href="/integrations" className="hover:text-black">Integrations</a></li>
+              <li><a href="/docs" className="hover:text-black">Documentation</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="mb-3 font-semibold text-black">Company</h4>
+            <ul className="space-y-2 text-gray-600">
+              <li><a href="/about" className="hover:text-black">About</a></li>
+              <li><a href="/blog" className="hover:text-black">Blog</a></li>
+              <li><a href="/careers" className="hover:text-black">Careers</a></li>
+              <li><a href="/press" className="hover:text-black">Press</a></li>
+              <li><a href="/contact" className="hover:text-black">Contact</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="mb-3 font-semibold text-black">Resources</h4>
+            <ul className="space-y-2 text-gray-600">
+              <li><a href="/community" className="hover:text-black">Community</a></li>
+              <li><a href="/help" className="hover:text-black">Help Center</a></li>
+              <li><a href="/partners" className="hover:text-black">Partners</a></li>
+              <li><a href="/status" className="hover:text-black">Status</a></li>
+              <li><a href="/security" className="hover:text-black">Security</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mx-auto mt-10 max-w-7xl border-t border-gray-200 pt-6 text-sm text-gray-600 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <p>© 2025 Hirelytics. All rights reserved.</p>
+          <div className="flex gap-4">
+            <a href="/terms" className="hover:text-black">Terms</a>
+            <a href="/privacy" className="hover:text-black">Privacy</a>
+            <a href="/cookies" className="hover:text-black">Cookies</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
