@@ -20,7 +20,16 @@ export function Navbar({
   return (
     <nav className="flex justify-between items-center border-b px-6 h-16 bg-background sticky top-0 z-50">
       {/* Left side - logo */}
-      <div className="font-bold text-lg text-primary">Hirelytics</div>
+          <div className='flex-shrink-0'>
+            <a href='#/' className='inline-block'>
+              <h1 className='bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent'>
+                Hirelytics
+              </h1>
+            </a>
+            <p className='text-muted-foreground text-sm'>
+              Manage and track your job search progress
+            </p>
+          </div>
 
       {/* Center - nav links */}
       <div className="flex gap-6">
