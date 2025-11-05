@@ -17,6 +17,9 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+.husky/
+.lintstagedrc
+.prettierignore
 
 # testing
 /coverage
