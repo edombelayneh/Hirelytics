@@ -12,10 +12,7 @@ import {
   CheckCircle2,
   LineChart,
   ArrowRight,
-  Users,
-  Target,
-  TrendingUp,
-  Home
+  Users
 } from "lucide-react";
 
 // Define types for the use cases
@@ -39,7 +36,6 @@ interface UseCase {
 type UseCaseKey = "applicant-dashboard" | "recruiter-console" | "ai-feedback-assistant" | "analytics-insights";
 
 export default function App() {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<UseCaseKey>("applicant-dashboard");
 
   // CTA handlers - UPDATED TO MATCH page.tsx HASH ROUTING
@@ -47,7 +43,6 @@ export default function App() {
   const goDashboard = () => (window.location.hash = "#/applications");
   const goJobs = () => (window.location.hash = "#/jobs");
   const goApplications = () => (window.location.hash = "#/applications");
-  const goHome = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Palette helpers
   const accents = {
@@ -137,121 +132,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-black">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <img 
-              src="/logo.png" 
-              alt="Hirelytics logo" 
-              className="h-10 w-10"
-            />
-            <span className="text-xl font-semibold tracking-tight">
-              Hirelytics
-            </span>
-          </div>
-
-          {/* Desktop Nav - UPDATED WITH HASH ROUTING */}
-          <ul className="hidden items-center gap-8 text-gray-700 font-medium lg:flex">
-            <li>
-              <button 
-                onClick={goHome}
-                className="hover:text-black transition-colors duration-200 flex items-center gap-1"
-              >
-                <Home size={16} />
-                Home
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={goJobs}
-                className="hover:text-black transition-colors duration-200 flex items-center gap-1"
-              >
-                <Briefcase size={16} />
-                Available Jobs
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={goApplications}
-                className="hover:text-black transition-colors duration-200 flex items-center gap-1"
-              >
-                <ClipboardList size={16} />
-                My Applications
-              </button>
-            </li>
-          </ul>
-
-          {/* Actions */}
-          <div className="hidden lg:flex">
-            <button className="rounded-lg border border-black px-4 py-2 hover:bg-gray-100">
-              Sign In
-            </button>
-          </div>
-
-          {/* Mobile menu toggle */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="rounded-lg p-2 hover:bg-gray-100 lg:hidden"
-            aria-label="Toggle navigation"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              {menuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
-        </div>
-
-        {/* Mobile Menu - UPDATED WITH HASH ROUTING */}
-        {menuOpen && (
-          <div className="border-t border-gray-200 px-6 pb-4 lg:hidden">
-            <ul className="flex flex-col gap-3 py-3 font-medium text-gray-700">
-              <li>
-                <button 
-                  onClick={() => { goHome(); setMenuOpen(false); }}
-                  className="flex items-center gap-2 w-full text-left"
-                >
-                  <Home size={16} />
-                  Home
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => { goJobs(); setMenuOpen(false); }}
-                  className="flex items-center gap-2 w-full text-left"
-                >
-                  <Briefcase size={16} />
-                  Available Jobs
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => { goApplications(); setMenuOpen(false); }}
-                  className="flex items-center gap-2 w-full text-left"
-                >
-                  <ClipboardList size={16} />
-                  My Applications
-                </button>
-              </li>
-            </ul>
-            <button className="w-full rounded-lg border border-black px-4 py-2 hover:bg-gray-100">
-              Sign In
-            </button>
-          </div>
-        )}
-      </nav>
-
       {/* Hero Section */}
       <header className="relative overflow-hidden px-6 py-20 text-center">
         {/* soft background accents */}
@@ -602,64 +482,50 @@ export default function App() {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Footer - SIMPLIFIED */}
       <footer className="mt-auto border-t border-gray-200 bg-white px-6 py-14">
-        <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-4">
+        <div className="mx-auto grid max-w-7xl gap-10 md:grid-cols-2">
+          {/* Company Information */}
           <div>
             <div className="mb-3 flex items-center gap-3">
               <img 
-                src="/logo.png" 
+                src="/Hirelytics_H-Logo.png" 
                 alt="Hirelytics logo" 
                 className="h-9 w-9"
               />
               <span className="text-lg font-semibold">Hirelytics</span>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 max-w-md">
               A shared platform where recruiters save time and applicants stay informed
               through AI-powered tracking, real-time updates, and constructive feedback.
             </p>
           </div>
 
+          {/* Product Links - Simplified */}
           <div>
             <h4 className="mb-3 font-semibold text-black">Product</h4>
             <ul className="space-y-2 text-gray-600">
-              <li><a href="#features" className="hover:text-black">Features</a></li>
-              <li><a href="#use-cases" className="hover:text-black">Use Cases</a></li>
-              <li><a href="/api" className="hover:text-black">API</a></li>
-              <li><a href="/integrations" className="hover:text-black">Integrations</a></li>
-              <li><a href="/docs" className="hover:text-black">Documentation</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-3 font-semibold text-black">Company</h4>
-            <ul className="space-y-2 text-gray-600">
-              <li><a href="/about" className="hover:text-black">About</a></li>
-              <li><a href="/blog" className="hover:text-black">Blog</a></li>
-              <li><a href="/careers" className="hover:text-black">Careers</a></li>
-              <li><a href="/press" className="hover:text-black">Press</a></li>
-              <li><a href="/contact" className="hover:text-black">Contact</a></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="mb-3 font-semibold text-black">Resources</h4>
-            <ul className="space-y-2 text-gray-600">
-              <li><a href="/community" className="hover:text-black">Community</a></li>
-              <li><a href="/help" className="hover:text-black">Help Center</a></li>
-              <li><a href="/partners" className="hover:text-black">Partners</a></li>
-              <li><a href="/status" className="hover:text-black">Status</a></li>
-              <li><a href="/security" className="hover:text-black">Security</a></li>
+              <li>
+                <a href="#features" className="hover:text-black transition-colors">
+                  Features
+                </a>
+              </li>
+              <li>
+                <a href="#use-cases" className="hover:text-black transition-colors">
+                  Use Cases
+                </a>
+              </li>
             </ul>
           </div>
         </div>
 
+        {/* Footer Bottom - Copyright and Legal */}
         <div className="mx-auto mt-10 max-w-7xl border-t border-gray-200 pt-6 text-sm text-gray-600 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <p>© 2025 Hirelytics. All rights reserved.</p>
           <div className="flex gap-4">
-            <a href="/terms" className="hover:text-black">Terms</a>
-            <a href="/privacy" className="hover:text-black">Privacy</a>
-            <a href="/cookies" className="hover:text-black">Cookies</a>
+            <a href="/terms" className="hover:text-black transition-colors">Terms</a>
+            <a href="/privacy" className="hover:text-black transition-colors">Privacy</a>
+            <a href="/cookies" className="hover:text-black transition-colors">Cookies</a>
           </div>
         </div>
       </footer>
