@@ -19,17 +19,19 @@ export function Navbar({
 
   return (
     <nav className="flex justify-between items-center border-b px-6 h-16 bg-background sticky top-0 z-50">
-      {/* Left side - logo */}
-          <div className='flex-shrink-0'>
-            <a href='#/' className='inline-block'>
-              <h1 className='bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent'>
-                Hirelytics
-              </h1>
-            </a>
-            <p className='text-muted-foreground text-sm'>
-              Manage and track your job search progress
-            </p>
-          </div>
+     {/* Logo and Brand */}
+     <div className='flex-shrink-0'>
+        <a href='#/' className='inline-block'>
+          <img
+            src='../Hirelytics_Logo.png'
+            alt='Hirelytics Logo'
+            className='h-8 w-auto'
+          />
+        </a>
+        <p className='text-muted-foreground text-sm'>
+          Manage and track your job search progress
+        </p>
+      </div>
 
       {/* Center - nav links */}
       <div className="flex gap-6">
