@@ -25,23 +25,53 @@ export const metadata: Metadata = {
   description: 'Where job applications meet analytics.',
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+// export default function RootLayout({
+//   children,
+// }: Readonly<{
+//   children: React.ReactNode
+// }>) {
+//   return (
+//     <ClerkProvider>
+//       <html lang="en">
+//         <head>
+//           <script src="https://cdn.tailwindcss.com"></script>
+//         </head>
+//         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+//           <header className="flex justify-end items-center p-4 gap-4 h-16">
+//             <SignedOut>
+//               <SignInButton />
+//               <SignUpButton>
+//                 <button className="bg-[#6c47ff] text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
+//                   Sign Up
+//                 </button>
+//               </SignUpButton>
+//             </SignedOut>
+//             <SignedIn>
+//               <UserButton />
+//             </SignedIn>
+//           </header>
+//           {children}
+//         </body>
+//       </html>
+//     </ClerkProvider>
+//   )
+// }
+
+// app/layout.tsx
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
       <html lang="en">
         <head>
           <script src="https://cdn.tailwindcss.com"></script>
         </head>
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <header className="flex justify-end items-center p-4 gap-4 h-16">
+        <body className="antialiased">
+          {/* AUTH HEADER ONLY */}
+          <header className="flex justify-end items-center p-4 gap-4 h-16 border-b">
             <SignedOut>
-              <SignInButton />
-              <SignUpButton>
-                <button className="bg-[#6c47ff] text-ceramic-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer">
+              <SignInButton mode="modal" />
+              <SignUpButton mode="modal">
+                <button className="bg-[#6c47ff] text-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5">
                   Sign Up
                 </button>
               </SignUpButton>
@@ -50,9 +80,10 @@ export default function RootLayout({
               <UserButton />
             </SignedIn>
           </header>
+
           {children}
         </body>
       </html>
     </ClerkProvider>
-  )
+  );
 }
