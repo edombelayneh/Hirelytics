@@ -2,196 +2,211 @@
 
 import { useState } from "react";
 
-type JobFormState = {
-  jobName: string;
-  description: string;
-  qualifications: string;
-  niceToHave: string;
-  country: string;
-  state: string;
-  city: string;
-  visaRequirements: string;
-  generalDescription: string;
-};
-
 export default function JobForm() {
-  const [form, setForm] = useState<JobFormState>({
-    jobName: "",
-    description: "",
-    qualifications: "",
-    niceToHave: "",
-    country: "",
-    state: "",
-    city: "",
-    visaRequirements: "",
-    generalDescription: "",
-  });
+  const [jobName, setJobName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [recruiterEmail, setRecruiterEmail] = useState("");
+  const [description, setDescription] = useState("");
+  const [qualifications, setQualifications] = useState("");
+  const [niceToHave, setNiceToHave] = useState("");
+  const [country, setCountry] = useState("");
+  const [stateValue, setStateValue] = useState("");
+  const [city, setCity] = useState("");
+  const [visaRequirements, setVisaRequirements] = useState("");
+  const [generalDescription, setGeneralDescription] = useState("");
 
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const onChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  const onSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
 
-    if (!form.jobName || !form.description || !form.country) {
-      setMessage("Please fill in Job Name, Description, and Country.");
-      return;
-    }
+    // simple required fields
+    if (!jobName || !companyName || !description || !recruiterEmail) {
+  setMessage("Please fill in Job Name, Company Name, Description, and Recruiter Email.");
+  return;
+}
+
+    const jobData = {
+      jobName,
+      companyName,
+      description,
+      qualifications,
+      niceToHave,
+      country,
+      state: stateValue,
+      city,
+      visaRequirements,
+      generalDescription,
+      recruiterEmail,  
+    };
 
     try {
-      setLoading(true);
-      const res = await fetch("/api/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      setSubmitting(true);
 
-      if (!res.ok) throw new Error("Failed to save job.");
+      // for now just log it so you can see it in the console
+      console.log("New job:", jobData);
 
-      setMessage("Job added successfully!");
-      setForm({
-        jobName: "",
-        description: "",
-        qualifications: "",
-        niceToHave: "",
-        country: "",
-        state: "",
-        city: "",
-        visaRequirements: "",
-        generalDescription: "",
-      });
+      // later you can post to an API:
+      // await fetch("/api/jobs", { method: "POST", body: JSON.stringify(jobData) });
+
+      setMessage("Job saved (check console for data).");
+
+      // reset form
+      setJobName("");
+      setCompanyName("");
+      setDescription("");
+      setQualifications("");
+      setNiceToHave("");
+      setCountry("");
+      setStateValue("");
+      setCity("");
+      setVisaRequirements("");
+      setGeneralDescription("");
+      setRecruiterEmail(""); 
     } catch (err: any) {
       setMessage(err.message || "Something went wrong.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
-    <input {...props} className="w-full border rounded p-2" />
-  );
-
-  const Textarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
-    <textarea {...props} className="w-full border rounded p-2" />
-  );
-
-  const Label = ({ children }: { children: React.ReactNode }) => (
-    <label className="block text-sm mb-1">{children}</label>
-  );
-
   return (
-    <form onSubmit={onSubmit} className="space-y-5">
-      {message && <div className="rounded border p-3 text-sm">{message}</div>}
+    <form onSubmit={handleSubmit} className="space-y-5 max-w-3xl">
+      {message && (
+        <div className="rounded border p-3 text-sm">
+          {message}
+        </div>
+      )}
 
       <div>
-        <Label>Job Name *</Label>
-        <Input
-          name="jobName"
-          value={form.jobName}
-          onChange={onChange}
+        <label className="block text-sm mb-1">Job Name *</label>
+        <input
+          type="text"
+          value={jobName}
+          onChange={(e) => setJobName(e.target.value)}
           placeholder="Software Engineer"
+          className="w-full border rounded p-2"
         />
       </div>
 
       <div>
-        <Label>Description *</Label>
-        <Textarea
-          name="description"
-          value={form.description}
-          onChange={onChange}
+        <label className="block text-sm mb-1">Company Name *</label>
+        <input
+          type="text"
+          value={companyName}
+          onChange={(e) => setCompanyName(e.target.value)}
+          placeholder="Company Name"
+          className="w-full border rounded p-2"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm mb-1">Recruiter Email *</label>
+        <input
+          type="email"
+          value={recruiterEmail}
+          onChange={(e) => setRecruiterEmail(e.target.value)}
+          placeholder="recruiter@company.com"
+          className="w-full border rounded p-2"
+        />
+    </div>
+
+      <div>
+        <label className="block text-sm mb-1">Description *</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           placeholder="Main role summary and responsibilities"
           rows={4}
+          className="w-full border rounded p-2"
         />
       </div>
 
       <div>
-        <Label>Qualifications (Must-Have)</Label>
-        <Textarea
-          name="qualifications"
-          value={form.qualifications}
-          onChange={onChange}
+        <label className="block text-sm mb-1">Qualifications (Must-Have)</label>
+        <textarea
+          value={qualifications}
+          onChange={(e) => setQualifications(e.target.value)}
           placeholder="Required skills, experience, or education"
           rows={3}
+          className="w-full border rounded p-2"
         />
       </div>
 
       <div>
-        <Label>Nice to Have</Label>
-        <Textarea
-          name="niceToHave"
-          value={form.niceToHave}
-          onChange={onChange}
+        <label className="block text-sm mb-1">Nice to Have</label>
+        <textarea
+          value={niceToHave}
+          onChange={(e) => setNiceToHave(e.target.value)}
           placeholder="Preferred but not required skills"
           rows={3}
+          className="w-full border rounded p-2"
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <Label>Country *</Label>
-          <Input
-            name="country"
-            value={form.country}
-            onChange={onChange}
+          <label className="block text-sm mb-1">Country</label>
+          <input
+            type="text"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
             placeholder="United States"
+            className="w-full border rounded p-2"
           />
         </div>
         <div>
-          <Label>State</Label>
-          <Input
-            name="state"
-            value={form.state}
-            onChange={onChange}
+          <label className="block text-sm mb-1">State</label>
+          <input
+            type="text"
+            value={stateValue}
+            onChange={(e) => setStateValue(e.target.value)}
             placeholder="Michigan"
+            className="w-full border rounded p-2"
           />
         </div>
         <div>
-          <Label>City</Label>
-          <Input
-            name="city"
-            value={form.city}
-            onChange={onChange}
+          <label className="block text-sm mb-1">City</label>
+          <input
+            type="text"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
             placeholder="Mount Pleasant"
+            className="w-full border rounded p-2"
           />
         </div>
       </div>
 
       <div>
-        <Label>Visa Requirements</Label>
-        <Textarea
-          name="visaRequirements"
-          value={form.visaRequirements}
-          onChange={onChange}
+        <label className="block text-sm mb-1">Visa Requirements</label>
+        <textarea
+          value={visaRequirements}
+          onChange={(e) => setVisaRequirements(e.target.value)}
           placeholder="Sponsorship info, work authorization details"
           rows={3}
+          className="w-full border rounded p-2"
         />
       </div>
 
       <div>
-        <Label>General Description</Label>
-        <Textarea
-          name="generalDescription"
-          value={form.generalDescription}
-          onChange={onChange}
+        <label className="block text-sm mb-1">General Description</label>
+        <textarea
+          value={generalDescription}
+          onChange={(e) => setGeneralDescription(e.target.value)}
           placeholder="Any additional notes or context"
           rows={3}
+          className="w-full border rounded p-2"
         />
       </div>
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={submitting}
         className="rounded bg-blue-600 text-white px-4 py-2"
       >
-        {loading ? "Saving..." : "Add Job"}
+        {submitting ? "Saving..." : "Add Job"}
       </button>
     </form>
   );

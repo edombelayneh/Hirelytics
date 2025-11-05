@@ -3,6 +3,7 @@ import { SummaryCards } from '../components/SummaryCards';
 import { ApplicationsTable } from '../components/ApplicationsTable';
 import { Button } from '../components/ui/button';
 import { Plus, Download, Settings } from 'lucide-react';
+import Link from "next/link";
 
 function jobs() {
 	return (
@@ -28,10 +29,12 @@ function jobs() {
 								<Settings className='h-4 w-4 mr-2' />
 								Settings
 							</Button>
+							<Link href="/jobElements">
 							<Button size='sm'>
 								<Plus className='h-4 w-4 mr-2' />
 								Add Application
 							</Button>
+							</Link>
 						</div>
 					</div>
 				</div>
