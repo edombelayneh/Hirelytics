@@ -1,4 +1,10 @@
+// app/home/page.tsx
+'use client';
+
 import { Button } from '../components/ui/button';
+import { motion } from 'framer-motion';
+import { useAuth } from '@clerk/nextjs';
+import { protectedAction } from '../utils/protectedAction';
 import { Card } from '../components/ui/card';
 import {
 	Briefcase,
@@ -15,9 +21,18 @@ import {
 	LineChart,
 	Bell,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 function HomePage() {
+  const { isSignedIn } = useAuth();
+
+	const goto = (path: '/jobs' | '/applications') =>
+		protectedAction({
+		isSignedIn,
+		onAuthed: () => {
+			window.location.hash = path;
+		},
+		});
+
 	const features = [
 		{
 			icon: Briefcase,
@@ -69,13 +84,12 @@ function HomePage() {
 		{ value: 'Real-time', label: 'Updates' },
 		{ value: 'All-in-One', label: 'Dashboard' },
 	];
-
-	return (
-		<div className='min-h-screen'>
-			{/* Hero Section */}
-			<section className='relative overflow-hidden border-b bg-gradient-to-b from-background via-background to-muted/20'>
-				<div className='absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.1))]' />
-
+		
+  return (
+    <div className="min-h-screen">
+		{/* Hero Section */}
+		<section className='relative overflow-hidden border-b bg-gradient-to-b from-background via-background to-muted/20'>
+			<div className='absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.1))]' />
 				<div className='container relative mx-auto px-6 py-24'>
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
@@ -109,57 +123,52 @@ function HomePage() {
 							powerful analytics, and organized application
 							management. Land your dream job faster.
 						</p>
+				<div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+				<Button size="lg" className="group gap-2" onClick={() => goto('/jobs')}>
+					<Briefcase className="h-5 w-5" />
+					Browse Available Jobs
+					<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+				</Button>
 
-						<div className='flex flex-col sm:flex-row items-center justify-center gap-4 mb-12'>
-							<Button
-								size='lg'
-								className='group gap-2'
-								onClick={() => (window.location.hash = '#/jobs')}
-							>
-								<Briefcase className='h-5 w-5' />
-								Browse Available Jobs
-								<ArrowRight className='h-4 w-4 transition-transform group-hover:translate-x-1' />
-							</Button>
-
-							<Button
-								size='lg'
-								variant='outline'
-								className='gap-2'
-								onClick={() => (window.location.hash = '#/applications')}
-							>
-								<BarChart3 className='h-5 w-5' />
-								View My Applications
-							</Button>
-						</div>
-
-						{/* Stats */}
-						<div className='grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto'>
-							{stats.map((stat, index) => (
-								<motion.div
-									key={stat.label}
-									initial={{ opacity: 0, y: 20 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{
-										delay: 0.2 + index * 0.1,
-										duration: 0.5,
-									}}
-									className='text-center'
-								>
-									<div className='text-3xl font-bold text-primary mb-1'>
-										{stat.value}
-									</div>
-									<div className='text-sm text-muted-foreground'>
-										{stat.label}
-									</div>
-								</motion.div>
-							))}
-						</div>
-					</motion.div>
+				<Button
+					size="lg"
+					variant="outline"
+					className="gap-2"
+					onClick={() => goto('/applications')}
+				>
+					<BarChart3 className="h-5 w-5" />
+					View My Applications
+				</Button>
 				</div>
-			</section>
-
-			{/* Features Section */}
-			<section className='container mx-auto px-6 py-20'>
+				{/* Stats */}
+				<div className='grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto'>
+					{stats.map((stat, index) => (
+						<motion.div
+							key={stat.label}
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{
+								delay: 0.2 + index * 0.1,
+								duration: 0.5,
+							}}
+							className='text-center'
+						>
+							<div className='text-3xl font-bold text-primary mb-1'>
+								{stat.value}
+							</div>
+							<div className='text-sm text-muted-foreground'>
+								{stat.label}
+							</div>
+						</motion.div>
+					))}
+				</div>
+			</motion.div>
+		</div>
+				
+	</section>
+	
+	{/* Features Section */}
+	<section className='container mx-auto px-6 py-20'>
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}
 					whileInView={{ opacity: 1, y: 0 }}
@@ -341,7 +350,7 @@ function HomePage() {
 				</div>
 			</footer>
 		</div>
-	)
+  	);
 }
 
 export default HomePage;
