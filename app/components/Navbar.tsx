@@ -1,5 +1,5 @@
 import { Button } from './ui/button';
-import { Download, Settings, Briefcase, BarChart3, Home, Menu } from 'lucide-react';
+import { Download, Settings, Briefcase, BarChart3, Home, User, Menu } from 'lucide-react';
 import { cn } from './ui/utils';
 import {
   Sheet,
@@ -9,7 +9,7 @@ import {
   SheetTrigger,
 } from './ui/sheet';
 
-type Page = 'home' | 'available' | 'applications';
+type Page = 'home' | 'available' | 'applications' | 'profile';
 
 interface NavbarProps {
   currentPage: Page;
@@ -34,6 +34,12 @@ const navLinks = [
     href: '#/applications',
     label: 'My Applications',
     icon: BarChart3,
+  },
+   {
+    id: 'profile' as Page,
+    href: '#/profile',
+    label: 'My Profile',
+    icon: User,
   },
 ];
 
