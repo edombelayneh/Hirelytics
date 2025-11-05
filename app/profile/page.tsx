@@ -207,7 +207,7 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
               First Name <span className='text-destructive'>*</span>
             </Label>
             <div className='relative'>
-              <User className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+              <User className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='firstName'
                 placeholder='John'
@@ -223,7 +223,7 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
               Last Name <span className='text-destructive'>*</span>
             </Label>
             <div className='relative'>
-              <User className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+              <User className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='lastName'
                 placeholder='Doe'
@@ -239,7 +239,7 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
               Email Address <span className='text-destructive'>*</span>
             </Label>
             <div className='relative'>
-              <Mail className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+              <Mail className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='email'
                 type='email'
@@ -254,7 +254,7 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
           <div className='space-y-2'>
             <Label htmlFor='phone'>Phone Number</Label>
             <div className='relative'>
-              <Phone className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+              <Phone className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='phone'
                 type='tel'
@@ -269,7 +269,7 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
           <div className='space-y-2 md:col-span-2'>
             <Label htmlFor='location'>Location</Label>
             <div className='relative'>
-              <MapPin className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+              <MapPin className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='location'
                 placeholder='San Francisco, CA'
@@ -289,7 +289,7 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
           <div className='space-y-2'>
             <Label htmlFor='currentTitle'>Current Job Title</Label>
             <div className='relative'>
-              <Briefcase className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+              <Briefcase className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='currentTitle'
                 placeholder='Software Engineer'
@@ -303,7 +303,7 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
           <div className='space-y-2'>
             <Label htmlFor='yearsOfExperience'>Years of Experience</Label>
             <div className='relative'>
-              <Calendar className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+              <Calendar className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='yearsOfExperience'
                 placeholder='5'
@@ -342,7 +342,7 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
           <div className='space-y-2'>
             <Label htmlFor='linkedinUrl'>LinkedIn Profile</Label>
             <div className='relative'>
-              <Linkedin className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+              <Linkedin className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='linkedinUrl'
                 type='url'
@@ -357,7 +357,7 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
           <div className='space-y-2'>
             <Label htmlFor='portfolioUrl'>Portfolio Website</Label>
             <div className='relative'>
-              <Globe className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+              <Globe className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='portfolioUrl'
                 type='url'
@@ -372,7 +372,7 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
           <div className='space-y-2'>
             <Label htmlFor='githubUrl'>GitHub Profile</Label>
             <div className='relative'>
-              <Github className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+              <Github className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='githubUrl'
                 type='url'

@@ -5,19 +5,22 @@ import { useState, useEffect } from 'react';
 import HomePage from './home/page';
 import AvailableJobsPage from './jobs/page';
 import MyApplicationsPage from './applications/page';
+import { ProfilePage } from './profile/page';
 import { Navbar } from './components/Navbar';
 import { Toaster, toast } from './components/ui/sonner';
 import { JobApplication } from './data/mockData';
 import { AvailableJob } from './data/availableJobs';
+import { UserProfile, defaultProfile } from './data/profileData';
 import { parseLocation } from './utils/locationParser';
 import { getCurrentDateString } from './utils/dateFormatter';
 
-type Page = 'home' | 'available' | 'applications';
+type Page = 'home' | 'available' | 'applications' | 'profile';
 
 function LandingPage() {
 	const [currentPage, setCurrentPage] = useState<Page>('home');
 	const [applications, setApplications] = useState<JobApplication[]>([]);
 	const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set());
+	const [userProfile, setUserProfile] = useState<UserProfile>(defaultProfile);
 
 	// Handle hash-based routing
 	useEffect(() => {
@@ -27,7 +30,9 @@ function LandingPage() {
 				setCurrentPage('applications');
 			} else if (hash === '/jobs') {
 				setCurrentPage('available');
-			} else {
+			} else if (hash === '/profile') {
+                setCurrentPage('profile');
+            } else {
 				setCurrentPage('home');
 			}
 		};
@@ -73,6 +78,10 @@ function LandingPage() {
 		);
 	};
 
+	const handleUpdateProfile = (profile: UserProfile) => {
+    setUserProfile(profile);
+};
+
 	return (
 		<div className='min-h-screen bg-background'>
 			<Toaster />
@@ -100,6 +109,10 @@ function LandingPage() {
 
 				{currentPage === 'applications' && (
 					<MyApplicationsPage applications={applications} />
+				)}
+				{currentPage == 'profile' && (
+					<ProfilePage profile={userProfile}
+                    onUpdateProfile={handleUpdateProfile} />
 				)}
 			</main>
 		</div>
