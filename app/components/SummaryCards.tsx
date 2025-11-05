@@ -77,9 +77,8 @@ export const SummaryCards = memo(function SummaryCards({ applications }: Summary
             </CardHeader>
             <CardContent>
               <div className='text-2xl font-bold'>{card.value}</div>
-              <Badge 
-                variant={card.changeType === 'positive' ? 'default' : 
-                        card.changeType === 'negative' ? 'destructive' : 'secondary'}
+              <Badge
+                variant={card.changeType === 'positive' ? 'default' : 'secondary'}
                 className='text-xs mt-1'
               >
                 {card.change}

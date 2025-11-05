@@ -6,10 +6,14 @@ import { JobApplication } from '../data/mockData';
 
 interface MyApplicationsPageProps {
 	applications: JobApplication[];
+	onStatusChange?: (id: string, status: JobApplication['status']) => void;
+	onNotesChange?: (id: string, notes: string) => void;
 }
 
 const MyApplicationsPage = memo(function MyApplicationsPage({
 	applications,
+	onStatusChange,
+	onNotesChange,
 }: MyApplicationsPageProps) {
 	return (
 		<div className='space-y-8'>
@@ -29,7 +33,11 @@ const MyApplicationsPage = memo(function MyApplicationsPage({
 
 			{/* Applications Table */}
 			<section>
-				<ApplicationsTable applications={applications} />
+				<ApplicationsTable
+					applications={applications}
+					onStatusChange={onStatusChange}
+					onNotesChange={onNotesChange}
+				/>
 			</section>
 		</div>
 	);

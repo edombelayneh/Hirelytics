@@ -93,14 +93,27 @@ function LandingPage() {
 
 				{currentPage === 'available' && (
 					<AvailableJobsPage
-					//onApply={handleApply}
-					//appliedJobIds={appliedJobIds}
+						onAddApplication={(app) => setApplications(prev => [app, ...prev])}
+						//onApply={handleApply}
+						//appliedJobIds={appliedJobIds}
 					/>
 				)}
 
-				{currentPage === 'applications' && (
-					<MyApplicationsPage applications={applications} />
-				)}
+						{currentPage === 'applications' && (
+							<MyApplicationsPage
+								applications={applications}
+								onStatusChange={(id, status) =>
+									setApplications(apps =>
+										apps.map(app => app.id === id ? { ...app, status } : app)
+									)
+								}
+								onNotesChange={(id, notes) =>
+									setApplications(apps =>
+										apps.map(app => app.id === id ? { ...app, notes } : app)
+									)
+								}
+							/>
+						)}
 			</main>
 		</div>
 	);

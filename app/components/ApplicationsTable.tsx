@@ -25,9 +25,11 @@ import { getStatusColor, getOutcomeColor } from '../utils/badgeColors';
 
 interface ApplicationsTableProps {
   applications: JobApplication[];
+  onStatusChange?: (id: string, status: JobApplication['status']) => void;
+  onNotesChange?: (id: string, notes: string) => void;
 }
 
-export const ApplicationsTable = memo(function ApplicationsTable({ applications }: ApplicationsTableProps) {
+export const ApplicationsTable = memo(function ApplicationsTable({ applications, onStatusChange, onNotesChange }: ApplicationsTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -113,9 +115,18 @@ export const ApplicationsTable = memo(function ApplicationsTable({ applications 
                     {formatDate(app.applicationDate)}
                   </TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(app.status)}>
-                      {app.status}
-                    </Badge>
+                    <Select value={app.status} onValueChange={status => onStatusChange?.(app.id, status as JobApplication['status'])}>
+                      <SelectTrigger className='w-[120px]'>
+                        <SelectValue placeholder='Status' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='Applied'>Applied</SelectItem>
+                        <SelectItem value='Interview'>Interview</SelectItem>
+                        <SelectItem value='Offer'>Offer</SelectItem>
+                        <SelectItem value='Rejected'>Rejected</SelectItem>
+                        <SelectItem value='Withdrawn'>Withdrawn</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell>{app.contactPerson}</TableCell>
                   <TableCell>
@@ -127,9 +138,13 @@ export const ApplicationsTable = memo(function ApplicationsTable({ applications 
                     </Badge>
                   </TableCell>
                   <TableCell className='max-w-[200px]'>
-                    <div className='truncate text-sm text-muted-foreground' title={app.notes}>
-                      {app.notes}
-                    </div>
+                    <input
+                      type='text'
+                      value={app.notes}
+                      onChange={e => onNotesChange?.(app.id, e.target.value)}
+                      className='border rounded px-2 py-1 w-full text-sm bg-background'
+                      placeholder='Add notes...'
+                    />
                   </TableCell>
                   <TableCell>
                     <Button
