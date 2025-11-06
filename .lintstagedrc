@@ -1,13 +1,13 @@
 {
   "*.css": [
-    "stylelint --fix", 
+    "stylelint --fix",
     "prettier --write"
   ],
   "*.{js,jsx,ts,tsx}": [
-    "eslint --fix", 
+    "eslint --fix",
     "prettier --write"
   ],
-  "!(*.css|*.js|*.jsx|*.ts|*.tsx)": [
-    "prettier --write --ignore-path .prettierignore"
+  "*.{json,md,yml,yaml}": [
+    "prettier --write"
   ]
 }
