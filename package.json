@@ -66,10 +66,11 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.0",
     "eslint-config-prettier": "^10.1.8",
+    "husky": "^8.0.0",
+    "lint-staged": "^16.2.6",
     "postcss": "^8.5.6",
     "prettier": "3.6.2",
     "tailwindcss": "^4.1.16",
-    "typescript": "^5",
-    "husky": "^8.0.0"
+    "typescript": "^5"
   }
 }
