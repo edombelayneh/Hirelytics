@@ -31,7 +31,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ClerkProvider>
       <html lang='en'>
         <head>
-          <Script src='https://cdn.tailwindcss.com' strategy='afterInteractive' />
+          <Script
+            src='https://cdn.tailwindcss.com'
+            strategy='afterInteractive'
+          />
         </head>
         <body className='antialiased'>
           {/* SIGN-IN HEADER (visible only when signed out) */}

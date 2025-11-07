@@ -53,7 +53,10 @@ export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCar
           <p className='text-sm font-medium mb-2'>Requirements:</p>
           <ul className='text-sm text-muted-foreground space-y-1'>
             {job.requirements.slice(0, 3).map((req, index) => (
-              <li key={index} className='flex items-start gap-2'>
+              <li
+                key={index}
+                className='flex items-start gap-2'
+              >
                 <span className='text-primary mt-1'>•</span>
                 <span>{req}</span>
               </li>

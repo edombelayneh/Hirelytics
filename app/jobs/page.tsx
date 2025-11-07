@@ -16,11 +16,17 @@ function jobs() {
               <p className='text-muted-foreground'>Manage and track your job search progress</p>
             </div>
             <div className='flex items-center gap-2'>
-              <Button variant='outline' size='sm'>
+              <Button
+                variant='outline'
+                size='sm'
+              >
                 <Download className='h-4 w-4 mr-2' />
                 Export
               </Button>
-              <Button variant='outline' size='sm'>
+              <Button
+                variant='outline'
+                size='sm'
+              >
                 <Settings className='h-4 w-4 mr-2' />
                 Settings
               </Button>

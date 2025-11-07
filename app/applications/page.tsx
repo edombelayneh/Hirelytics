@@ -18,7 +18,10 @@ function FirestoreTest() {
   }
 
   return (
-    <button onClick={testWrite} className='bg-blue-500 text-white p-2 rounded'>
+    <button
+      onClick={testWrite}
+      className='bg-blue-500 text-white p-2 rounded'
+    >
       Test Firestore Write
     </button>
   );

@@ -17,7 +17,11 @@ export function SignInButtonBridge() {
   // Invisible SignInButton we can "click" programmatically
   return (
     <div className='hidden'>
-      <SignInButton mode='modal' forceRedirectUrl='/#/' signUpForceRedirectUrl='/#/'>
+      <SignInButton
+        mode='modal'
+        forceRedirectUrl='/#/'
+        signUpForceRedirectUrl='/#/'
+      >
         <button id='__sign_in_bridge__' />
       </SignInButton>
     </div>

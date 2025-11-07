@@ -20,8 +20,15 @@ export function Navbar({
     <nav className='relative flex items-center justify-center border-b px-6 h-20 bg-background sticky top-0 z-50'>
       {/* Left - Logo Section */}
       <div className='absolute left-6 flex flex-col'>
-        <a href='#/' className='inline-block'>
-          <img src='../Hirelytics_Logo.png' alt='Hirelytics Logo' className='h-10 w-auto' />
+        <a
+          href='#/'
+          className='inline-block'
+        >
+          <img
+            src='../Hirelytics_Logo.png'
+            alt='Hirelytics Logo'
+            className='h-10 w-auto'
+          />
         </a>
       </div>
 

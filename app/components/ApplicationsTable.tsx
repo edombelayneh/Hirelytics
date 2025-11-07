@@ -51,7 +51,10 @@ export const ApplicationsTable = memo(function ApplicationsTable({
           </div>
           <div className='flex items-center gap-2'>
             <Filter className='h-4 w-4 text-muted-foreground' />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select
+              value={statusFilter}
+              onValueChange={setStatusFilter}
+            >
               <SelectTrigger className='w-[150px]'>
                 <SelectValue placeholder='Filter by status' />
               </SelectTrigger>
@@ -108,7 +111,10 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                     <Badge className={getOutcomeColor(app.outcome)}>{app.outcome}</Badge>
                   </TableCell>
                   <TableCell className='max-w-[200px]'>
-                    <div className='truncate text-sm text-muted-foreground' title={app.notes}>
+                    <div
+                      className='truncate text-sm text-muted-foreground'
+                      title={app.notes}
+                    >
                       {app.notes}
                     </div>
                   </TableCell>
@@ -125,7 +131,10 @@ export const ApplicationsTable = memo(function ApplicationsTable({
               ))}
               {filteredApplications.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={10} className='text-center py-8 text-muted-foreground'>
+                  <TableCell
+                    colSpan={10}
+                    className='text-center py-8 text-muted-foreground'
+                  >
                     No applications found matching your criteria
                   </TableCell>
                 </TableRow>

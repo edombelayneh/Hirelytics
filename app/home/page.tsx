@@ -115,7 +115,11 @@ function HomePage() {
               application management. Land your dream job faster.
             </p>
             <div className='flex flex-col sm:flex-row items-center justify-center gap-4 mb-12'>
-              <Button size='lg' className='group gap-2' onClick={() => goto('/jobs')}>
+              <Button
+                size='lg'
+                className='group gap-2'
+                onClick={() => goto('/jobs')}
+              >
                 <Briefcase className='h-5 w-5' />
                 Browse Available Jobs
                 <ArrowRight className='h-4 w-4 transition-transform group-hover:translate-x-1' />
@@ -312,10 +316,16 @@ function HomePage() {
               </p>
             </div>
             <div className='flex gap-6 text-sm text-muted-foreground'>
-              <a href='#/jobs' className='hover:text-foreground transition-colors'>
+              <a
+                href='#/jobs'
+                className='hover:text-foreground transition-colors'
+              >
                 Available Jobs
               </a>
-              <a href='#/applications' className='hover:text-foreground transition-colors'>
+              <a
+                href='#/applications'
+                className='hover:text-foreground transition-colors'
+              >
                 My Applications
               </a>
             </div>

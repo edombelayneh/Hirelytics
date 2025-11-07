@@ -59,7 +59,12 @@ function LandingPage() {
       <SignInButtonBridge />
 
       {/* Show app navbar ONLY for signed-in users */}
-      {isSignedIn ? <Navbar currentPage={currentPage} applicationCount={0} /> : null}
+      {isSignedIn ? (
+        <Navbar
+          currentPage={currentPage}
+          applicationCount={0}
+        />
+      ) : null}
 
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
         {currentPage === 'home' && <HomePage />}
