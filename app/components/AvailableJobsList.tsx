@@ -1,35 +1,39 @@
-import { useState, memo } from 'react';
-import { JobCard } from './JobCard';
-import { Input } from './ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Search, Filter } from 'lucide-react';
-import { AvailableJob, availableJobs } from '../data/availableJobs';
+import { useState, memo } from 'react'
+import { JobCard } from './JobCard'
+import { Input } from './ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
+import { Search, Filter } from 'lucide-react'
+import { AvailableJob, availableJobs } from '../data/availableJobs'
 
 interface AvailableJobsListProps {
-  onApply: (job: AvailableJob) => void;
-  appliedJobIds: Set<number>;
+  onApply: (job: AvailableJob) => void
+  appliedJobIds: Set<number>
 }
 
-export const AvailableJobsList = memo(function AvailableJobsList({ onApply, appliedJobIds }: AvailableJobsListProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [locationFilter, setLocationFilter] = useState<string>('all');
+export const AvailableJobsList = memo(function AvailableJobsList({
+  onApply,
+  appliedJobIds,
+}: AvailableJobsListProps) {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [locationFilter, setLocationFilter] = useState<string>('all')
 
-  const filteredJobs = availableJobs.filter(job => {
+  const filteredJobs = availableJobs.filter((job) => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase());
+      job.description.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesType = typeFilter === 'all' || job.type === typeFilter;
-    const matchesLocation = locationFilter === 'all' || 
-      (locationFilter === 'remote' ? job.location === 'Remote' : job.location !== 'Remote');
+    const matchesType = typeFilter === 'all' || job.type === typeFilter
+    const matchesLocation =
+      locationFilter === 'all' ||
+      (locationFilter === 'remote' ? job.location === 'Remote' : job.location !== 'Remote')
 
-    return matchesSearch && matchesType && matchesLocation;
-  });
+    return matchesSearch && matchesType && matchesLocation
+  })
 
-  const uniqueTypes = Array.from(new Set(availableJobs.map(job => job.type)));
+  const uniqueTypes = Array.from(new Set(availableJobs.map((job) => job.type)))
 
   return (
     <div className='space-y-6'>
@@ -52,22 +56,33 @@ export const AvailableJobsList = memo(function AvailableJobsList({ onApply, appl
             className='pl-10'
           />
         </div>
-        
+
         <div className='flex items-center gap-2'>
           <Filter className='h-4 w-4 text-muted-foreground' />
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <Select
+            value={typeFilter}
+            onValueChange={setTypeFilter}
+          >
             <SelectTrigger className='w-[140px]'>
               <SelectValue placeholder='Job Type' />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value='all'>All Types</SelectItem>
-              {uniqueTypes.map(type => (
-                <SelectItem key={type} value={type}>{type}</SelectItem>
+              {uniqueTypes.map((type) => (
+                <SelectItem
+                  key={type}
+                  value={type}
+                >
+                  {type}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Select value={locationFilter} onValueChange={setLocationFilter}>
+          <Select
+            value={locationFilter}
+            onValueChange={setLocationFilter}
+          >
             <SelectTrigger className='w-[140px]'>
               <SelectValue placeholder='Location' />
             </SelectTrigger>
@@ -87,7 +102,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({ onApply, appl
 
       {/* Job Cards Grid */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-        {filteredJobs.map(job => (
+        {filteredJobs.map((job) => (
           <JobCard
             key={job.id}
             job={job}
@@ -103,5 +118,5 @@ export const AvailableJobsList = memo(function AvailableJobsList({ onApply, appl
         </div>
       )}
     </div>
-  );
-});
+  )
+})
