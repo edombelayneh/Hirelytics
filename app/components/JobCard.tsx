@@ -1,20 +1,20 @@
-import { memo } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
-import { Button } from './ui/button';
-import { Briefcase, MapPin, Clock, DollarSign, CheckCircle2 } from 'lucide-react';
-import { AvailableJob } from '../data/availableJobs';
+import { memo } from 'react'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card'
+import { Badge } from './ui/badge'
+import { Button } from './ui/button'
+import { Briefcase, MapPin, Clock, DollarSign, CheckCircle2 } from 'lucide-react'
+import { AvailableJob } from '../data/availableJobs'
 
 interface JobCardProps {
-  job: AvailableJob;
-  onApply: (job: AvailableJob) => void;
-  isApplied: boolean;
+  job: AvailableJob
+  onApply: (job: AvailableJob) => void
+  isApplied: boolean
 }
 
 export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCardProps) {
   const daysSincePosted = Math.floor(
     (new Date().getTime() - new Date(job.postedDate).getTime()) / (1000 * 60 * 60 * 24)
-  );
+  )
 
   return (
     <Card className='h-full flex flex-col'>
@@ -83,5 +83,5 @@ export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCar
         </Button>
       </CardFooter>
     </Card>
-  );
-});
+  )
+})

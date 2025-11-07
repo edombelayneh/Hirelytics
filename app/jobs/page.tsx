@@ -1,8 +1,8 @@
-import { HeroPanel } from '../components/HeroPanel';
-import { SummaryCards } from '../components/SummaryCards';
-import { ApplicationsTable } from '../components/ApplicationsTable';
-import { Button } from '../components/ui/button';
-import { Plus, Download, Settings } from 'lucide-react';
+import { HeroPanel } from '../components/HeroPanel'
+import { SummaryCards } from '../components/SummaryCards'
+import { ApplicationsTable } from '../components/ApplicationsTable'
+import { Button } from '../components/ui/button'
+import { Plus, Download, Settings } from 'lucide-react'
 
 function jobs() {
   return (
@@ -59,7 +59,7 @@ function jobs() {
         </section>
       </main>
     </div>
-  );
+  )
 }
 
-export default jobs;
+export default jobs

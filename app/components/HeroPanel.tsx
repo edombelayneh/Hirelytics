@@ -1,6 +1,6 @@
-import { memo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Progress } from './ui/progress';
+import { memo } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { Progress } from './ui/progress'
 import {
   BarChart,
   Bar,
@@ -12,23 +12,23 @@ import {
   PieChart,
   Pie,
   Cell,
-} from 'recharts';
+} from 'recharts'
 import {
   getDashboardStatsFromList,
   getApplicationsByMonthFromList,
   getStatusDistributionFromList,
   JobApplication,
-} from '../data/mockData';
-import { CHART_COLORS, chartStyles } from '../utils/chartConfig';
+} from '../data/mockData'
+import { CHART_COLORS, chartStyles } from '../utils/chartConfig'
 
 interface HeroPanelProps {
-  applications: JobApplication[];
+  applications: JobApplication[]
 }
 
 export const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
-  const stats = getDashboardStatsFromList(applications);
-  const monthlyData = getApplicationsByMonthFromList(applications);
-  const statusData = getStatusDistributionFromList(applications);
+  const stats = getDashboardStatsFromList(applications)
+  const monthlyData = getApplicationsByMonthFromList(applications)
+  const statusData = getStatusDistributionFromList(applications)
 
   return (
     <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
@@ -153,5 +153,5 @@ export const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProp
         </CardContent>
       </Card>
     </div>
-  );
-});
+  )
+})

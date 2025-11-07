@@ -167,4 +167,4 @@ export const jobsData = [
     jobSource: 'Referral' as const,
     outcome: 'Pending' as const,
   },
-];
+]

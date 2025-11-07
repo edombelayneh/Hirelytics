@@ -1,36 +1,36 @@
-import { useState, memo } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import { Input } from './ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { ExternalLink, Search, Filter } from 'lucide-react';
-import { JobApplication } from '../data/mockData';
-import { formatDate } from '../utils/dateFormatter';
-import { getStatusColor, getOutcomeColor } from '../utils/badgeColors';
+import { useState, memo } from 'react'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
+import { Button } from './ui/button'
+import { Badge } from './ui/badge'
+import { Input } from './ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { ExternalLink, Search, Filter } from 'lucide-react'
+import { JobApplication } from '../data/mockData'
+import { formatDate } from '../utils/dateFormatter'
+import { getStatusColor, getOutcomeColor } from '../utils/badgeColors'
 
 interface ApplicationsTableProps {
-  applications: JobApplication[];
+  applications: JobApplication[]
 }
 
 export const ApplicationsTable = memo(function ApplicationsTable({
   applications,
 }: ApplicationsTableProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
 
   const filteredApplications = applications.filter((app) => {
     const matchesSearch =
       app.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.city.toLowerCase().includes(searchTerm.toLowerCase());
+      app.city.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || app.status === statusFilter
 
-    return matchesSearch && matchesStatus;
-  });
+    return matchesSearch && matchesStatus
+  })
 
   return (
     <Card>
@@ -150,5 +150,5 @@ export const ApplicationsTable = memo(function ApplicationsTable({
         </div>
       </CardContent>
     </Card>
-  );
-});
+  )
+})

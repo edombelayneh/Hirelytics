@@ -1,39 +1,39 @@
-import { useState, memo } from 'react';
-import { JobCard } from './JobCard';
-import { Input } from './ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Search, Filter } from 'lucide-react';
-import { AvailableJob, availableJobs } from '../data/availableJobs';
+import { useState, memo } from 'react'
+import { JobCard } from './JobCard'
+import { Input } from './ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
+import { Search, Filter } from 'lucide-react'
+import { AvailableJob, availableJobs } from '../data/availableJobs'
 
 interface AvailableJobsListProps {
-  onApply: (job: AvailableJob) => void;
-  appliedJobIds: Set<number>;
+  onApply: (job: AvailableJob) => void
+  appliedJobIds: Set<number>
 }
 
 export const AvailableJobsList = memo(function AvailableJobsList({
   onApply,
   appliedJobIds,
 }: AvailableJobsListProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [locationFilter, setLocationFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [locationFilter, setLocationFilter] = useState<string>('all')
 
   const filteredJobs = availableJobs.filter((job) => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase());
+      job.description.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesType = typeFilter === 'all' || job.type === typeFilter;
+    const matchesType = typeFilter === 'all' || job.type === typeFilter
     const matchesLocation =
       locationFilter === 'all' ||
-      (locationFilter === 'remote' ? job.location === 'Remote' : job.location !== 'Remote');
+      (locationFilter === 'remote' ? job.location === 'Remote' : job.location !== 'Remote')
 
-    return matchesSearch && matchesType && matchesLocation;
-  });
+    return matchesSearch && matchesType && matchesLocation
+  })
 
-  const uniqueTypes = Array.from(new Set(availableJobs.map((job) => job.type)));
+  const uniqueTypes = Array.from(new Set(availableJobs.map((job) => job.type)))
 
   return (
     <div className='space-y-6'>
@@ -118,5 +118,5 @@ export const AvailableJobsList = memo(function AvailableJobsList({
         </div>
       )}
     </div>
-  );
-});
+  )
+})

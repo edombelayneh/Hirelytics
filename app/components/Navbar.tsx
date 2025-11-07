@@ -1,20 +1,20 @@
-'use client';
+'use client'
 
-import { UserButton } from '@clerk/nextjs';
-import { Home, Briefcase, BarChart3 } from 'lucide-react';
+import { UserButton } from '@clerk/nextjs'
+import { Home, Briefcase, BarChart3 } from 'lucide-react'
 
 export function Navbar({
   currentPage,
   applicationCount,
 }: {
-  currentPage: string;
-  applicationCount: number;
+  currentPage: string
+  applicationCount: number
 }) {
   const navItems = [
     { label: 'Home', hash: '#/', icon: Home },
     { label: 'Available Jobs', hash: '#/jobs', icon: Briefcase },
     { label: 'My Applications', hash: '#/applications', icon: BarChart3 },
-  ];
+  ]
 
   return (
     <nav className='relative flex items-center justify-center border-b px-6 h-20 bg-background sticky top-0 z-50'>
@@ -35,8 +35,8 @@ export function Navbar({
       {/* Center - Navigation Links */}
       <div className='flex gap-12'>
         {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = currentPage === item.hash.slice(2);
+          const Icon = item.icon
+          const isActive = currentPage === item.hash.slice(2)
 
           return (
             <a
@@ -65,7 +65,7 @@ export function Navbar({
               )}
               */}
             </a>
-          );
+          )
         })}
       </div>
 
@@ -74,5 +74,5 @@ export function Navbar({
         <UserButton afterSignOutUrl='/' />
       </div>
     </nav>
-  );
+  )
 }

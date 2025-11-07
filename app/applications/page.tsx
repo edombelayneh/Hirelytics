@@ -1,20 +1,20 @@
-import { memo } from 'react';
-import { HeroPanel } from '../components/HeroPanel';
-import { SummaryCards } from '../components/SummaryCards';
-import { ApplicationsTable } from '../components/ApplicationsTable';
-import { JobApplication } from '../data/mockData';
+import { memo } from 'react'
+import { HeroPanel } from '../components/HeroPanel'
+import { SummaryCards } from '../components/SummaryCards'
+import { ApplicationsTable } from '../components/ApplicationsTable'
+import { JobApplication } from '../data/mockData'
 
-import { firestore } from '../lib/firebaseClient';
-import { doc, setDoc } from 'firebase/firestore';
-import { useAuth } from '@clerk/nextjs';
+import { firestore } from '../lib/firebaseClient'
+import { doc, setDoc } from 'firebase/firestore'
+import { useAuth } from '@clerk/nextjs'
 
 function FirestoreTest() {
-  const { userId } = useAuth();
+  const { userId } = useAuth()
 
   async function testWrite() {
-    const ref = doc(firestore, 'users', userId!, 'applications', 'hello');
-    await setDoc(ref, { test: true, createdAt: new Date() });
-    alert('Wrote test doc!');
+    const ref = doc(firestore, 'users', userId!, 'applications', 'hello')
+    await setDoc(ref, { test: true, createdAt: new Date() })
+    alert('Wrote test doc!')
   }
 
   return (
@@ -24,11 +24,11 @@ function FirestoreTest() {
     >
       Test Firestore Write
     </button>
-  );
+  )
 }
 
 interface MyApplicationsPageProps {
-  applications: JobApplication[];
+  applications: JobApplication[]
 }
 
 const MyApplicationsPage = memo(function MyApplicationsPage({
@@ -56,7 +56,7 @@ const MyApplicationsPage = memo(function MyApplicationsPage({
         <ApplicationsTable applications={applications} />
       </section>
     </div>
-  );
-});
+  )
+})
 
-export default MyApplicationsPage;
+export default MyApplicationsPage

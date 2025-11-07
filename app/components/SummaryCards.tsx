@@ -1,15 +1,15 @@
-import { memo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
-import { Briefcase, Calendar, TrendingUp, Target, Users, CheckCircle } from 'lucide-react';
-import { getDashboardStatsFromList, JobApplication } from '../data/mockData';
+import { memo } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import { Badge } from './ui/badge'
+import { Briefcase, Calendar, TrendingUp, Target, Users, CheckCircle } from 'lucide-react'
+import { getDashboardStatsFromList, JobApplication } from '../data/mockData'
 
 interface SummaryCardsProps {
-  applications: JobApplication[];
+  applications: JobApplication[]
 }
 
 export const SummaryCards = memo(function SummaryCards({ applications }: SummaryCardsProps) {
-  const stats = getDashboardStatsFromList(applications);
+  const stats = getDashboardStatsFromList(applications)
 
   const cards = [
     {
@@ -54,12 +54,12 @@ export const SummaryCards = memo(function SummaryCards({ applications }: Summary
       change: '1 pending decision',
       changeType: 'neutral' as const,
     },
-  ];
+  ]
 
   return (
     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4'>
       {cards.map((card, index) => {
-        const Icon = card.icon;
+        const Icon = card.icon
         return (
           <Card key={index}>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
@@ -82,8 +82,8 @@ export const SummaryCards = memo(function SummaryCards({ applications }: Summary
               </Badge>
             </CardContent>
           </Card>
-        );
+        )
       })}
     </div>
-  );
-});
+  )
+})

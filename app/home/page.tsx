@@ -1,11 +1,11 @@
 // app/home/page.tsx
-'use client';
+'use client'
 
-import { Button } from '../components/ui/button';
-import { motion } from 'framer-motion';
-import { useAuth } from '@clerk/nextjs';
-import { protectedAction } from '../utils/protectedAction';
-import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button'
+import { motion } from 'framer-motion'
+import { useAuth } from '@clerk/nextjs'
+import { protectedAction } from '../utils/protectedAction'
+import { Card } from '../components/ui/card'
 import {
   Briefcase,
   BarChart3,
@@ -20,18 +20,18 @@ import {
   Sparkles,
   LineChart,
   Bell,
-} from 'lucide-react';
+} from 'lucide-react'
 
 function HomePage() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn } = useAuth()
 
   const goto = (path: '/jobs' | '/applications') =>
     protectedAction({
       isSignedIn,
       onAuthed: () => {
-        window.location.hash = path;
+        window.location.hash = path
       },
-    });
+    })
 
   const features = [
     {
@@ -70,14 +70,14 @@ function HomePage() {
       description: 'Visualize your application journey over time with date tracking.',
       color: 'text-cyan-500',
     },
-  ];
+  ]
 
   const stats = [
     { value: '10+', label: 'Available Jobs' },
     { value: '100%', label: 'Free Forever' },
     { value: 'Real-time', label: 'Updates' },
     { value: 'All-in-One', label: 'Dashboard' },
-  ];
+  ]
 
   return (
     <div className='min-h-screen'>
@@ -174,7 +174,7 @@ function HomePage() {
 
         <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16'>
           {features.map((feature, index) => {
-            const Icon = feature.icon;
+            const Icon = feature.icon
             return (
               <motion.div
                 key={feature.title}
@@ -194,7 +194,7 @@ function HomePage() {
                   <p className='text-muted-foreground'>{feature.description}</p>
                 </Card>
               </motion.div>
-            );
+            )
           })}
         </div>
       </section>
@@ -239,7 +239,7 @@ function HomePage() {
                 icon: LineChart,
               },
             ].map((step, index) => {
-              const Icon = step.icon;
+              const Icon = step.icon
               return (
                 <motion.div
                   key={step.step}
@@ -261,7 +261,7 @@ function HomePage() {
                   <h3 className='mb-3'>{step.title}</h3>
                   <p className='text-muted-foreground'>{step.description}</p>
                 </motion.div>
-              );
+              )
             })}
           </div>
         </div>
@@ -336,7 +336,7 @@ function HomePage() {
         </div>
       </footer>
     </div>
-  );
+  )
 }
 
-export default HomePage;
+export default HomePage
