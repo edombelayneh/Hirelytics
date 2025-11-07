@@ -39,6 +39,7 @@ const MyApplicationsPage = memo(function MyApplicationsPage({
         <HeroPanel applications={applications} />
       </section>
 
+      {/* Testing Firebase Storage FIXME: DELETE LATER */}
       <FirestoreTest />
 
       {/* Summary Cards */}

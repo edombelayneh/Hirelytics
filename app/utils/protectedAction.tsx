@@ -1,13 +1,13 @@
 // app/utils/protectedAction.ts
 'use client';
 import {
-    ClerkProvider,
-    SignInButton,
-    SignUpButton,
-    SignedIn,
-    SignedOut,
-    UserButton,
-  } from '@clerk/nextjs'
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs';
 import { toast } from '../components/ui/sonner';
 
 // tiny wrapper to open Clerk modal programmatically via a hidden button
@@ -17,7 +17,7 @@ export function SignInButtonBridge() {
   // Invisible SignInButton we can "click" programmatically
   return (
     <div className="hidden">
-      <SignInButton mode="modal" forceRedirectUrl ="/#/" signUpForceRedirectUrl="/#/">
+      <SignInButton mode="modal" forceRedirectUrl="/#/" signUpForceRedirectUrl="/#/">
         <button id="__sign_in_bridge__" />
       </SignInButton>
     </div>

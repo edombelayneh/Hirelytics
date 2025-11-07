@@ -5,10 +5,6 @@ import { signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 
 let inflight: Promise<void> | null = null;
 
-/**
- * Signs into Firebase with a custom token minted for the current Clerk user.
- * Safe to call multiple times; concurrent calls will dedupe.
- */
 export function linkClerkToFirebase(): Promise<void> {
   if (inflight) return inflight;
 
@@ -38,7 +34,6 @@ export function linkClerkToFirebase(): Promise<void> {
   return inflight;
 }
 
-/** Optional convenience: wait until Firebase is ready (i.e., user object is non-null) */
 export function waitForFirebaseUser(): Promise<void> {
   return new Promise((resolve) => {
     const unsub = onAuthStateChanged(firebaseAuth, () => {
