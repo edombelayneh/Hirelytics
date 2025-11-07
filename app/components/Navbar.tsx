@@ -2,7 +2,6 @@
 
 import { UserButton } from '@clerk/nextjs';
 import { Home, Briefcase, BarChart3 } from 'lucide-react';
-import { Button } from './ui/button';
 
 export function Navbar({
   currentPage,
@@ -18,48 +17,53 @@ export function Navbar({
   ];
 
   return (
-    <nav className="flex justify-between items-center border-b px-6 h-16 bg-background sticky top-0 z-50">
-     {/* Logo and Brand */}
-     <div className='flex-shrink-0'>
-        <a href='#/' className='inline-block'>
-          <img
-            src='../Hirelytics_Logo.png'
-            alt='Hirelytics Logo'
-            className='h-8 w-auto'
-          />
+    <nav className="relative flex items-center justify-center border-b px-6 h-20 bg-background sticky top-0 z-50">
+      {/* Left - Logo Section */}
+      <div className="absolute left-6 flex flex-col">
+        <a href="#/" className="inline-block">
+          <img src="../Hirelytics_Logo.png" alt="Hirelytics Logo" className="h-10 w-auto" />
         </a>
-        <p className='text-muted-foreground text-sm'>
-          Manage and track your job search progress
-        </p>
       </div>
 
-      {/* Center - nav links */}
-      <div className="flex gap-6">
+      {/* Center - Navigation Links */}
+      <div className="flex gap-12">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.hash.slice(2);
+
           return (
             <a
               key={item.label}
               href={item.hash}
-              className={`flex items-center gap-2 text-sm font-medium ${
+              className={`flex items-center gap-3 text-xl font-bold ${
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Icon className="h-4 w-4" />
+              {/* Nav Item Icon */}
+              <Icon className="h-6 w-6" />
+
+              {/* Nav Item Text */}
               {item.label}
+
+              {/* ----------------------------------------------------- */}
+              {/* Notification badge (TEMPORARILY DISABLED)            */}
+              {/* This used to show applicationCount next to the text */}
+              {/* Uncomment when ready to display notification bubble */}
+              {/* ----------------------------------------------------- */}
+              {/*
               {item.label === 'My Applications' && (
-                <span className="ml-1 text-xs bg-primary text-white px-1.5 rounded-full">
+                <span className="ml-1 text-xs bg-primary text-white px-2 py-0.5 rounded-full">
                   {applicationCount}
                 </span>
               )}
+              */}
             </a>
           );
         })}
       </div>
 
-      {/* Right side - user avatar */}
-      <div className="flex items-center gap-3">
+      {/* Right Side - User Account Button */}
+      <div className="absolute right-6 flex items-center gap-3">
         <UserButton afterSignOutUrl="/" />
       </div>
     </nav>
