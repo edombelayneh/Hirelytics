@@ -1,14 +1,7 @@
 import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { 
-  Briefcase, 
-  Calendar, 
-  TrendingUp, 
-  Target,
-  Users,
-  CheckCircle
-} from 'lucide-react';
+import { Briefcase, Calendar, TrendingUp, Target, Users, CheckCircle } from 'lucide-react';
 import { getDashboardStatsFromList, JobApplication } from '../data/mockData';
 
 interface SummaryCardsProps {
@@ -24,43 +17,43 @@ export const SummaryCards = memo(function SummaryCards({ applications }: Summary
       value: stats.total,
       icon: Briefcase,
       change: '+2 this week',
-      changeType: 'positive' as const
+      changeType: 'positive' as const,
     },
     {
       title: 'Active Applications',
       value: stats.applied,
       icon: Calendar,
       change: `${stats.applied} pending`,
-      changeType: 'neutral' as const
+      changeType: 'neutral' as const,
     },
     {
       title: 'Interviews',
       value: stats.interviews,
       icon: Users,
       change: '+1 this week',
-      changeType: 'positive' as const
+      changeType: 'positive' as const,
     },
     {
       title: 'Response Rate',
       value: `${stats.responseRate}%`,
       icon: TrendingUp,
       change: 'Above average',
-      changeType: 'positive' as const
+      changeType: 'positive' as const,
     },
     {
       title: 'Success Rate',
       value: `${stats.successRate}%`,
       icon: Target,
       change: `${stats.offers} offers`,
-      changeType: 'positive' as const
+      changeType: 'positive' as const,
     },
     {
       title: 'Offers Received',
       value: stats.offers,
       icon: CheckCircle,
       change: '1 pending decision',
-      changeType: 'neutral' as const
-    }
+      changeType: 'neutral' as const,
+    },
   ];
 
   return (
@@ -70,16 +63,19 @@ export const SummaryCards = memo(function SummaryCards({ applications }: Summary
         return (
           <Card key={index}>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <CardTitle className='text-sm font-medium'>
-                {card.title}
-              </CardTitle>
+              <CardTitle className='text-sm font-medium'>{card.title}</CardTitle>
               <Icon className='h-4 w-4 text-muted-foreground' />
             </CardHeader>
             <CardContent>
               <div className='text-2xl font-bold'>{card.value}</div>
-              <Badge 
-                variant={card.changeType === 'positive' ? 'default' : 
-                        card.changeType === 'negative' ? 'destructive' : 'secondary'}
+              <Badge
+                variant={
+                  card.changeType === 'positive'
+                    ? 'default'
+                    : card.changeType === 'negative'
+                      ? 'destructive'
+                      : 'secondary'
+                }
                 className='text-xs mt-1'
               >
                 {card.change}

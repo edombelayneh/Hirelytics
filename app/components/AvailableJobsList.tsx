@@ -10,12 +10,15 @@ interface AvailableJobsListProps {
   appliedJobIds: Set<number>;
 }
 
-export const AvailableJobsList = memo(function AvailableJobsList({ onApply, appliedJobIds }: AvailableJobsListProps) {
+export const AvailableJobsList = memo(function AvailableJobsList({
+  onApply,
+  appliedJobIds,
+}: AvailableJobsListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [locationFilter, setLocationFilter] = useState<string>('all');
 
-  const filteredJobs = availableJobs.filter(job => {
+  const filteredJobs = availableJobs.filter((job) => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -23,13 +26,14 @@ export const AvailableJobsList = memo(function AvailableJobsList({ onApply, appl
       job.description.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesType = typeFilter === 'all' || job.type === typeFilter;
-    const matchesLocation = locationFilter === 'all' || 
+    const matchesLocation =
+      locationFilter === 'all' ||
       (locationFilter === 'remote' ? job.location === 'Remote' : job.location !== 'Remote');
 
     return matchesSearch && matchesType && matchesLocation;
   });
 
-  const uniqueTypes = Array.from(new Set(availableJobs.map(job => job.type)));
+  const uniqueTypes = Array.from(new Set(availableJobs.map((job) => job.type)));
 
   return (
     <div className='space-y-6'>
@@ -52,7 +56,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({ onApply, appl
             className='pl-10'
           />
         </div>
-        
+
         <div className='flex items-center gap-2'>
           <Filter className='h-4 w-4 text-muted-foreground' />
           <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -61,8 +65,10 @@ export const AvailableJobsList = memo(function AvailableJobsList({ onApply, appl
             </SelectTrigger>
             <SelectContent>
               <SelectItem value='all'>All Types</SelectItem>
-              {uniqueTypes.map(type => (
-                <SelectItem key={type} value={type}>{type}</SelectItem>
+              {uniqueTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -87,13 +93,8 @@ export const AvailableJobsList = memo(function AvailableJobsList({ onApply, appl
 
       {/* Job Cards Grid */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-        {filteredJobs.map(job => (
-          <JobCard
-            key={job.id}
-            job={job}
-            onApply={onApply}
-            isApplied={appliedJobIds.has(job.id)}
-          />
+        {filteredJobs.map((job) => (
+          <JobCard key={job.id} job={job} onApply={onApply} isApplied={appliedJobIds.has(job.id)} />
         ))}
       </div>
 

@@ -11,7 +11,7 @@ export const jobsData = [
     contactPerson: 'Sarah Johnson',
     notes: 'Technical interview scheduled for next week',
     jobSource: 'LinkedIn' as const,
-    outcome: 'In Progress' as const
+    outcome: 'In Progress' as const,
   },
   {
     id: '2',
@@ -25,7 +25,7 @@ export const jobsData = [
     contactPerson: 'Mike Chen',
     notes: 'Waiting for initial response',
     jobSource: 'Company Website' as const,
-    outcome: 'Pending' as const
+    outcome: 'Pending' as const,
   },
   {
     id: '3',
@@ -39,7 +39,7 @@ export const jobsData = [
     contactPerson: 'Emily Davis',
     notes: 'Position filled internally',
     jobSource: 'Indeed' as const,
-    outcome: 'Unsuccessful' as const
+    outcome: 'Unsuccessful' as const,
   },
   {
     id: '4',
@@ -53,7 +53,7 @@ export const jobsData = [
     contactPerson: 'David Wilson',
     notes: 'Offer received, negotiating salary',
     jobSource: 'Referral' as const,
-    outcome: 'Successful' as const
+    outcome: 'Successful' as const,
   },
   {
     id: '5',
@@ -67,7 +67,7 @@ export const jobsData = [
     contactPerson: 'Lisa Rodriguez',
     notes: 'Second round interview completed',
     jobSource: 'Glassdoor' as const,
-    outcome: 'In Progress' as const
+    outcome: 'In Progress' as const,
   },
   {
     id: '6',
@@ -81,7 +81,7 @@ export const jobsData = [
     contactPerson: 'Robert Kim',
     notes: 'Application submitted through recruiter',
     jobSource: 'LinkedIn' as const,
-    outcome: 'Pending' as const
+    outcome: 'Pending' as const,
   },
   {
     id: '7',
@@ -95,7 +95,7 @@ export const jobsData = [
     contactPerson: 'Anna Larsson',
     notes: 'Not enough experience with ML',
     jobSource: 'Company Website' as const,
-    outcome: 'Unsuccessful' as const
+    outcome: 'Unsuccessful' as const,
   },
   {
     id: '8',
@@ -109,7 +109,7 @@ export const jobsData = [
     contactPerson: 'Tom Martinez',
     notes: 'Final round with VP next week',
     jobSource: 'LinkedIn' as const,
-    outcome: 'In Progress' as const
+    outcome: 'In Progress' as const,
   },
   {
     id: '9',
@@ -123,7 +123,7 @@ export const jobsData = [
     contactPerson: 'Jessica Lee',
     notes: 'Portfolio submitted for review',
     jobSource: 'Company Website' as const,
-    outcome: 'Pending' as const
+    outcome: 'Pending' as const,
   },
   {
     id: '10',
@@ -137,7 +137,7 @@ export const jobsData = [
     contactPerson: 'Mark Anderson',
     notes: 'Phone screen completed, waiting for next steps',
     jobSource: 'LinkedIn' as const,
-    outcome: 'In Progress' as const
+    outcome: 'In Progress' as const,
   },
   {
     id: '11',
@@ -151,7 +151,7 @@ export const jobsData = [
     contactPerson: 'Jennifer White',
     notes: 'Position required more automotive experience',
     jobSource: 'Indeed' as const,
-    outcome: 'Unsuccessful' as const
+    outcome: 'Unsuccessful' as const,
   },
   {
     id: '12',
@@ -165,6 +165,6 @@ export const jobsData = [
     contactPerson: 'Ryan Brown',
     notes: 'Applied through employee referral',
     jobSource: 'Referral' as const,
-    outcome: 'Pending' as const
-  }
+    outcome: 'Pending' as const,
+  },
 ];

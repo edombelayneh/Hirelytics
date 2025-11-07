@@ -17,16 +17,16 @@ export function Navbar({
   ];
 
   return (
-    <nav className="relative flex items-center justify-center border-b px-6 h-20 bg-background sticky top-0 z-50">
+    <nav className='relative flex items-center justify-center border-b px-6 h-20 bg-background sticky top-0 z-50'>
       {/* Left - Logo Section */}
-      <div className="absolute left-6 flex flex-col">
-        <a href="#/" className="inline-block">
-          <img src="../Hirelytics_Logo.png" alt="Hirelytics Logo" className="h-10 w-auto" />
+      <div className='absolute left-6 flex flex-col'>
+        <a href='#/' className='inline-block'>
+          <img src='../Hirelytics_Logo.png' alt='Hirelytics Logo' className='h-10 w-auto' />
         </a>
       </div>
 
       {/* Center - Navigation Links */}
-      <div className="flex gap-12">
+      <div className='flex gap-12'>
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.hash.slice(2);
@@ -40,7 +40,7 @@ export function Navbar({
               }`}
             >
               {/* Nav Item Icon */}
-              <Icon className="h-6 w-6" />
+              <Icon className='h-6 w-6' />
 
               {/* Nav Item Text */}
               {item.label}
@@ -63,8 +63,8 @@ export function Navbar({
       </div>
 
       {/* Right Side - User Account Button */}
-      <div className="absolute right-6 flex items-center gap-3">
-        <UserButton afterSignOutUrl="/" />
+      <div className='absolute right-6 flex items-center gap-3'>
+        <UserButton afterSignOutUrl='/' />
       </div>
     </nav>
   );

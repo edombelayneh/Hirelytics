@@ -1,7 +1,7 @@
-import { NextConfig } from 'next'
+import { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-	turbopack: {},
-}
+  turbopack: {},
+};
 
-export default nextConfig
+export default nextConfig;

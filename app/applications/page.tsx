@@ -18,7 +18,7 @@ function FirestoreTest() {
   }
 
   return (
-    <button onClick={testWrite} className="bg-blue-500 text-white p-2 rounded">
+    <button onClick={testWrite} className='bg-blue-500 text-white p-2 rounded'>
       Test Firestore Write
     </button>
   );
@@ -32,10 +32,10 @@ const MyApplicationsPage = memo(function MyApplicationsPage({
   applications,
 }: MyApplicationsPageProps) {
   return (
-    <div className="space-y-8">
+    <div className='space-y-8'>
       {/* Hero Panel */}
       <section>
-        <h2 className="text-xl font-semibold mb-4">Dashboard Overview</h2>
+        <h2 className='text-xl font-semibold mb-4'>Dashboard Overview</h2>
         <HeroPanel applications={applications} />
       </section>
 
@@ -44,7 +44,7 @@ const MyApplicationsPage = memo(function MyApplicationsPage({
 
       {/* Summary Cards */}
       <section>
-        <h2 className="text-xl font-semibold mb-4">Key Metrics</h2>
+        <h2 className='text-xl font-semibold mb-4'>Key Metrics</h2>
         <SummaryCards applications={applications} />
       </section>
 

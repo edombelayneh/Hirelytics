@@ -27,9 +27,7 @@ export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCar
               {job.company}
             </CardDescription>
           </div>
-          <Badge variant={job.type === 'Full-time' ? 'default' : 'secondary'}>
-            {job.type}
-          </Badge>
+          <Badge variant={job.type === 'Full-time' ? 'default' : 'secondary'}>{job.type}</Badge>
         </div>
       </CardHeader>
 
@@ -65,8 +63,8 @@ export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCar
       </CardContent>
 
       <CardFooter>
-        <Button 
-          className='w-full' 
+        <Button
+          className='w-full'
           onClick={() => onApply(job)}
           disabled={isApplied}
           variant={isApplied ? 'secondary' : 'default'}
