@@ -152,7 +152,7 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
           {/* Resume Upload */}
           <div className='flex-1 space-y-4'>
             <div>
-              <Label>Resume / CV</Label>
+              <Label>Resume</Label>
               <p className='text-sm text-muted-foreground mb-3'>
                 Upload your latest resume to streamline job applications
               </p>
