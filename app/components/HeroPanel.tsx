@@ -1,29 +1,34 @@
-import { memo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Progress } from './ui/progress';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import { memo } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
+import { Progress } from './ui/progress'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
-} from 'recharts';
-import { getDashboardStatsFromList, getApplicationsByMonthFromList, getStatusDistributionFromList, JobApplication } from '../data/mockData';
-import { CHART_COLORS, chartStyles } from '../utils/chartConfig';
+  Cell,
+} from 'recharts'
+import {
+  getDashboardStatsFromList,
+  getApplicationsByMonthFromList,
+  getStatusDistributionFromList,
+  JobApplication,
+} from '../data/mockData'
+import { CHART_COLORS, chartStyles } from '../utils/chartConfig'
 
 interface HeroPanelProps {
-  applications: JobApplication[];
+  applications: JobApplication[]
 }
 
 export const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
-  const stats = getDashboardStatsFromList(applications);
-  const monthlyData = getApplicationsByMonthFromList(applications);
-  const statusData = getStatusDistributionFromList(applications);
+  const stats = getDashboardStatsFromList(applications)
+  const monthlyData = getApplicationsByMonthFromList(applications)
+  const statusData = getStatusDistributionFromList(applications)
 
   return (
     <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
@@ -39,15 +44,21 @@ export const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProp
               <span className='text-sm font-medium'>Response Rate</span>
               <span className='text-sm text-muted-foreground'>{stats.responseRate}%</span>
             </div>
-            <Progress value={stats.responseRate} className='h-2' />
+            <Progress
+              value={stats.responseRate}
+              className='h-2'
+            />
           </div>
-          
+
           <div className='space-y-2'>
             <div className='flex justify-between items-center'>
               <span className='text-sm font-medium'>Success Rate</span>
               <span className='text-sm text-muted-foreground'>{stats.successRate}%</span>
             </div>
-            <Progress value={stats.successRate} className='h-2' />
+            <Progress
+              value={stats.successRate}
+              className='h-2'
+            />
           </div>
 
           <div className='grid grid-cols-2 gap-4 pt-4'>
@@ -70,19 +81,20 @@ export const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProp
           <CardDescription>Monthly application activity</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width='100%' height={200}>
+          <ResponsiveContainer
+            width='100%'
+            height={200}
+          >
             <BarChart data={monthlyData}>
               <CartesianGrid strokeDasharray='3 3' />
-              <XAxis 
-                dataKey='month' 
+              <XAxis
+                dataKey='month'
                 {...chartStyles}
               />
-              <YAxis 
-                {...chartStyles}
-              />
+              <YAxis {...chartStyles} />
               <Tooltip />
-              <Bar 
-                dataKey='applications' 
+              <Bar
+                dataKey='applications'
                 fill='hsl(var(--chart-1))'
                 radius={[4, 4, 0, 0]}
               />
@@ -98,7 +110,10 @@ export const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProp
           <CardDescription>Current status distribution</CardDescription>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width='100%' height={200}>
+          <ResponsiveContainer
+            width='100%'
+            height={200}
+          >
             <PieChart>
               <Pie
                 data={statusData}
@@ -110,7 +125,10 @@ export const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProp
                 dataKey='count'
               >
                 {statusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={CHART_COLORS[index % CHART_COLORS.length]}
+                  />
                 ))}
               </Pie>
               <Tooltip formatter={(value, name) => [`${value} applications`, name]} />
@@ -118,9 +136,12 @@ export const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProp
           </ResponsiveContainer>
           <div className='grid grid-cols-2 gap-2 mt-4'>
             {statusData.map((entry, index) => (
-              <div key={entry.status} className='flex items-center gap-2'>
-                <div 
-                  className='w-3 h-3 rounded-full' 
+              <div
+                key={entry.status}
+                className='flex items-center gap-2'
+              >
+                <div
+                  className='w-3 h-3 rounded-full'
                   style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
                 />
                 <span className='text-xs text-muted-foreground'>
@@ -132,5 +153,5 @@ export const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProp
         </CardContent>
       </Card>
     </div>
-  );
-});
+  )
+})

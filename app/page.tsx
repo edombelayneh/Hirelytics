@@ -1,44 +1,50 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
+import { useAuth } from '@clerk/nextjs'
 import HomePage from './home/page';
 import AvailableJobsPage from './jobs/page';
 import MyApplicationsPage from './applications/page';
+import type { UserProfile } from './data/profileData'
+import { defaultProfile } from './data/profileData'
 import { ProfilePage } from './profile/page';
 import { Navbar } from './components/Navbar';
 import { Toaster, toast } from './components/ui/sonner';
-import { JobApplication } from './data/mockData';
-import { AvailableJob } from './data/availableJobs';
-import { UserProfile, defaultProfile } from './data/profileData';
-import { parseLocation } from './utils/locationParser';
-import { getCurrentDateString } from './utils/dateFormatter';
+import { SignInButtonBridge, protectedAction } from './utils/protectedAction'
+import { linkClerkToFirebase } from './utils/linkClerkToFirebase'
+import { signOut as fbSignOut } from 'firebase/auth'
+import { firebaseAuth } from './lib/firebaseClient'
 
-type Page = 'home' | 'available' | 'applications' | 'profile';
+type Page = 'home' | 'available' | 'applications'| 'profile'
 
 function LandingPage() {
-	const [currentPage, setCurrentPage] = useState<Page>('home');
-	const [applications, setApplications] = useState<JobApplication[]>([]);
+	const { isSignedIn } = useAuth()
+    const [currentPage, setCurrentPage] = useState<Page>('home')
 	const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set());
-	const [userProfile, setUserProfile] = useState<UserProfile>(defaultProfile);
 
-	// Handle hash-based routing
-	useEffect(() => {
-		const handleHashChange = () => {
-			const hash = window.location.hash.slice(1); // Remove the '#'
-			if (hash === '/applications') {
-				setCurrentPage('applications');
-			} else if (hash === '/jobs') {
-				setCurrentPage('available');
-			} else if (hash === '/profile') {
-                setCurrentPage('profile');
-            } else {
-				setCurrentPage('home');
-			}
-		};
+	const handleUpdateProfile = (updatedProfile: any) => {
+    console.log('Profile updated:', updatedProfile)
+	}
 
-		// Set initial page based on hash
-		handleHashChange();
+	// signed-out users cannot navigate to protected hashes
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1)
+      const next: Page =
+        hash === '/applications' ? 'applications' : hash === '/jobs' ? 'available' : 'home'
+
+      // if trying to access protected pages while signed out => bounce to 'home' + sign-in
+      const isProtected = next === 'available' || next === 'applications'
+      if (isProtected && !isSignedIn) {
+        setCurrentPage('home')
+        toast('Please sign in to continue', { description: 'This area is for members only.' })
+        const btn = document.getElementById('__sign_in_bridge__') as HTMLButtonElement | null
+        btn?.click()
+      } else {
+        setCurrentPage(next)
+      }
+    }
+    handleHashChange()
 
 		// Listen for hash changes
 		window.addEventListener('hashchange', handleHashChange);
@@ -46,58 +52,35 @@ function LandingPage() {
 		return () => {
 			window.removeEventListener('hashchange', handleHashChange);
 		};
-	}, []);
+	}, [isSignedIn]);
 
-	const handleApply = (job: AvailableJob) => {
-		const { city, country } = parseLocation(job.location);
+	// Link Clerk to Firebase when user signs in
+  useEffect(() => {
+    if (isSignedIn) {
+      linkClerkToFirebase()
+        .then(() => console.log('Clerk linked to Firebase'))
+        .catch((err) => console.error('Firebase link error', err))
+    } else {
+      // Sign out of Firebase when Clerk signs out
+      fbSignOut(firebaseAuth).catch(() => {})
+    }
+  }, [isSignedIn])
 
-		// Create new application
-		const newApplication: JobApplication = {
-			id: `app-${Date.now()}`,
-			company: job.company,
-			country,
-			city,
-			jobLink: job.applyLink,
-			position: job.title,
-			applicationDate: getCurrentDateString(),
-			status: 'Applied',
-			contactPerson: '',
-			notes: `Applied via job board. ${job.type} position.`,
-			jobSource: 'Other',
-			outcome: 'Pending',
-		};
 
-		setApplications((prev) => [newApplication, ...prev]);
-		setAppliedJobIds((prev) => new Set(prev).add(job.id));
+  return (
+    <div className='min-h-screen bg-background'>
+      <Toaster />
+      <SignInButtonBridge />
 
-		toast.success(
-			`Successfully applied to ${job.title} at ${job.company}!`,
-			{
-				description: 'Your application has been added to the tracker.',
-			}
-		);
-	};
+			 {/* Show app navbar ONLY for signed-in users */}
+      {isSignedIn ? (
+        <Navbar
+          currentPage={currentPage}
+          applicationCount={0}
+        />
+      ) : null}
 
-	const handleUpdateProfile = (profile: UserProfile) => {
-    setUserProfile(profile);
-};
-
-	return (
-		<div className='min-h-screen bg-background'>
-			<Toaster />
-
-			{/* Header - Show on all pages */}
-			<Navbar
-				currentPage={currentPage}
-				applicationCount={applications.length}
-			/>
-
-			{/* Main Content */}
-			<main
-				className={
-					currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''
-				}
-			>
+			<main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
 				{currentPage === 'home' && <HomePage />}
 
 				{currentPage === 'available' && (
@@ -108,10 +91,10 @@ function LandingPage() {
 				)}
 
 				{currentPage === 'applications' && (
-					<MyApplicationsPage applications={applications} />
+					<MyApplicationsPage applications={[]} />
 				)}
 				{currentPage == 'profile' && (
-					<ProfilePage profile={userProfile}
+					<ProfilePage profile={defaultProfile}
                     onUpdateProfile={handleUpdateProfile} />
 				)}
 			</main>
@@ -119,4 +102,4 @@ function LandingPage() {
 	);
 }
 
-export default LandingPage;
+export default LandingPage
