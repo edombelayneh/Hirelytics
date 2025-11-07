@@ -11,7 +11,7 @@ import {
 import { toast } from '../components/ui/sonner';
 
 // tiny wrapper to open Clerk modal programmatically via a hidden button
-let openSignIn: (() => void) | null = null;
+const openSignIn: (() => void) | null = null;
 
 export function SignInButtonBridge() {
   // Invisible SignInButton we can "click" programmatically

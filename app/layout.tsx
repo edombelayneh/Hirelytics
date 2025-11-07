@@ -9,6 +9,7 @@ import {
 } from '@clerk/nextjs'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
+import Script from 'next/script'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -30,7 +31,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ClerkProvider>
       <html lang="en">
         <head>
-          <script src="https://cdn.tailwindcss.com"></script>
+          <Script
+            src="https://cdn.tailwindcss.com"
+            strategy="afterInteractive"
+          />
         </head>
         <body className="antialiased">
          {/* SIGN-IN HEADER (visible only when signed out) */}
