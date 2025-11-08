@@ -40,147 +40,6 @@ interface RecruiterHeroProps {
   isSignedIn: boolean
 }
 
-function recruiterHero(isSignedIn: PublicHeroProps['isSignedIn']) {
-  const goto = (path: '/jobs' | '/applications') =>
-    protectedAction({
-      isSignedIn,
-      onAuthed: () => {
-        window.location.hash = path
-      },
-    })
-  return (
-    <div className='container mx-auto py-24 text-center'>
-      <h1 className='text-4xl font-semibold mb-4'>Welcome back 👋</h1>
-      <p className='text-lg text-muted-foreground mb-10'>
-        Post new opportunities and manage applicants from your dashboard.
-      </p>
-      <div className='flex justify-center gap-4'>
-        <Button onClick={() => goto('/jobs')}>Post a Job</Button>
-        <Button
-          variant='outline'
-          onClick={() => goto('/applications')}
-        >
-          View Applicants
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-function applicantHero(isSignedIn: PublicHeroProps['isSignedIn']) {
-  const goto = (path: '/jobs' | '/applications') =>
-    protectedAction({
-      isSignedIn,
-      onAuthed: () => {
-        window.location.hash = path
-      },
-    })
-  return (
-    <div className='container mx-auto py-24 text-center'>
-      <h1 className='text-4xl font-semibold mb-4'>Welcome back 👋</h1>
-      <p className='text-lg text-muted-foreground mb-10'>
-        Continue your job search or review your application progress.
-      </p>
-      <div className='flex justify-center gap-4'>
-        <Button onClick={() => goto('/jobs')}>Browse Jobs</Button>
-        <Button
-          variant='outline'
-          onClick={() => goto('/applications')}
-        >
-          View My Applications
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-function publicHero(isSignedIn: PublicHeroProps['isSignedIn'], stats: PublicHeroProps['stats']) {
-  const goto = (path: '/jobs' | '/applications') =>
-    protectedAction({
-      isSignedIn,
-      onAuthed: () => {
-        window.location.hash = path
-      },
-    })
-
-  return (
-    <section className='relative overflow-hidden border-b bg-gradient-to-b from-background via-background to-muted/20'>
-      <div className='absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.1))]' />
-      <div className='container relative mx-auto px-6 py-24'>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className='mx-auto max-w-4xl text-center'
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-            className='mb-6 inline-flex items-center gap-2 rounded-full border bg-background/50 px-4 py-2 backdrop-blur'
-          >
-            <Sparkles className='h-4 w-4 text-yellow-500' />
-            <span className='text-sm'>Where Ambition Meets Opportunity.</span>
-          </motion.div>
-
-          <h1 className='mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent'>
-            Welcome to{' '}
-            <img
-              src='../Hirelytics_Logo.png'
-              alt='Hirelytics Logo'
-              className='h-20 w-auto mx-auto block'
-            />
-          </h1>
-
-          <p className='mb-10 text-xl text-muted-foreground max-w-2xl mx-auto'>
-            Whether you’re searching for your next role or your next great hire, Hirelytics helps
-            you track progress, analyze results, and connect with purpose.
-          </p>
-          <div className='flex flex-col sm:flex-row items-center justify-center gap-4 mb-12'>
-            <Button
-              size='lg'
-              className='group gap-2'
-              onClick={() => goto('/jobs')}
-            >
-              <Briefcase className='h-5 w-5' />
-              Find Jobs
-              <ArrowRight className='h-4 w-4 transition-transform group-hover:translate-x-1' />
-            </Button>
-
-            <Button
-              size='lg'
-              variant='outline'
-              className='gap-2'
-              onClick={() => goto('/applications')}
-            >
-              <Target className='h-5 w-5' />
-              Recruit Talent
-            </Button>
-          </div>
-          {/* Stats */}
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto'>
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: 0.2 + index * 0.1,
-                  duration: 0.5,
-                }}
-                className='text-center'
-              >
-                <div className='text-3xl font-bold text-primary mb-1'>{stat.value}</div>
-                <div className='text-sm text-muted-foreground'>{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  )
-}
-
 function HomePage() {
   const { isSignedIn } = useAuth()
   const { user } = useUser()
@@ -433,6 +292,147 @@ function HomePage() {
         </div>
       </footer>
     </div>
+  )
+}
+
+function recruiterHero(isSignedIn: PublicHeroProps['isSignedIn']) {
+  const goto = (path: '/jobs' | '/applications') =>
+    protectedAction({
+      isSignedIn,
+      onAuthed: () => {
+        window.location.hash = path
+      },
+    })
+  return (
+    <div className='container mx-auto py-24 text-center'>
+      <h1 className='text-4xl font-semibold mb-4'>Welcome back 👋</h1>
+      <p className='text-lg text-muted-foreground mb-10'>
+        Post new opportunities and manage applicants from your dashboard.
+      </p>
+      <div className='flex justify-center gap-4'>
+        <Button onClick={() => goto('/jobs')}>Post a Job</Button>
+        <Button
+          variant='outline'
+          onClick={() => goto('/applications')}
+        >
+          View Applicants
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function applicantHero(isSignedIn: PublicHeroProps['isSignedIn']) {
+  const goto = (path: '/jobs' | '/applications') =>
+    protectedAction({
+      isSignedIn,
+      onAuthed: () => {
+        window.location.hash = path
+      },
+    })
+  return (
+    <div className='container mx-auto py-24 text-center'>
+      <h1 className='text-4xl font-semibold mb-4'>Welcome back 👋</h1>
+      <p className='text-lg text-muted-foreground mb-10'>
+        Continue your job search or review your application progress.
+      </p>
+      <div className='flex justify-center gap-4'>
+        <Button onClick={() => goto('/jobs')}>Browse Jobs</Button>
+        <Button
+          variant='outline'
+          onClick={() => goto('/applications')}
+        >
+          View My Applications
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function publicHero(isSignedIn: PublicHeroProps['isSignedIn'], stats: PublicHeroProps['stats']) {
+  const goto = (path: '/jobs' | '/applications') =>
+    protectedAction({
+      isSignedIn,
+      onAuthed: () => {
+        window.location.hash = path
+      },
+    })
+
+  return (
+    <section className='relative overflow-hidden border-b bg-gradient-to-b from-background via-background to-muted/20'>
+      <div className='absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.1))]' />
+      <div className='container relative mx-auto px-6 py-24'>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className='mx-auto max-w-4xl text-center'
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className='mb-6 inline-flex items-center gap-2 rounded-full border bg-background/50 px-4 py-2 backdrop-blur'
+          >
+            <Sparkles className='h-4 w-4 text-yellow-500' />
+            <span className='text-sm'>Where Ambition Meets Opportunity.</span>
+          </motion.div>
+
+          <h1 className='mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent'>
+            Welcome to{' '}
+            <img
+              src='../Hirelytics_Logo.png'
+              alt='Hirelytics Logo'
+              className='h-20 w-auto mx-auto block'
+            />
+          </h1>
+
+          <p className='mb-10 text-xl text-muted-foreground max-w-2xl mx-auto'>
+            Whether you’re searching for your next role or your next great hire, Hirelytics helps
+            you track progress, analyze results, and connect with purpose.
+          </p>
+          <div className='flex flex-col sm:flex-row items-center justify-center gap-4 mb-12'>
+            <Button
+              size='lg'
+              className='group gap-2'
+              onClick={() => goto('/jobs')}
+            >
+              <Briefcase className='h-5 w-5' />
+              Find Jobs
+              <ArrowRight className='h-4 w-4 transition-transform group-hover:translate-x-1' />
+            </Button>
+
+            <Button
+              size='lg'
+              variant='outline'
+              className='gap-2'
+              onClick={() => goto('/applications')}
+            >
+              <Target className='h-5 w-5' />
+              Recruit Talent
+            </Button>
+          </div>
+          {/* Stats */}
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto'>
+            {stats.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.2 + index * 0.1,
+                  duration: 0.5,
+                }}
+                className='text-center'
+              >
+                <div className='text-3xl font-bold text-primary mb-1'>{stat.value}</div>
+                <div className='text-sm text-muted-foreground'>{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    </section>
   )
 }
 
