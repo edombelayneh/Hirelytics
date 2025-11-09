@@ -1,8 +1,10 @@
-import { memo } from 'react';
-import { HeroPanel } from '../components/HeroPanel';
-import { SummaryCards } from '../components/SummaryCards';
-import { ApplicationsTable } from '../components/ApplicationsTable';
-import { JobApplication } from '../data/mockData';
+'use client'
+
+import { memo } from 'react'
+import { HeroPanel } from '../components/HeroPanel'
+import { SummaryCards } from '../components/SummaryCards'
+import { ApplicationsTable } from '../components/ApplicationsTable'
+import { JobApplication } from '../data/mockData'
 
 interface MyApplicationsPageProps {
 	applications: JobApplication[];

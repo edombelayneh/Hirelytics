@@ -1,15 +1,15 @@
 export interface AvailableJob {
-  id: number;
-  title: string;
-  company: string;
-  location: string;
-  type: string;
-  postedDate: string;
-  salary: string;
-  description: string;
-  requirements: string[];
-  status: string;
-  applyLink: string;
+  id: number
+  title: string
+  company: string
+  location: string
+  type: string
+  postedDate: string
+  salary: string
+  description: string
+  requirements: string[]
+  status: string
+  applyLink: string
 }
 
 export const availableJobs: AvailableJob[] = [
