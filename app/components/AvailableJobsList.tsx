@@ -105,3 +105,4 @@ export const AvailableJobsList = memo(function AvailableJobsList({ onApply, appl
     </div>
   );
 });
+

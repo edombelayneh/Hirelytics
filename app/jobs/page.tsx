@@ -1,15 +1,20 @@
 'use client';
 
+import { HeroPanel } from '../components/HeroPanel';
+import { SummaryCards } from '../components/SummaryCards';
 import { AvailableJobsList } from '../components/AvailableJobsList';
-import { useState } from 'react';
 import { AvailableJob } from '../data/availableJobs';
 import { JobApplication } from '../data/mockData';
 import { parseLocation } from '../utils/locationParser';
 import { getCurrentDateString } from '../utils/dateFormatter';
+import { toast } from '../components/ui/sonner';
 
-export default function JobsPage() {
-	const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set());
+interface JobsPageProps {
+    onAddApplication?: (app: JobApplication) => void;
+    appliedJobIds?: Set<number>;
+}
 
+function Jobs({ onAddApplication, appliedJobIds = new Set() }: JobsPageProps) {
 	const handleApply = (job: AvailableJob) => {
 		const { city, country } = parseLocation(job.location);
 		const newApplication: JobApplication = {
@@ -26,15 +31,29 @@ export default function JobsPage() {
 			jobSource: 'Other',
 			outcome: 'Pending',
 		};
-		setAppliedJobIds(prev => new Set(prev).add(job.id));
-		// TODO: Add global state management for applications
+		
+		if (onAddApplication) {
+			onAddApplication(newApplication);
+			
+			// Show success toast
+			toast.success(
+				`Successfully applied to ${job.title} at ${job.company}!`,
+				{
+					description: 'Your application has been added to the tracker.',
+				}
+			);
+			
+			// Navigate to applications tab
+			window.location.hash = '/applications';
+		}
 	};
-
 	return (
 		<div className='min-h-screen bg-background'>
 			<header className='border-b'>
 				<div className='container mx-auto px-6 py-4'>
-					{/* Header area for future navigation or controls */}
+					<div className='flex justify-end'>
+						{/* Removed Add Application button and dialog */}
+					</div>
 				</div>
 			</header>
 			<main className='container mx-auto px-6 py-8 space-y-8'>
@@ -45,3 +64,4 @@ export default function JobsPage() {
 		</div>
 	);
 }
+export default Jobs;

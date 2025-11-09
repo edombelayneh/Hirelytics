@@ -120,12 +120,18 @@ import MyApplicationsPage from './applications/page';
 import { Navbar } from './components/Navbar';
 import { Toaster, toast } from './components/ui/sonner';
 import { SignInButtonBridge, protectedAction } from './utils/protectedAction';
+import { JobApplication } from './data/mockData';
+import { AvailableJob } from './data/availableJobs';
+import { parseLocation } from './utils/locationParser';
+import { getCurrentDateString } from './utils/dateFormatter';
 
 type Page = 'home' | 'available' | 'applications';
 
 function LandingPage() {
   const { isSignedIn } = useAuth(); // Clerk status
   const [currentPage, setCurrentPage] = useState<Page>('home');
+  const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set());
 
   // ROUTER GUARD: signed-out users cannot navigate to protected hashes
   useEffect(() => {
@@ -168,8 +174,31 @@ function LandingPage() {
       {/* Main */}
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
         {currentPage === 'home' && <HomePage />}
-        {currentPage === 'available' && <AvailableJobsPage />}
-        {currentPage === 'applications' && <MyApplicationsPage applications={[]} />}
+        {currentPage === 'available' && (
+          <AvailableJobsPage
+            onAddApplication={(job) => {
+              setApplications(prev => [job, ...prev]);
+              // After adding the application, navigate to the applications tab
+              window.location.hash = '/applications';
+            }}
+            appliedJobIds={appliedJobIds}
+          />
+        )}
+        {currentPage === 'applications' && (
+          <MyApplicationsPage
+            applications={applications}
+            onStatusChange={(id, status) =>
+              setApplications(apps =>
+                apps.map(app => app.id === id ? { ...app, status } : app)
+              )
+            }
+            onNotesChange={(id, notes) =>
+              setApplications(apps =>
+                apps.map(app => app.id === id ? { ...app, notes } : app)
+              )
+            }
+          />
+        )}
       </main>
     </div>
   );
