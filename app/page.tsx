@@ -2,31 +2,31 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@clerk/nextjs'
-import HomePage from './home/page';
-import AvailableJobsPage from './jobs/page';
-import MyApplicationsPage from './applications/page';
+import HomePage from './home/page'
+import AvailableJobsPage from './jobs/page'
+import MyApplicationsPage from './applications/page'
 import type { UserProfile } from './data/profileData'
 import { defaultProfile } from './data/profileData'
-import { ProfilePage } from './profile/page';
-import { Navbar } from './components/Navbar';
-import { Toaster, toast } from './components/ui/sonner';
+import { ProfilePage } from './profile/page'
+import { Navbar } from './components/Navbar'
+import { Toaster, toast } from './components/ui/sonner'
 import { SignInButtonBridge, protectedAction } from './utils/protectedAction'
 import { linkClerkToFirebase } from './utils/linkClerkToFirebase'
 import { signOut as fbSignOut } from 'firebase/auth'
 import { firebaseAuth } from './lib/firebaseClient'
 
-type Page = 'home' | 'available' | 'applications'| 'profile'
+type Page = 'home' | 'available' | 'applications' | 'profile'
 
 function LandingPage() {
-	const { isSignedIn } = useAuth()
-    const [currentPage, setCurrentPage] = useState<Page>('home')
-	const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set());
+  const { isSignedIn } = useAuth()
+  const [currentPage, setCurrentPage] = useState<Page>('home')
+  const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
 
-	const handleUpdateProfile = (updatedProfile: any) => {
+  const handleUpdateProfile = (updatedProfile: any) => {
     console.log('Profile updated:', updatedProfile)
-	}
+  }
 
-	// signed-out users cannot navigate to protected hashes
+  // signed-out users cannot navigate to protected hashes
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1)
@@ -46,15 +46,15 @@ function LandingPage() {
     }
     handleHashChange()
 
-		// Listen for hash changes
-		window.addEventListener('hashchange', handleHashChange);
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange)
 
-		return () => {
-			window.removeEventListener('hashchange', handleHashChange);
-		};
-	}, [isSignedIn]);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange)
+    }
+  }, [isSignedIn])
 
-	// Link Clerk to Firebase when user signs in
+  // Link Clerk to Firebase when user signs in
   useEffect(() => {
     if (isSignedIn) {
       linkClerkToFirebase()
@@ -66,13 +66,12 @@ function LandingPage() {
     }
   }, [isSignedIn])
 
-
   return (
     <div className='min-h-screen bg-background'>
       <Toaster />
       <SignInButtonBridge />
 
-			 {/* Show app navbar ONLY for signed-in users */}
+      {/* Show app navbar ONLY for signed-in users */}
       {isSignedIn ? (
         <Navbar
           currentPage={currentPage}
@@ -80,26 +79,26 @@ function LandingPage() {
         />
       ) : null}
 
-			<main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
-				{currentPage === 'home' && <HomePage />}
+      <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
+        {currentPage === 'home' && <HomePage />}
 
-				{currentPage === 'available' && (
-					<AvailableJobsPage
-					//onApply={handleApply}
-					//appliedJobIds={appliedJobIds}
-					/>
-				)}
+        {currentPage === 'available' && (
+          <AvailableJobsPage
+          //onApply={handleApply}
+          //appliedJobIds={appliedJobIds}
+          />
+        )}
 
-				{currentPage === 'applications' && (
-					<MyApplicationsPage applications={[]} />
-				)}
-				{currentPage == 'profile' && (
-					<ProfilePage profile={defaultProfile}
-                    onUpdateProfile={handleUpdateProfile} />
-				)}
-			</main>
-		</div>
-	);
+        {currentPage === 'applications' && <MyApplicationsPage applications={[]} />}
+        {currentPage == 'profile' && (
+          <ProfilePage
+            profile={defaultProfile}
+            onUpdateProfile={handleUpdateProfile}
+          />
+        )}
+      </main>
+    </div>
+  )
 }
 
 export default LandingPage

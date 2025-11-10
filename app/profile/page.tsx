@@ -1,18 +1,24 @@
-import { memo, useState, useRef } from 'react';
-import { Card } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Textarea } from '../components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Linkedin, 
-  Globe, 
+import { memo, useState, useRef } from 'react'
+import { Card } from '../components/ui/card'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Label } from '../components/ui/label'
+import { Textarea } from '../components/ui/textarea'
+import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select'
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Linkedin,
+  Globe,
   Github,
   Upload,
   FileText,
@@ -20,92 +26,95 @@ import {
   Save,
   Briefcase,
   Calendar,
-  CheckCircle2
-} from 'lucide-react';
-import { UserProfile } from '../data/profileData';
-import { toast } from '../components/ui/sonner';
+  CheckCircle2,
+} from 'lucide-react'
+import { UserProfile } from '../data/profileData'
+import { toast } from '../components/ui/sonner'
 
 interface ProfilePageProps {
-  profile: UserProfile;
-  onUpdateProfile: (profile: UserProfile) => void;
+  profile: UserProfile
+  onUpdateProfile: (profile: UserProfile) => void
 }
 
-export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile }: ProfilePageProps) {
-  const [formData, setFormData] = useState<UserProfile>(profile);
-  const [isEditing, setIsEditing] = useState(false);
-  const profilePicInputRef = useRef<HTMLInputElement>(null);
-  const resumeInputRef = useRef<HTMLInputElement>(null);
+export const ProfilePage = memo(function ProfilePage({
+  profile,
+  onUpdateProfile,
+}: ProfilePageProps) {
+  const [formData, setFormData] = useState<UserProfile>(profile)
+  const [isEditing, setIsEditing] = useState(false)
+  const profilePicInputRef = useRef<HTMLInputElement>(null)
+  const resumeInputRef = useRef<HTMLInputElement>(null)
 
   const handleInputChange = (field: keyof UserProfile, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    setIsEditing(true);
-  };
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    setIsEditing(true)
+  }
 
   const handleProfilePictureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         toast.error('File too large', {
-          description: 'Profile picture must be less than 5MB'
-        });
-        return;
+          description: 'Profile picture must be less than 5MB',
+        })
+        return
       }
 
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, profilePicture: reader.result as string }));
-        setIsEditing(true);
-        toast.success('Profile picture uploaded successfully');
-      };
-      reader.readAsDataURL(file);
+        setFormData((prev) => ({ ...prev, profilePicture: reader.result as string }))
+        setIsEditing(true)
+        toast.success('Profile picture uploaded successfully')
+      }
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   const handleResumeUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
         toast.error('File too large', {
-          description: 'Resume must be less than 10MB'
-        });
-        return;
+          description: 'Resume must be less than 10MB',
+        })
+        return
       }
 
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onloadend = () => {
-        setFormData(prev => ({ 
-          ...prev, 
+        setFormData((prev) => ({
+          ...prev,
           resumeFile: reader.result as string,
-          resumeFileName: file.name 
-        }));
-        setIsEditing(true);
-        toast.success('Resume uploaded successfully');
-      };
-      reader.readAsDataURL(file);
+          resumeFileName: file.name,
+        }))
+        setIsEditing(true)
+        toast.success('Resume uploaded successfully')
+      }
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   const handleSave = () => {
     // Validate required fields
     if (!formData.firstName || !formData.lastName || !formData.email) {
       toast.error('Missing required fields', {
-        description: 'Please fill in your name and email'
-      });
-      return;
+        description: 'Please fill in your name and email',
+      })
+      return
     }
 
-    onUpdateProfile(formData);
-    setIsEditing(false);
+    onUpdateProfile(formData)
+    setIsEditing(false)
     toast.success('Profile updated successfully', {
-      description: 'Your changes have been saved'
-    });
-  };
+      description: 'Your changes have been saved',
+    })
+  }
 
   const getInitials = () => {
-    const first = formData.firstName.charAt(0).toUpperCase();
-    const last = formData.lastName.charAt(0).toUpperCase();
-    return `${first}${last}` || 'U';
-  };
+    const first = formData.firstName.charAt(0).toUpperCase()
+    const last = formData.lastName.charAt(0).toUpperCase()
+    return `${first}${last}` || 'U'
+  }
 
   return (
     <div className='space-y-6 max-w-5xl mx-auto'>
@@ -125,7 +134,10 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
             <Label className='text-center'>Profile Picture</Label>
             <div className='relative'>
               <Avatar className='h-32 w-32'>
-                <AvatarImage src={formData.profilePicture || ''} alt='Profile' />
+                <AvatarImage
+                  src={formData.profilePicture || ''}
+                  alt='Profile'
+                />
                 <AvatarFallback className='text-2xl'>{getInitials()}</AvatarFallback>
               </Avatar>
               <Button
@@ -144,9 +156,7 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
                 onChange={handleProfilePictureUpload}
               />
             </div>
-            <p className='text-xs text-muted-foreground text-center'>
-              PNG, JPG up to 5MB
-            </p>
+            <p className='text-xs text-muted-foreground text-center'>PNG, JPG up to 5MB</p>
           </div>
 
           {/* Resume Upload */}
@@ -393,15 +403,13 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
           <Label htmlFor='bio'>About Me</Label>
           <Textarea
             id='bio'
-            placeholder='Write a brief description about yourself, your skills, and what you&apos;re looking for...'
+            placeholder="Write a brief description about yourself, your skills, and what you're looking for..."
             value={formData.bio}
             onChange={(e) => handleInputChange('bio', e.target.value)}
             rows={6}
             className='resize-none'
           />
-          <p className='text-sm text-muted-foreground'>
-            {formData.bio.length} / 1000 characters
-          </p>
+          <p className='text-sm text-muted-foreground'>{formData.bio.length} / 1000 characters</p>
         </div>
       </Card>
 
@@ -427,5 +435,5 @@ export const ProfilePage = memo(function ProfilePage({ profile, onUpdateProfile 
         </Button>
       </div>
     </div>
-  );
-});
+  )
+})

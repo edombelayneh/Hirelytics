@@ -1,28 +1,28 @@
 export interface UserProfile {
   // Basic Information
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  location: string;
-  
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  location: string
+
   // Professional Links
-  linkedinUrl: string;
-  portfolioUrl: string;
-  githubUrl: string;
-  
+  linkedinUrl: string
+  portfolioUrl: string
+  githubUrl: string
+
   // Profile Media
-  profilePicture: string | null;
-  resumeFile: string | null;
-  resumeFileName: string | null;
-  
+  profilePicture: string | null
+  resumeFile: string | null
+  resumeFileName: string | null
+
   // Bio
-  bio: string;
-  
+  bio: string
+
   // Professional Info
-  currentTitle: string;
-  yearsOfExperience: string;
-  availability: string;
+  currentTitle: string
+  yearsOfExperience: string
+  availability: string
 }
 
 export const defaultProfile: UserProfile = {
@@ -40,5 +40,5 @@ export const defaultProfile: UserProfile = {
   bio: '',
   currentTitle: '',
   yearsOfExperience: '',
-  availability: 'Immediately'
-};
+  availability: 'Immediately',
+}
