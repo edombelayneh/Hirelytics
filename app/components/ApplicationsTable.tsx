@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, memo } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 import { Button } from './ui/button'
@@ -11,19 +13,15 @@ import { formatDate } from '../utils/dateFormatter'
 import { getStatusColor, getOutcomeColor } from '../utils/badgeColors'
 
 interface ApplicationsTableProps {
-  applications: JobApplication[];
-  onStatusChange?: (id: string, status: JobApplication['status']) => void;
-  onNotesChange?: (id: string, notes: string) => void;
-}
-
-export const ApplicationsTable = memo(function ApplicationsTable({ applications, onStatusChange, onNotesChange }: ApplicationsTableProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   applications: JobApplication[]
+  onStatusChange?: (id: string, status: JobApplication['status']) => void
+  onNotesChange?: (id: string, notes: string) => void
 }
 
 export const ApplicationsTable = memo(function ApplicationsTable({
   applications,
+  onStatusChange,
+  onNotesChange,
 }: ApplicationsTableProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -59,10 +57,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
           </div>
           <div className='flex items-center gap-2'>
             <Filter className='h-4 w-4 text-muted-foreground' />
-            <Select
-              value={statusFilter}
-              onValueChange={setStatusFilter}
-            >
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className='w-[150px]'>
                 <SelectValue placeholder='Filter by status' />
               </SelectTrigger>
@@ -109,10 +104,10 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                   <TableCell>{app.position}</TableCell>
                   <TableCell>{formatDate(app.applicationDate)}</TableCell>
                   <TableCell>
-                    {formatDate(app.applicationDate)}
-                  </TableCell>
-                  <TableCell>
-                    <Select value={app.status} onValueChange={status => onStatusChange?.(app.id, status as JobApplication['status'])}>
+                    <Select
+                      value={app.status}
+                      onValueChange={(status) => onStatusChange?.(app.id, status as JobApplication['status'])}
+                    >
                       <SelectTrigger className='w-[120px]'>
                         <SelectValue placeholder='Status' />
                       </SelectTrigger>
@@ -137,23 +132,16 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                     <input
                       type='text'
                       value={app.notes}
-                      onChange={e => onNotesChange?.(app.id, e.target.value)}
+                      onChange={(e) => onNotesChange?.(app.id, e.target.value)}
                       className='border rounded px-2 py-1 w-full text-sm bg-background'
                       placeholder='Add notes...'
                     />
-                    <div
-                      className='truncate text-sm text-muted-foreground'
-                      title={app.notes}
-                    >
+                    <div className='truncate text-sm text-muted-foreground' title={app.notes}>
                       {app.notes}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      onClick={() => window.open(app.jobLink, '_blank')}
-                    >
+                    <Button variant='ghost' size='sm' onClick={() => window.open(app.jobLink, '_blank')}>
                       <ExternalLink className='h-4 w-4' />
                     </Button>
                   </TableCell>
@@ -161,10 +149,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
               ))}
               {filteredApplications.length === 0 && (
                 <TableRow>
-                  <TableCell
-                    colSpan={10}
-                    className='text-center py-8 text-muted-foreground'
-                  >
+                  <TableCell colSpan={10} className='text-center py-8 text-muted-foreground'>
                     No applications found matching your criteria
                   </TableCell>
                 </TableRow>

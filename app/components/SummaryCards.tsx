@@ -1,3 +1,5 @@
+'use client'
+
 import { memo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
@@ -69,18 +71,15 @@ export const SummaryCards = memo(function SummaryCards({ applications }: Summary
             <CardContent>
               <div className='text-2xl font-bold'>{card.value}</div>
               <Badge
-                variant={card.changeType === 'positive' ? 'default' : 'secondary'}
-                variant={
-                  card.changeType === 'positive'
-                    ? 'default'
-                    : card.changeType === 'negative'
-                      ? 'destructive'
-                      : 'secondary'
-                }
-                className='text-xs mt-1'
-              >
-                {card.change}
-              </Badge>
+  variant={
+    card.changeType === 'positive'
+      ? 'default'
+      : 'secondary'
+  }
+  className="text-xs mt-1"
+>
+  {card.change}
+</Badge>
             </CardContent>
           </Card>
         )
