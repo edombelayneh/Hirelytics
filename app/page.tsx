@@ -31,7 +31,13 @@ function LandingPage() {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1)
       const next: Page =
-        hash === '/applications' ? 'applications' : hash === '/jobs' ? 'available' : 'home'
+        hash === '/applications'
+          ? 'applications'
+          : hash === '/jobs'
+            ? 'available'
+            : hash === '/profile'
+              ? 'profile'
+              : 'home'
 
       // if trying to access protected pages while signed out => bounce to 'home' + sign-in
       const isProtected = next === 'available' || next === 'applications'

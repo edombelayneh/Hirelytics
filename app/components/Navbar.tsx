@@ -37,7 +37,7 @@ export function Navbar({
       <div className='flex gap-12'>
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = currentPage === item.hash.slice(2)
+          const isActive = currentPage === item.hash.slice(3)
 
           return (
             <a
