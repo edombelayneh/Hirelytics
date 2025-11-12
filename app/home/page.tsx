@@ -501,26 +501,6 @@ function HomePage() {
           </div>
           <div className='mt-8 flex flex-col gap-3 border-t pt-6 text-center text-sm text-muted-foreground md:flex-row md:items-center md:justify-between'>
             <p>© {new Date().getFullYear()} Hirelytics. All rights reserved.</p>
-            <div className='flex justify-center gap-4'>
-              <a
-                href='/terms'
-                className='transition-colors hover:text-foreground'
-              >
-                Terms
-              </a>
-              <a
-                href='/privacy'
-                className='transition-colors hover:text-foreground'
-              >
-                Privacy
-              </a>
-              <a
-                href='/cookies'
-                className='transition-colors hover:text-foreground'
-              >
-                Cookies
-              </a>
-            </div>
           </div>
         </div>
       </footer>
