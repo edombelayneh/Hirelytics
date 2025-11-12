@@ -20,7 +20,6 @@ type Page = 'home' | 'available' | 'applications' | 'profile'
 function LandingPage() {
   const { isSignedIn } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('home')
-  const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
 
   const handleUpdateProfile = (updatedProfile: any) => {
     console.log('Profile updated:', updatedProfile)
@@ -87,14 +86,6 @@ function LandingPage() {
 
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
         {currentPage === 'home' && <HomePage />}
-
-        {currentPage === 'available' && (
-          <AvailableJobsPage
-          //onApply={handleApply}
-          //appliedJobIds={appliedJobIds}
-          />
-        )}
-
         {currentPage === 'applications' && <MyApplicationsPage applications={[]} />}
         {currentPage == 'profile' && (
           <ProfilePage
