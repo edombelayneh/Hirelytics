@@ -1,3 +1,5 @@
+// Root layout for the application. Wraps all pages in ClerkProvider
+// to provide authentication context and manage user state globally.
 import { type Metadata } from 'next'
 import {
   ClerkProvider,
@@ -11,6 +13,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import Script from 'next/script'
 
+// Font configuration
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
