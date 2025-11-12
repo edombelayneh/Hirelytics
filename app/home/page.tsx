@@ -40,41 +40,41 @@ function HomePage() {
       title: 'AI Feedback Engine',
       description:
         'Turns recruiter notes into constructive guidance so applicants learn exactly how to improve the next time.',
-      color: 'teal',
+      color: 'gold',
     },
     {
       icon: Clock,
       title: 'Real-Time Status Updates',
       description:
         'Applicants see updates the moment actions are taken—no more guessing or inbox refreshing.',
-      color: 'pink',
+      color: 'teal',
     },
     {
       icon: Globe,
       title: 'Smart Job Aggregation',
       description:
         'Track roles from multiple platforms in one streamlined view—fewer tabs, more clarity.',
-      color: 'gold',
+      color: 'pink',
     },
     {
       icon: Zap,
       title: 'Recruiter Efficiency',
       description:
         'Bulk updates and one-click actions reduce manual work during peak hiring seasons.',
-      color: 'teal',
+      color: 'gold',
     },
     {
       icon: BarChart3,
       title: 'Applicant Insights',
       description: 'Visual analytics show activity trends, response rates, and progress over time.',
-      color: 'pink',
+      color: 'teal',
     },
     {
       icon: Shield,
       title: 'Compliance & Security',
       description:
         'Role-based access, encryption, and audit trails protect users and support privacy needs.',
-      color: 'gold',
+      color: 'pink',
     },
   ]
 
@@ -136,7 +136,7 @@ function HomePage() {
             <div className='mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row'>
               <Button
                 size='lg'
-                className='group flex items-center gap-3 rounded-lg px-6 py-3 font-semibold text-white shadow hover:-translate-y-0.5 hover:shadow-md transition'
+                className='group flex items-center gap-3 rounded-lg px-6 py-3 font-semibold text-black shadow hover:-translate-y-0.5 hover:shadow-md transition'
                 style={{ background: 'var(--accent-teal)' }}
                 onClick={() => goto('/jobs')}
               >
@@ -258,7 +258,7 @@ function HomePage() {
                 description:
                   'Add roles from anywhere. Your dashboard keeps every application organized and up to date.',
                 icon: Briefcase,
-                badge: 'teal',
+                badge: 'gold',
               },
               {
                 step: '02',
@@ -266,7 +266,7 @@ function HomePage() {
                 description:
                   'Recruiters evaluate candidates and update status in one click. Actions reflect instantly.',
                 icon: Users,
-                badge: 'pink',
+                badge: 'teal',
               },
               {
                 step: '03',
@@ -274,7 +274,7 @@ function HomePage() {
                 description:
                   'Applicants receive structured, constructive feedback generated from recruiter notes.',
                 icon: Brain,
-                badge: 'gold',
+                badge: 'pink',
               },
             ].map((step, index) => {
               const Icon = step.icon
@@ -446,7 +446,7 @@ function HomePage() {
               <div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
                 <Button
                   size='lg'
-                  className='group gap-2 rounded-lg px-8 py-3 font-semibold text-white shadow hover:-translate-y-0.5 hover:shadow-md transition'
+                  className='group gap-2 rounded-lg px-8 py-3 font-semibold text-black shadow hover:-translate-y-0.5 hover:shadow-md transition'
                   style={{ background: 'var(--accent-teal)' }}
                   onClick={() => goto('/jobs')}
                 >
