@@ -123,6 +123,8 @@ import { SignInButtonBridge } from './utils/protectedAction';
 import { linkClerkToFirebase } from './utils/linkClerkToFirebase';
 import { JobApplication } from './data/mockData';
 import { AvailableJob } from './data/availableJobs';
+import { parseLocation } from './utils/locationParser';
+import { getCurrentDateString } from './utils/dateFormatter';
 
 type Page = 'home' | 'available' | 'applications';
 

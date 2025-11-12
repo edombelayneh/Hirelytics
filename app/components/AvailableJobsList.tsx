@@ -114,5 +114,3 @@ export const AvailableJobsList = memo(function AvailableJobsList({
   )
 })
 
-
-

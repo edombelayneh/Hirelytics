@@ -41,13 +41,10 @@ const MyApplicationsPage = memo(function MyApplicationsPage({
 }: MyApplicationsPageProps) {
   return (
     <div className='space-y-8'>
-      {/* Hero Panel */}
       <section>
         <h2 className='text-xl font-semibold mb-4'>Dashboard Overview</h2>
         <HeroPanel applications={applications} />
       </section>
-
-    
 
       {/* Summary Cards */}
       <section>
