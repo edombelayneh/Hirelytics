@@ -20,6 +20,14 @@
   --muted-foreground: #717182;
   --accent: #e9ebef;
   --accent-foreground: #030213;
+  /* Hirelytics brand accents (base hex values only) */
+  --accent-teal: #A1EDF0;
+  --accent-pink: #F05DC1;
+  --accent-gold: #F0D646;
+  /* RGB helpers for translucent variants (use with rgba()) */
+  --accent-teal-rgb: 161 237 240;
+  --accent-pink-rgb: 240 93 193;
+  --accent-gold-rgb: 240 214 70;
   --destructive: #d4183d;
   --destructive-foreground: #ffffff;
   --border: rgba(0, 0, 0, 0.1);
@@ -190,4 +198,32 @@
 
 html {
   font-size: var(--font-size);
+}
+
+/* Home page badge/icon styles moved here from app/home/home.css */
+.badge {
+  display: grid;
+  place-items: center;
+  border-radius: 9999px; /* rounded-full */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  color: #fff;
+}
+
+.icon {
+  color: #fff;
+  display: inline-block;
+}
+
+.size-8 {
+  height: 2rem; /* h-8 */
+  width: 2rem; /* w-8 */
+}
+
+.size-16 {
+  height: 4rem; /* h-16 */
+  width: 4rem; /* w-16 */
+}
+
+.badge:hover {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
