@@ -50,10 +50,7 @@ function LandingPage() {
       }
     }
     handleHashChange()
-
-    // Listen for hash changes
     window.addEventListener('hashchange', handleHashChange)
-
     return () => {
       window.removeEventListener('hashchange', handleHashChange)
     }
