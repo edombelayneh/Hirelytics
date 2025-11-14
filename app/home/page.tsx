@@ -1,4 +1,3 @@
-// app/home/page.tsx
 'use client'
 
 import { Button } from '../components/ui/button'
@@ -25,6 +24,8 @@ import {
 function HomePage() {
   const { isSignedIn } = useAuth()
 
+  // Navigates to selected section only if user is signed in.
+  // If not signed in, protectedAction will show toast + open Clerk modal.
   const goto = (path: '/jobs' | '/applications') =>
     protectedAction({
       isSignedIn,
@@ -33,6 +34,7 @@ function HomePage() {
       },
     })
 
+  // Marketing + feature list content
   const features = [
     {
       icon: Briefcase,
@@ -84,6 +86,8 @@ function HomePage() {
       {/* Hero Section */}
       <section className='relative overflow-hidden border-b bg-gradient-to-b from-background via-background to-muted/20'>
         <div className='absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.1))]' />
+
+        {/* Main headline and call-to-action */}
         <div className='container relative mx-auto px-6 py-24'>
           <motion.div
             initial={{ opacity: 0, y: 20 }}

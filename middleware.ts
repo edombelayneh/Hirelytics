@@ -1,7 +1,10 @@
+// Clerk middleware to protect routes and API endpoints.
+// Ensures only authenticated users can access restricted resources.
 import { clerkMiddleware } from '@clerk/nextjs/server'
 
 export default clerkMiddleware()
 
+// Apply middleware to all routes except static assets and internal Next.js files.
 export const config = {
   matcher: [
     // Skip Next.js internals and all static files, unless found in search params

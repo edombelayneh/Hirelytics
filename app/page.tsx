@@ -26,15 +26,21 @@ function LandingPage() {
   const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
   const [profile, setProfile] = useState<UserProfile>(defaultProfile)
 
-  const handleUpdateProfile = (updatedProfile: any) => {
-    setProfile(updatedProfile)
+  const handleUpdateProfile = (updatedProfile: UserProfile) => {
+    console.log('Profile updated:', updatedProfile)
   }
 
+  // ---------------------------
+  // NAVIGATION + AUTH PROTECTION
+  // ---------------------------
+  // Ensures signed-out users cannot access protected routes via URL hash (#)
   useEffect(() => {
     if (!isLoaded) return
 
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1)
+
+      // Determine next page based on hash
       const next: Page =
         hash === '/applications'
           ? 'applications'
@@ -49,7 +55,7 @@ function LandingPage() {
         setCurrentPage('home')
         toast('Please sign in to continue', { description: 'This area is for members only.' })
         const btn = document.getElementById('__sign_in_bridge__') as HTMLButtonElement | null
-        btn?.click()
+        btn?.click() // Opens Clerk sign-in modal
       } else {
         setCurrentPage(next)
       }
@@ -60,7 +66,11 @@ function LandingPage() {
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [isSignedIn, isLoaded])
 
-  // Link Clerk user to Firebase after sign-in
+  // ---------------------------
+  // CLERK ↔ FIREBASE LINKING
+  // ---------------------------
+  // When user signs in with Clerk, also sign them into Firebase using a custom token.
+  // When user signs out, sign them out of Firebase
   useEffect(() => {
     if (!isLoaded) return // wait for Clerk to load
     if (isSignedIn) {
@@ -100,6 +110,9 @@ function LandingPage() {
     window.location.hash = '/applications'
   }
 
+  // ---------------------------
+  // RENDER UI
+  // ---------------------------
   return (
     <div className='min-h-screen bg-background'>
       <Toaster />
@@ -112,6 +125,7 @@ function LandingPage() {
         />
       )}
 
+      {/* Render active page */}
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
         {currentPage === 'home' && <HomePage />}
         {currentPage === 'available' && (
