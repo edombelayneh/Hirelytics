@@ -90,7 +90,7 @@ function LandingPage() {
       <SignInButtonBridge />
 
       {isLoaded && isSignedIn && (
-        <Navbar currentPage={currentPage} applicationCount={applications.length} />
+        <Navbar currentPage={currentPage} applicationCount={applications?.length ?? 0} />
       )}
 
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>

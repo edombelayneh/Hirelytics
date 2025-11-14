@@ -119,7 +119,6 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                         <SelectItem value='Withdrawn'>Withdrawn</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Badge className={getStatusColor(app.status)}>{app.status}</Badge>
                   </TableCell>
                   <TableCell>{app.contactPerson}</TableCell>
                   <TableCell>
@@ -136,9 +135,6 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                       className='border rounded px-2 py-1 w-full text-sm bg-background'
                       placeholder='Add notes...'
                     />
-                    <div className='truncate text-sm text-muted-foreground' title={app.notes}>
-                      {app.notes}
-                    </div>
                   </TableCell>
                   <TableCell>
                     <Button variant='ghost' size='sm' onClick={() => window.open(app.jobLink, '_blank')}>
