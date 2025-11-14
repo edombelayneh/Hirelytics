@@ -25,7 +25,7 @@ interface HeroPanelProps {
   applications: JobApplication[]
 }
 
-export const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
+const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
   const stats = getDashboardStatsFromList(applications)
   const monthlyData = getApplicationsByMonthFromList(applications)
   const statusData = getStatusDistributionFromList(applications)
@@ -155,3 +155,5 @@ export const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProp
     </div>
   )
 })
+
+export default HeroPanel
