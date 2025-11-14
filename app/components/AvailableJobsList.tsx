@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, memo } from 'react'
 import { JobCard } from './JobCard'
 import { Input } from './ui/input'
