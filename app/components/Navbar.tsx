@@ -1,7 +1,7 @@
 'use client'
 
 import { UserButton } from '@clerk/nextjs'
-import { Home, Briefcase, BarChart3 } from 'lucide-react'
+import { Home, Briefcase, BarChart3, User } from 'lucide-react'
 
 export function Navbar({
   currentPage,
@@ -14,6 +14,7 @@ export function Navbar({
     { label: 'Home', hash: '#/', icon: Home },
     { label: 'Available Jobs', hash: '#/jobs', icon: Briefcase },
     { label: 'My Applications', hash: '#/applications', icon: BarChart3 },
+    { label: 'My Profile', hash: '#/profile', icon: User },
   ]
 
   return (
@@ -36,7 +37,7 @@ export function Navbar({
       <div className='flex gap-12'>
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = currentPage === item.hash.slice(2)
+          const isActive = currentPage === item.hash.slice(3)
 
           return (
             <a

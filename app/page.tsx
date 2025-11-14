@@ -5,33 +5,46 @@ import { useAuth } from '@clerk/nextjs';
 import HomePage from './home/page';
 import AvailableJobsPage from './jobs/page';
 import MyApplicationsPage from './applications/page';
+import type { UserProfile } from './data/profileData';
+import { defaultProfile } from './data/profileData';
+import { ProfilePage } from './profile/page';
 import { Navbar } from './components/Navbar';
 import { Toaster, toast } from './components/ui/sonner';
 import { SignInButtonBridge } from './utils/protectedAction';
 import { linkClerkToFirebase } from './utils/linkClerkToFirebase';
+import { signOut as fbSignOut } from 'firebase/auth';
+import { firebaseAuth } from './lib/firebaseClient';
 import { JobApplication } from './data/mockData';
 import { AvailableJob } from './data/availableJobs';
-import { parseLocation } from './utils/locationParser';
-import { getCurrentDateString } from './utils/dateFormatter';
 
-type Page = 'home' | 'available' | 'applications';
+type Page = 'home' | 'available' | 'applications' | 'profile';
 
 function LandingPage() {
-  const { isSignedIn, isLoaded } = useAuth(); // ✅ use isLoaded
+  const { isSignedIn, isLoaded } = useAuth();
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set());
+  const [profile, setProfile] = useState<UserProfile>(defaultProfile);
 
-  // Hash-based routing with protection
+  const handleUpdateProfile = (updatedProfile: UserProfile) => {
+    setProfile(updatedProfile);
+  };
+
   useEffect(() => {
-    if (!isLoaded) return; // wait for Clerk to load
+    if (!isLoaded) return;
 
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1);
       const next: Page =
-        hash === '/applications' ? 'applications' : hash === '/jobs' ? 'available' : 'home';
+        hash === '/applications'
+          ? 'applications'
+          : hash === '/jobs'
+            ? 'available'
+            : hash === '/profile'
+              ? 'profile'
+              : 'home';
 
-      const isProtected = next === 'available' || next === 'applications';
+      const isProtected = next === 'available' || next === 'applications' || next === 'profile';
       if (isProtected && !isSignedIn) {
         setCurrentPage('home');
         toast('Please sign in to continue', { description: 'This area is for members only.' });
@@ -95,14 +108,12 @@ function LandingPage() {
 
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
         {currentPage === 'home' && <HomePage />}
-
         {currentPage === 'available' && (
           <AvailableJobsPage
             onAddApplication={handleAddApplication}
             appliedJobIds={appliedJobIds}
           />
         )}
-
         {currentPage === 'applications' && (
           <MyApplicationsPage
             applications={applications}
@@ -116,6 +127,12 @@ function LandingPage() {
                 apps.map((app) => (app.id === id ? { ...app, notes } : app))
               )
             }
+          />
+        )}
+        {currentPage === 'profile' && (
+          <ProfilePage
+            profile={profile}
+            onUpdateProfile={handleUpdateProfile}
           />
         )}
       </main>
