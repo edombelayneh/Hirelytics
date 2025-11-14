@@ -156,4 +156,4 @@ const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
   )
 })
 
-export default HeroPanel;
+export default HeroPanel

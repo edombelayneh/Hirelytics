@@ -61,21 +61,30 @@ export const AvailableJobsList = memo(function AvailableJobsList({
 
         <div className='flex items-center gap-2'>
           <Filter className='h-4 w-4 text-muted-foreground' />
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <Select
+            value={typeFilter}
+            onValueChange={setTypeFilter}
+          >
             <SelectTrigger className='w-[140px]'>
               <SelectValue placeholder='Job Type' />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value='all'>All Types</SelectItem>
               {uniqueTypes.map((type) => (
-                <SelectItem key={type} value={type}>
+                <SelectItem
+                  key={type}
+                  value={type}
+                >
                   {type}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Select value={locationFilter} onValueChange={setLocationFilter}>
+          <Select
+            value={locationFilter}
+            onValueChange={setLocationFilter}
+          >
             <SelectTrigger className='w-[140px]'>
               <SelectValue placeholder='Location' />
             </SelectTrigger>
@@ -113,4 +122,3 @@ export const AvailableJobsList = memo(function AvailableJobsList({
     </div>
   )
 })
-

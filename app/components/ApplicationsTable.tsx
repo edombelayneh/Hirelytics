@@ -57,7 +57,10 @@ export const ApplicationsTable = memo(function ApplicationsTable({
           </div>
           <div className='flex items-center gap-2'>
             <Filter className='h-4 w-4 text-muted-foreground' />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select
+              value={statusFilter}
+              onValueChange={setStatusFilter}
+            >
               <SelectTrigger className='w-[150px]'>
                 <SelectValue placeholder='Filter by status' />
               </SelectTrigger>
@@ -106,7 +109,9 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                   <TableCell>
                     <Select
                       value={app.status}
-                      onValueChange={(status) => onStatusChange?.(app.id, status as JobApplication['status'])}
+                      onValueChange={(status) =>
+                        onStatusChange?.(app.id, status as JobApplication['status'])
+                      }
                     >
                       <SelectTrigger className='w-[120px]'>
                         <SelectValue placeholder='Status' />
@@ -137,7 +142,11 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                     />
                   </TableCell>
                   <TableCell>
-                    <Button variant='ghost' size='sm' onClick={() => window.open(app.jobLink, '_blank')}>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      onClick={() => window.open(app.jobLink, '_blank')}
+                    >
                       <ExternalLink className='h-4 w-4' />
                     </Button>
                   </TableCell>
@@ -145,7 +154,10 @@ export const ApplicationsTable = memo(function ApplicationsTable({
               ))}
               {filteredApplications.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={10} className='text-center py-8 text-muted-foreground'>
+                  <TableCell
+                    colSpan={10}
+                    className='text-center py-8 text-muted-foreground'
+                  >
                     No applications found matching your criteria
                   </TableCell>
                 </TableRow>

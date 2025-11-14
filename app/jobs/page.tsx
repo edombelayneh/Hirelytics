@@ -14,11 +14,9 @@ function Jobs({ onAddApplication, appliedJobIds }: JobsPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-     
-
+    <div className='min-h-screen bg-background'>
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8 space-y-8">
+      <main className='container mx-auto px-6 py-8 space-y-8'>
         <section>
           <AvailableJobsList
             onApply={handleApply}
@@ -31,4 +29,3 @@ function Jobs({ onAddApplication, appliedJobIds }: JobsPageProps) {
 }
 
 export default Jobs
-
