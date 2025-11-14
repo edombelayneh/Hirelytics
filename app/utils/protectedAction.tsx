@@ -1,5 +1,6 @@
-// app/utils/protectedAction.ts
 'use client'
+// Utility functions for protecting user actions that require authentication.
+// If the user is not signed in, a toast appears and Clerk's sign-in modal opens.
 import {
   ClerkProvider,
   SignInButton,
@@ -13,6 +14,7 @@ import { toast } from '../components/ui/sonner'
 // tiny wrapper to open Clerk modal programmatically via a hidden button
 const openSignIn: (() => void) | null = null
 
+// Invisible SignInButton that can be clicked programmatically
 export function SignInButtonBridge() {
   // Invisible SignInButton we can "click" programmatically
   return (
@@ -28,11 +30,13 @@ export function SignInButtonBridge() {
   )
 }
 
+// Opens Clerk sign-in modal by "clicking" the hidden button
 export function triggerSignIn() {
   const btn = document.getElementById('__sign_in_bridge__') as HTMLButtonElement | null
   btn?.click()
 }
 
+// Wraps protected actions and ensures the user is authenticated before continuing
 export function protectedAction({
   isSignedIn,
   onAuthed,

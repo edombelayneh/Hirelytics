@@ -21,14 +21,19 @@ function LandingPage() {
   const { isSignedIn } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('home')
 
-  const handleUpdateProfile = (updatedProfile: any) => {
+  const handleUpdateProfile = (updatedProfile: UserProfile) => {
     console.log('Profile updated:', updatedProfile)
   }
 
-  // signed-out users cannot navigate to protected hashes
+  // ---------------------------
+  // NAVIGATION + AUTH PROTECTION
+  // ---------------------------
+  // Ensures signed-out users cannot access protected routes via URL hash (#)
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1)
+
+      // Determine next page based on hash
       const next: Page =
         hash === '/applications'
           ? 'applications'
@@ -38,13 +43,14 @@ function LandingPage() {
               ? 'profile'
               : 'home'
 
-      // if trying to access protected pages while signed out => bounce to 'home' + sign-in
+      // If navigating to protected routes (jobs/applications) while signed out,
+      // show toast and redirect to home
       const isProtected = next === 'available' || next === 'applications'
       if (isProtected && !isSignedIn) {
         setCurrentPage('home')
         toast('Please sign in to continue', { description: 'This area is for members only.' })
         const btn = document.getElementById('__sign_in_bridge__') as HTMLButtonElement | null
-        btn?.click()
+        btn?.click() // Opens Clerk sign-in modal
       } else {
         setCurrentPage(next)
       }
@@ -56,7 +62,11 @@ function LandingPage() {
     }
   }, [isSignedIn])
 
-  // Link Clerk to Firebase when user signs in
+  // ---------------------------
+  // CLERK ↔ FIREBASE LINKING
+  // ---------------------------
+  // When user signs in with Clerk, also sign them into Firebase using a custom token.
+  // When user signs out, sign them out of Firebase
   useEffect(() => {
     if (isSignedIn) {
       linkClerkToFirebase()
@@ -68,6 +78,9 @@ function LandingPage() {
     }
   }, [isSignedIn])
 
+  // ---------------------------
+  // RENDER UI
+  // ---------------------------
   return (
     <div className='min-h-screen bg-background'>
       <Toaster />
@@ -81,6 +94,7 @@ function LandingPage() {
         />
       ) : null}
 
+      {/* Render active page */}
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
         {currentPage === 'home' && <HomePage />}
         {currentPage === 'applications' && <MyApplicationsPage applications={[]} />}
