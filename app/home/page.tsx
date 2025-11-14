@@ -6,20 +6,21 @@ import { useAuth } from '@clerk/nextjs'
 import { protectedAction } from '../utils/protectedAction'
 import { Card } from '../components/ui/card'
 import {
-  Briefcase,
+  Brain,
+  Clock,
+  Globe,
+  Zap,
+  Shield,
   BarChart3,
-  Target,
-  TrendingUp,
+  Briefcase,
+  ClipboardList,
   CheckCircle2,
-  Calendar,
-  FileText,
-  Link as LinkIcon,
-  MapPin,
-  ArrowRight,
-  Sparkles,
   LineChart,
-  Bell,
+  ArrowRight,
+  Users,
+  Sparkles,
 } from 'lucide-react'
+// badge/icon styles moved to app/globals.css
 
 function HomePage() {
   const { isSignedIn } = useAuth()
@@ -37,40 +38,45 @@ function HomePage() {
   // Marketing + feature list content
   const features = [
     {
-      icon: Briefcase,
-      title: 'Browse Available Jobs',
-      description: 'Explore curated job listings from top companies and apply with a single click.',
-      color: 'text-blue-500',
+      icon: Brain,
+      title: 'AI Feedback Engine',
+      description:
+        'Turns recruiter notes into constructive guidance so applicants learn exactly how to improve the next time.',
+      color: 'gold',
+    },
+    {
+      icon: Clock,
+      title: 'Real-Time Status Updates',
+      description:
+        'Applicants see updates the moment actions are taken—no more guessing or inbox refreshing.',
+      color: 'teal',
+    },
+    {
+      icon: Globe,
+      title: 'Smart Job Aggregation',
+      description:
+        'Track roles from multiple platforms in one streamlined view—fewer tabs, more clarity.',
+      color: 'pink',
+    },
+    {
+      icon: Zap,
+      title: 'Recruiter Efficiency',
+      description:
+        'Bulk updates and one-click actions reduce manual work during peak hiring seasons.',
+      color: 'gold',
     },
     {
       icon: BarChart3,
-      title: 'Track Applications',
-      description: 'Monitor all your applications in one place with detailed status tracking.',
-      color: 'text-purple-500',
+      title: 'Applicant Insights',
+      description: 'Visual analytics show activity trends, response rates, and progress over time.',
+      color: 'teal',
     },
     {
-      icon: TrendingUp,
-      title: 'Visualize Progress',
-      description: 'See your job search progress through interactive charts and analytics.',
-      color: 'text-green-500',
-    },
-    {
-      icon: Target,
-      title: 'Set Goals',
-      description: 'Track response rates, interview conversion, and achieve your targets.',
-      color: 'text-orange-500',
-    },
-    {
-      icon: FileText,
-      title: 'Detailed Notes',
-      description: 'Keep track of contacts, interview notes, and important details.',
-      color: 'text-pink-500',
-    },
-    {
-      icon: Calendar,
-      title: 'Timeline View',
-      description: 'Visualize your application journey over time with date tracking.',
-      color: 'text-cyan-500',
+      icon: Shield,
+      title: 'Compliance & Security',
+      description:
+        'Role-based access, encryption, and audit trails protect users and support privacy needs.',
+      color: 'pink',
     },
   ]
 
@@ -82,9 +88,24 @@ function HomePage() {
   ]
 
   return (
-    <div className='min-h-screen'>
+    <div className='min-h-screen flex flex-col bg-white text-black'>
       {/* Hero Section */}
       <section className='relative overflow-hidden border-b bg-gradient-to-b from-background via-background to-muted/20'>
+        {/* soft background accents */}
+        <div className='pointer-events-none absolute inset-0 -z-10'>
+          <div
+            className='absolute -top-16 -left-16 h-72 w-72 rounded-full blur-3xl'
+            style={{ background: 'rgba(var(--accent-teal-rgb), 0.133)' }}
+          />
+          <div
+            className='absolute -bottom-20 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full blur-3xl'
+            style={{ background: 'rgba(var(--accent-gold-rgb), 0.133)' }}
+          />
+          <div
+            className='absolute top-10 -right-16 h-72 w-72 rounded-full blur-3xl'
+            style={{ background: 'rgba(var(--accent-pink-rgb), 0.133)' }}
+          />
+        </div>
         <div className='absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.1))]' />
 
         {/* Main headline and call-to-action */}
@@ -102,26 +123,25 @@ function HomePage() {
               className='mb-6 inline-flex items-center gap-2 rounded-full border bg-background/50 px-4 py-2 backdrop-blur'
             >
               <Sparkles className='h-4 w-4 text-yellow-500' />
-              <span className='text-sm'>Your All-in-One Job Search Command Center</span>
+              <span className='text-sm'>Make Hiring Faster, Fairer, and Clearer</span>
             </motion.div>
 
-            <h1 className='mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent'>
-              Welcome to{' '}
-              <img
-                src='../Hirelytics_Logo.png'
-                alt='Hirelytics Logo'
-                className='h-20 w-auto mx-auto block'
-              />
-            </h1>
+            <img
+              src='/Hirelytics_Logo.png'
+              alt='Hirelytics'
+              className='mx-auto mb-6 h-20 w-auto'
+            />
 
-            <p className='mb-10 text-xl text-muted-foreground max-w-2xl mx-auto'>
-              Transform your job search with intelligent tracking, powerful analytics, and organized
-              application management. Land your dream job faster.
+            <p className='mx-auto mb-10 max-w-2xl text-xl text-muted-foreground'>
+              Hirelytics bridges recruiters and applicants with real-time status updates, automated
+              AI feedback, and a shared view of progress—so everyone knows what&apos;s happening and
+              why.
             </p>
-            <div className='flex flex-col sm:flex-row items-center justify-center gap-4 mb-12'>
+            <div className='mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row'>
               <Button
                 size='lg'
-                className='group gap-2'
+                className='group flex items-center gap-3 rounded-lg px-6 py-3 font-semibold text-black shadow hover:-translate-y-0.5 hover:shadow-md transition'
+                style={{ background: 'var(--accent-teal)' }}
                 onClick={() => goto('/jobs')}
               >
                 <Briefcase className='h-5 w-5' />
@@ -132,15 +152,15 @@ function HomePage() {
               <Button
                 size='lg'
                 variant='outline'
-                className='gap-2'
+                className='flex items-center gap-3 rounded-lg border border-gray-300 bg-white px-6 py-3 font-semibold text-black hover:bg-gray-50 transition'
                 onClick={() => goto('/applications')}
               >
-                <BarChart3 className='h-5 w-5' />
+                <ClipboardList className='h-5 w-5' />
                 View My Applications
               </Button>
             </div>
             {/* Stats */}
-            <div className='grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto'>
+            <div className='mx-auto grid max-w-3xl gap-6 grid-cols-2 md:grid-cols-4'>
               {stats.map((stat, index) => (
                 <motion.div
                   key={stat.label}
@@ -152,7 +172,7 @@ function HomePage() {
                   }}
                   className='text-center'
                 >
-                  <div className='text-3xl font-bold text-primary mb-1'>{stat.value}</div>
+                  <div className='mb-1 text-3xl font-bold text-primary'>{stat.value}</div>
                   <div className='text-sm text-muted-foreground'>{stat.label}</div>
                 </motion.div>
               ))}
@@ -168,15 +188,15 @@ function HomePage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className='text-center mb-16'
+          className='mb-16 text-center'
         >
-          <h2 className='mb-4'>Everything You Need to Succeed</h2>
-          <p className='text-xl text-muted-foreground max-w-2xl mx-auto'>
-            Powerful features designed to streamline your job search and maximize your success rate.
+          <h2 className='mb-4 text-4xl font-bold'>What Makes Hirelytics Different</h2>
+          <p className='mx-auto max-w-2xl text-xl text-muted-foreground'>
+            Built for both applicants and recruiters—transparent, efficient, and guided by AI.
           </p>
         </motion.div>
 
-        <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16'>
+        <div className='mb-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
           {features.map((feature, index) => {
             const Icon = feature.icon
             return (
@@ -190,12 +210,27 @@ function HomePage() {
                   duration: 0.5,
                 }}
               >
-                <Card className='p-6 h-full hover:shadow-lg transition-shadow border-2 hover:border-primary/50'>
-                  <div className={`inline-flex rounded-lg bg-muted p-3 mb-4 ${feature.color}`}>
-                    <Icon className='h-6 w-6' />
+                <Card className='h-full rounded-2xl border border-gray-200 bg-white p-8 transition-shadow hover:shadow-md'>
+                  <div className='mb-2 flex items-center gap-6'>
+                    <div
+                      className='flex-shrink-0 badge size-16'
+                      style={{
+                        background:
+                          feature.color === 'teal'
+                            ? 'var(--accent-teal)'
+                            : feature.color === 'pink'
+                              ? 'var(--accent-pink)'
+                              : 'var(--accent-gold)',
+                      }}
+                    >
+                      <Icon className='icon size-8' />
+                    </div>
+
+                    <div>
+                      <h3 className='mb-3 text-xl font-semibold text-black'>{feature.title}</h3>
+                      <p className='text-muted-foreground'>{feature.description}</p>
+                    </div>
                   </div>
-                  <h3 className='mb-2'>{feature.title}</h3>
-                  <p className='text-muted-foreground'>{feature.description}</p>
                 </Card>
               </motion.div>
             )
@@ -211,36 +246,39 @@ function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className='text-center mb-16'
+            className='mb-16 text-center'
           >
-            <h2 className='mb-4'>How It Works</h2>
-            <p className='text-xl text-muted-foreground max-w-2xl mx-auto'>
-              Three simple steps to organize your job search like a pro.
+            <h2 className='mb-4 text-4xl font-bold'>How It Works</h2>
+            <p className='mx-auto max-w-2xl text-xl text-muted-foreground'>
+              A shared workflow that respects everyone&apos;s time—clear steps, clear outcomes.
             </p>
           </motion.div>
 
-          <div className='grid md:grid-cols-3 gap-8 max-w-5xl mx-auto'>
+          <div className='mx-auto grid max-w-5xl gap-8 md:grid-cols-3'>
             {[
               {
                 step: '01',
-                title: 'Browse Jobs',
+                title: 'Apply & Sync',
                 description:
-                  'Explore our curated list of job openings from top companies across various industries.',
+                  'Add roles from anywhere. Your dashboard keeps every application organized and up to date.',
                 icon: Briefcase,
+                badge: 'gold',
               },
               {
                 step: '02',
-                title: 'Apply & Track',
+                title: 'Review & Update',
                 description:
-                  'Apply with one click and automatically add applications to your tracking dashboard.',
-                icon: CheckCircle2,
+                  'Recruiters evaluate candidates and update status in one click. Actions reflect instantly.',
+                icon: Users,
+                badge: 'teal',
               },
               {
                 step: '03',
-                title: 'Monitor Progress',
+                title: 'AI Feedback',
                 description:
-                  'Track status updates, view analytics, and manage your entire job search journey.',
-                icon: LineChart,
+                  'Applicants receive structured, constructive feedback generated from recruiter notes.',
+                icon: Brain,
+                badge: 'pink',
               },
             ].map((step, index) => {
               const Icon = step.icon
@@ -254,16 +292,31 @@ function HomePage() {
                     delay: index * 0.2,
                     duration: 0.5,
                   }}
-                  className='relative text-center'
                 >
-                  <div className='mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground'>
-                    <Icon className='h-8 w-8' />
+                  <div className='relative rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition hover:shadow-md'>
+                    <div className='pointer-events-none absolute right-6 top-4 text-4xl font-bold text-gray-200'>
+                      {step.step}
+                    </div>
+
+                    <div className='mb-6 flex justify-center'>
+                      <div
+                        className='badge size-16'
+                        style={{
+                          background:
+                            step.badge === 'teal'
+                              ? 'var(--accent-teal)'
+                              : step.badge === 'pink'
+                                ? 'var(--accent-pink)'
+                                : 'var(--accent-gold)',
+                        }}
+                      >
+                        <Icon className='icon size-8' />
+                      </div>
+                    </div>
+
+                    <h3 className='mb-3 text-xl font-semibold text-black'>{step.title}</h3>
+                    <p className='text-muted-foreground'>{step.description}</p>
                   </div>
-                  <div className='absolute -top-4 left-1/2 -translate-x-1/2 text-6xl opacity-10'>
-                    {step.step}
-                  </div>
-                  <h3 className='mb-3'>{step.title}</h3>
-                  <p className='text-muted-foreground'>{step.description}</p>
                 </motion.div>
               )
             })}
@@ -282,16 +335,17 @@ function HomePage() {
           <Card className='relative overflow-hidden border-2'>
             <div className='absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10' />
             <div className='relative p-12 text-center'>
-              <h2 className='mb-4'>Ready to Transform Your Job Search?</h2>
-              <p className='text-xl text-muted-foreground mb-8 max-w-2xl mx-auto'>
-                Join thousands of job seekers who have organized their applications and landed their
-                dream jobs with Hirelytics.
+              <h2 className='mb-4 text-4xl font-bold'>Start Building a Better Hiring Experience</h2>
+              <p className='mx-auto mb-8 max-w-2xl text-xl text-muted-foreground'>
+                Bring transparency to applicants and efficiency to recruiters—with AI that clarifies
+                each step.
               </p>
-              <div className='flex flex-col sm:flex-row items-center justify-center gap-4'>
+              <div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
                 <Button
                   size='lg'
-                  className='gap-2'
-                  onClick={() => (window.location.hash = '#/jobs')}
+                  className='group gap-2 rounded-lg px-8 py-3 font-semibold text-black shadow hover:-translate-y-0.5 hover:shadow-md transition'
+                  style={{ background: 'var(--accent-teal)' }}
+                  onClick={() => goto('/jobs')}
                 >
                   Get Started Now
                   <ArrowRight className='h-5 w-5' />
@@ -299,7 +353,8 @@ function HomePage() {
                 <Button
                   size='lg'
                   variant='outline'
-                  onClick={() => (window.location.hash = '#/applications')}
+                  className='rounded-lg border border-gray-300 bg-white px-8 py-3 font-semibold text-black hover:bg-gray-50 transition'
+                  onClick={() => goto('/applications')}
                 >
                   View Dashboard
                 </Button>
@@ -312,30 +367,37 @@ function HomePage() {
       {/* Footer */}
       <footer className='border-t bg-muted/30 py-12'>
         <div className='container mx-auto px-6'>
-          <div className='flex flex-col md:flex-row items-center justify-between gap-4'>
+          <div className='flex flex-col items-center justify-between gap-4 md:flex-row'>
             <div>
-              <h3 className='mb-2'>Hirelytics</h3>
-              <p className='text-sm text-muted-foreground'>
-                Your intelligent job application tracker
+              <h3 className='mb-2 font-semibold'>Hirelytics</h3>
+              <p className='text-sm text-muted-foreground max-w-md'>
+                A shared platform where recruiters save time and applicants stay informed through
+                AI-powered tracking, real-time updates, and constructive feedback.
               </p>
             </div>
             <div className='flex gap-6 text-sm text-muted-foreground'>
               <a
+                href='#features'
+                className='transition-colors hover:text-foreground'
+              >
+                Features
+              </a>
+              <a
                 href='#/jobs'
-                className='hover:text-foreground transition-colors'
+                className='transition-colors hover:text-foreground'
               >
                 Available Jobs
               </a>
               <a
                 href='#/applications'
-                className='hover:text-foreground transition-colors'
+                className='transition-colors hover:text-foreground'
               >
                 My Applications
               </a>
             </div>
           </div>
-          <div className='mt-8 pt-8 border-t text-center text-sm text-muted-foreground'>
-            © {new Date().getFullYear()} Hirelytics. Built with ❤️ for job seekers.
+          <div className='mt-8 flex flex-col gap-3 border-t pt-6 text-center text-sm text-muted-foreground md:flex-row md:items-center md:justify-between'>
+            <p>© {new Date().getFullYear()} Hirelytics. All rights reserved.</p>
           </div>
         </div>
       </footer>
