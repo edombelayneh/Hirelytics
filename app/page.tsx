@@ -43,7 +43,7 @@ function LandingPage() {
             : hash === '/profile'
               ? 'profile'
               : 'home'
-
+// if trying to access protected pages while signed out => bounce to 'home' + sign-in
       const isProtected = next === 'available' || next === 'applications' || next === 'profile'
       if (isProtected && !isSignedIn) {
         setCurrentPage('home')
@@ -67,6 +67,9 @@ function LandingPage() {
       linkClerkToFirebase()
         .then(() => console.log('Clerk linked to Firebase'))
         .catch((err: any) => console.error('Firebase link error', err))
+    } else {
+      // Sign out of Firebase when Clerk signs out
+      fbSignOut(firebaseAuth).catch(() => {})
     }
   }, [isSignedIn, isLoaded])
 
