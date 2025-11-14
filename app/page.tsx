@@ -10,7 +10,7 @@ import { defaultProfile } from './data/profileData'
 import { ProfilePage } from './profile/page'
 import { Navbar } from './components/Navbar'
 import { Toaster, toast } from './components/ui/sonner'
-import { SignInButtonBridge } from './utils/protectedAction'
+import { SignInButtonBridge, protectedAction } from './utils/protectedAction'
 import { linkClerkToFirebase } from './utils/linkClerkToFirebase'
 import { signOut as fbSignOut } from 'firebase/auth'
 import { firebaseAuth } from './lib/firebaseClient'
@@ -26,7 +26,7 @@ function LandingPage() {
   const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
   const [profile, setProfile] = useState<UserProfile>(defaultProfile)
 
-  const handleUpdateProfile = (updatedProfile: UserProfile) => {
+  const handleUpdateProfile = (updatedProfile: any) => {
     setProfile(updatedProfile)
   }
 

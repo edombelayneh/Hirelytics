@@ -23,6 +23,15 @@ function FirestoreTest() {
     await setDoc(ref, { test: true, createdAt: new Date() })
     alert('Wrote test doc!')
   }
+
+  return (
+    <button
+      onClick={testWrite}
+      className='bg-blue-500 text-white p-2 rounded'
+    >
+      Test Firestore Write
+    </button>
+  )
 }
 
 // --- Main page component ---
@@ -43,6 +52,9 @@ const MyApplicationsPage = memo(function MyApplicationsPage({
         <h2 className='text-xl font-semibold mb-4'>Dashboard Overview</h2>
         <HeroPanel applications={applications} />
       </section>
+
+      {/* Testing Firebase Storage FIXME: DELETE LATER */}
+      <FirestoreTest />
 
       {/* Summary Cards */}
       <section>
