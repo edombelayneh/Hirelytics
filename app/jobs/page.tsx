@@ -18,12 +18,10 @@ function Jobs({ onAddApplication, appliedJobIds }: JobsPageProps) {
 
   return (
     <div className='min-h-screen bg-background'>
-      {/* HEADER SECTION HERE */}
-      <header className='border-b'>
+      {/* <header className='border-b'>
         <div className='container mx-auto px-6 py-4 flex items-center justify-between'>
           <h1 className='text-2xl font-bold'>Available Jobs</h1>
 
-          {/* 🔥 THIS IS YOUR BUTTON — ADD NEW JOB 🔥 */}
           <Link href='/addNewJob'>
             <Button size='sm'>
               <Plus className='h-4 w-4 mr-2' />
@@ -31,7 +29,7 @@ function Jobs({ onAddApplication, appliedJobIds }: JobsPageProps) {
             </Button>
           </Link>
         </div>
-      </header>
+      </header> */}
 
       {/* Main Content */}
       <main className='container mx-auto px-6 py-8 space-y-8'>

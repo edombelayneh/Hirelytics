@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Navbar } from '../components/Navbar'
 
 export default function AddNewJobPage() {
   const [jobName, setJobName] = useState('')
@@ -29,7 +28,7 @@ export default function AddNewJobPage() {
   const [submitting, setSubmitting] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setMessage(null)
 
@@ -37,6 +36,8 @@ export default function AddNewJobPage() {
       setMessage('Please fill in Job Name, Company Name, Description, and Recruiter Email.')
       return
     }
+
+    setSubmitting(true)
 
     const jobData = {
       jobName,
@@ -59,32 +60,23 @@ export default function AddNewJobPage() {
 
     console.log('New job submitted: ', jobData)
 
-    setMessage('Job submitted. Redirecting...')
-    setSubmitting(true)
+    setMessage('Job submitted. Redirecting to Available Jobs...')
     setRedirecting(true)
 
-    // give a tiny delay so the UI can show the message/overlay
+    // small delay so the user sees the overlay, then go to Available Jobs
     setTimeout(() => {
-      // use the same hash-based navigation style as the navbar,
-      // but from the root page so LandingPage can see it
-      window.location.href = '/#/jobs'
-    }, 1500)
+      window.location.hash = '/jobs'
+    }, 2000)
   }
 
   return (
     <main className='min-h-screen bg-gray-50'>
-      <Navbar
-        currentPage='available'
-        applicationCount={0}
-      />
-
-      {/* </div> <Navbar currentPage='jobs' applicationCount={0} /> */}
-
+      {/* redirect overlay */}
       {redirecting && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
           <div className='bg-white rounded-lg px-6 py-4 shadow-lg text-center'>
             <p className='font-medium mb-2'>Submitting job...</p>
-            <p className='text-sm text-gray-600'>Redirecting you to the Jobs page.</p>
+            <p className='text-sm text-gray-600'>Redirecting you to the Available Jobs page.</p>
           </div>
         </div>
       )}

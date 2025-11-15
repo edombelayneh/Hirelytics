@@ -2,22 +2,25 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@clerk/nextjs'
+
 import HomePage from './home/page'
 import AvailableJobsPage from './jobs/page'
 import MyApplicationsPage from './applications/page'
+import AddNewJobPage from './addNewJob/page' // ✅ 1) import your page
+
 import type { UserProfile } from './data/profileData'
 import { defaultProfile } from './data/profileData'
 import { ProfilePage } from './profile/page'
 import { Navbar } from './components/Navbar'
 import { Toaster, toast } from './components/ui/sonner'
-import { SignInButtonBridge, protectedAction } from './utils/protectedAction'
+import { SignInButtonBridge } from './utils/protectedAction'
 import { linkClerkToFirebase } from './utils/linkClerkToFirebase'
 import { signOut as fbSignOut } from 'firebase/auth'
 import { firebaseAuth } from './lib/firebaseClient'
 import { JobApplication } from './data/mockData'
 import { AvailableJob } from './data/availableJobs'
 
-type Page = 'home' | 'available' | 'applications' | 'profile'
+type Page = 'home' | 'available' | 'applications' | 'profile' | 'addNewJob' // ✅ 2) add here
 
 function LandingPage() {
   const { isSignedIn, isLoaded } = useAuth()
@@ -33,7 +36,6 @@ function LandingPage() {
   // ---------------------------
   // NAVIGATION + AUTH PROTECTION
   // ---------------------------
-  // Ensures signed-out users cannot access protected routes via URL hash (#)
   useEffect(() => {
     if (!isLoaded) return
 
@@ -46,16 +48,23 @@ function LandingPage() {
           ? 'applications'
           : hash === '/jobs'
             ? 'available'
-            : hash === '/profile'
-              ? 'profile'
-              : 'home'
-// if trying to access protected pages while signed out => bounce to 'home' + sign-in
-      const isProtected = next === 'available' || next === 'applications' || next === 'profile'
+            : hash === '/addNewJob' // ✅ 3) handle the new hash
+              ? 'addNewJob'
+              : hash === '/profile'
+                ? 'profile'
+                : 'home'
+
+      const isProtected =
+        next === 'available' ||
+        next === 'applications' ||
+        next === 'profile' ||
+        next === 'addNewJob' // ✅ 4) treat it as protected
+
       if (isProtected && !isSignedIn) {
         setCurrentPage('home')
         toast('Please sign in to continue', { description: 'This area is for members only.' })
         const btn = document.getElementById('__sign_in_bridge__') as HTMLButtonElement | null
-        btn?.click() // Opens Clerk sign-in modal
+        btn?.click()
       } else {
         setCurrentPage(next)
       }
@@ -69,16 +78,13 @@ function LandingPage() {
   // ---------------------------
   // CLERK ↔ FIREBASE LINKING
   // ---------------------------
-  // When user signs in with Clerk, also sign them into Firebase using a custom token.
-  // When user signs out, sign them out of Firebase
   useEffect(() => {
-    if (!isLoaded) return // wait for Clerk to load
+    if (!isLoaded) return
     if (isSignedIn) {
       linkClerkToFirebase()
         .then(() => console.log('Clerk linked to Firebase'))
-        .catch((err: any) => console.error('Firebase link error', err))
+        .catch((err: string) => console.error('Firebase link error', err))
     } else {
-      // Sign out of Firebase when Clerk signs out
       fbSignOut(firebaseAuth).catch(() => {})
     }
   }, [isSignedIn, isLoaded])
@@ -106,7 +112,6 @@ function LandingPage() {
     setAppliedJobIds((prev) => new Set([...prev, job.id]))
     toast.success(`Successfully applied to ${job.title} at ${job.company}`)
 
-    // Navigate to applications page
     window.location.hash = '/applications'
   }
 
@@ -155,6 +160,7 @@ function LandingPage() {
             onUpdateProfile={handleUpdateProfile}
           />
         )}
+        {currentPage === 'addNewJob' && <AddNewJobPage />} {/* ✅ 5) render your page */}
       </main>
     </div>
   )

@@ -389,15 +389,18 @@ function HomePage() {
                 Available Jobs
               </a>
               <a
+                href='#/add-job'
+                className='transition-colors hover:text-foreground'
+              >
+                Add Job
+              </a>
+              <a
                 href='#/applications'
                 className='transition-colors hover:text-foreground'
               >
                 My Applications
               </a>
             </div>
-          </div>
-          <div className='mt-8 flex flex-col gap-3 border-t pt-6 text-center text-sm text-muted-foreground md:flex-row md:items-center md:justify-between'>
-            <p>© {new Date().getFullYear()} Hirelytics. All rights reserved.</p>
           </div>
         </div>
       </footer>
