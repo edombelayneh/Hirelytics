@@ -39,12 +39,21 @@ export const AvailableJobsList = memo(function AvailableJobsList({
 
   return (
     <div className='space-y-6'>
-      {/* Header */}
-      <div>
-        <h2 className='text-2xl font-bold mb-2'>Available Jobs</h2>
-        <p className='text-muted-foreground'>
-          Browse and apply to {availableJobs.length} open positions
-        </p>
+      <div className='flex items-center justify-between mb-4'>
+        <div>
+          <h2 className='text-2xl font-bold mb-1'>Available Jobs</h2>
+          <p className='text-muted-foreground'>
+            Browse and apply to {availableJobs.length} open positions
+          </p>
+        </div>
+
+        <a
+          href='#/addNewJob'
+          className='inline-flex items-center gap-2 rounded bg-black text-white px-4 py-2 text-sm font-medium'
+        >
+          <span className='text-lg'>+</span>
+          Add Job
+        </a>
       </div>
 
       {/* Filters */}

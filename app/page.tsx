@@ -5,6 +5,7 @@ import { useAuth } from '@clerk/nextjs'
 import HomePage from './home/page'
 import AvailableJobsPage from './jobs/page'
 import MyApplicationsPage from './applications/page'
+import AddNewJobPage from './addNewJob/page'
 import type { UserProfile } from './data/profileData'
 import { defaultProfile } from './data/profileData'
 import { ProfilePage } from './profile/page'
@@ -17,7 +18,7 @@ import { firebaseAuth } from './lib/firebaseClient'
 import { JobApplication } from './data/mockData'
 import { AvailableJob } from './data/availableJobs'
 
-type Page = 'home' | 'available' | 'applications' | 'profile'
+type Page = 'home' | 'available' | 'applications' | 'profile' | 'addNewJob' 
 
 function LandingPage() {
   const { isSignedIn, isLoaded } = useAuth()
@@ -46,11 +47,18 @@ function LandingPage() {
           ? 'applications'
           : hash === '/jobs'
             ? 'available'
-            : hash === '/profile'
-              ? 'profile'
-              : 'home'
-// if trying to access protected pages while signed out => bounce to 'home' + sign-in
-      const isProtected = next === 'available' || next === 'applications' || next === 'profile'
+            : hash === '/addNewJob' 
+              ? 'addNewJob'
+              : hash === '/profile'
+                ? 'profile'
+                : 'home'
+
+      const isProtected =
+        next === 'available' ||
+        next === 'applications' ||
+        next === 'profile' ||
+        next === 'addNewJob' // 
+
       if (isProtected && !isSignedIn) {
         setCurrentPage('home')
         toast('Please sign in to continue', { description: 'This area is for members only.' })
@@ -72,7 +80,7 @@ function LandingPage() {
   // When user signs in with Clerk, also sign them into Firebase using a custom token.
   // When user signs out, sign them out of Firebase
   useEffect(() => {
-    if (!isLoaded) return // wait for Clerk to load
+    if (!isLoaded) return // wait for clerk to load
     if (isSignedIn) {
       linkClerkToFirebase()
         .then(() => console.log('Clerk linked to Firebase'))
@@ -125,7 +133,7 @@ function LandingPage() {
         />
       )}
 
-      {/* Render active page */}
+      {/* Render active page  */}
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
         {currentPage === 'home' && <HomePage />}
         {currentPage === 'available' && (
@@ -155,6 +163,7 @@ function LandingPage() {
             onUpdateProfile={handleUpdateProfile}
           />
         )}
+        {currentPage === 'addNewJob' && <AddNewJobPage />}
       </main>
     </div>
   )
