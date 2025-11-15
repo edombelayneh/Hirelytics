@@ -2,25 +2,23 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@clerk/nextjs'
-
 import HomePage from './home/page'
 import AvailableJobsPage from './jobs/page'
 import MyApplicationsPage from './applications/page'
-import AddNewJobPage from './addNewJob/page' // ✅ 1) import your page
-
+import AddNewJobPage from './addNewJob/page'
 import type { UserProfile } from './data/profileData'
 import { defaultProfile } from './data/profileData'
 import { ProfilePage } from './profile/page'
 import { Navbar } from './components/Navbar'
 import { Toaster, toast } from './components/ui/sonner'
-import { SignInButtonBridge } from './utils/protectedAction'
+import { SignInButtonBridge, protectedAction } from './utils/protectedAction'
 import { linkClerkToFirebase } from './utils/linkClerkToFirebase'
 import { signOut as fbSignOut } from 'firebase/auth'
 import { firebaseAuth } from './lib/firebaseClient'
 import { JobApplication } from './data/mockData'
 import { AvailableJob } from './data/availableJobs'
 
-type Page = 'home' | 'available' | 'applications' | 'profile' | 'addNewJob' // ✅ 2) add here
+type Page = 'home' | 'available' | 'applications' | 'profile' | 'addNewJob' 
 
 function LandingPage() {
   const { isSignedIn, isLoaded } = useAuth()
@@ -36,6 +34,7 @@ function LandingPage() {
   // ---------------------------
   // NAVIGATION + AUTH PROTECTION
   // ---------------------------
+  // Ensures signed-out users cannot access protected routes via URL hash (#)
   useEffect(() => {
     if (!isLoaded) return
 
@@ -48,7 +47,7 @@ function LandingPage() {
           ? 'applications'
           : hash === '/jobs'
             ? 'available'
-            : hash === '/addNewJob' // ✅ 3) handle the new hash
+            : hash === '/addNewJob' 
               ? 'addNewJob'
               : hash === '/profile'
                 ? 'profile'
@@ -58,13 +57,13 @@ function LandingPage() {
         next === 'available' ||
         next === 'applications' ||
         next === 'profile' ||
-        next === 'addNewJob' // ✅ 4) treat it as protected
+        next === 'addNewJob' // 
 
       if (isProtected && !isSignedIn) {
         setCurrentPage('home')
         toast('Please sign in to continue', { description: 'This area is for members only.' })
         const btn = document.getElementById('__sign_in_bridge__') as HTMLButtonElement | null
-        btn?.click()
+        btn?.click() // Opens Clerk sign-in modal
       } else {
         setCurrentPage(next)
       }
@@ -78,13 +77,16 @@ function LandingPage() {
   // ---------------------------
   // CLERK ↔ FIREBASE LINKING
   // ---------------------------
+  // When user signs in with Clerk, also sign them into Firebase using a custom token.
+  // When user signs out, sign them out of Firebase
   useEffect(() => {
-    if (!isLoaded) return
+    if (!isLoaded) return // wait for clerk to load
     if (isSignedIn) {
       linkClerkToFirebase()
         .then(() => console.log('Clerk linked to Firebase'))
-        .catch((err: string) => console.error('Firebase link error', err))
+        .catch((err: any) => console.error('Firebase link error', err))
     } else {
+      // Sign out of Firebase when Clerk signs out
       fbSignOut(firebaseAuth).catch(() => {})
     }
   }, [isSignedIn, isLoaded])
@@ -112,6 +114,7 @@ function LandingPage() {
     setAppliedJobIds((prev) => new Set([...prev, job.id]))
     toast.success(`Successfully applied to ${job.title} at ${job.company}`)
 
+    // Navigate to applications page
     window.location.hash = '/applications'
   }
 
@@ -130,7 +133,7 @@ function LandingPage() {
         />
       )}
 
-      {/* Render active page */}
+      {/* Render active page  */}
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
         {currentPage === 'home' && <HomePage />}
         {currentPage === 'available' && (
@@ -160,7 +163,7 @@ function LandingPage() {
             onUpdateProfile={handleUpdateProfile}
           />
         )}
-        {currentPage === 'addNewJob' && <AddNewJobPage />} {/* ✅ 5) render your page */}
+        {currentPage === 'addNewJob' && <AddNewJobPage />}
       </main>
     </div>
   )
