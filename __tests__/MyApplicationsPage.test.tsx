@@ -1,9 +1,30 @@
+// Vitest utilities for structuring and asserting tests
+// - describe / it: test grouping and test cases
+// - expect: assertions
+// - vi: mocking and spies
+// - beforeEach / afterEach: test lifecycle hooks
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
+// React Testing Library helpers
+// - render: mounts a React component into a virtual DOM
+// - screen: queries the rendered DOM in an accessibility-friendly way
+// - fireEvent: simulates user interactions
+// - cleanup: unmounts components between tests to avoid leakage
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+
+// The page component under test
 import MyApplicationsPage from '../app/applications/page'
+
+// Shared type used by the page and mocked child components
 import { JobApplication } from '../app/data/mockData'
 
+/* -------------------------------------------------------------------------- */
+/*                               GLOBAL MOCKS                                 */
+/* -------------------------------------------------------------------------- */
+
 // --- Mock Clerk authentication ---
+// The page relies on useAuth() to determine whether a user is signed in.
+// We mock it so tests run deterministically without real auth.
 vi.mock('@clerk/nextjs', () => ({
   useAuth: vi.fn(() => ({
     userId: 'test-user-id-123',
@@ -11,29 +32,48 @@ vi.mock('@clerk/nextjs', () => ({
   })),
 }))
 
-// --- Mock Firebase Firestore ---
+// --- Mock Firebase client ---
+// Prevents the test environment from initializing a real Firebase instance.
 vi.mock('../app/lib/firebaseClient', () => ({
   firestore: {},
 }))
 
+// --- Mock Firestore methods ---
+// These are imported by the page logic but not exercised directly in these tests.
+// Stubbing them avoids runtime errors and side effects.
 vi.mock('firebase/firestore', () => ({
   doc: vi.fn(),
   setDoc: vi.fn(),
 }))
 
-// --- Mock child components to simplify testing ---
+/* -------------------------------------------------------------------------- */
+/*                         MOCKED CHILD COMPONENTS                             */
+/* -------------------------------------------------------------------------- */
+
+// Child components are mocked to:
+// 1) Reduce test complexity
+// 2) Isolate MyApplicationsPage behavior
+// 3) Make assertions easier by rendering predictable output
+
+// --- HeroPanel mock ---
+// Displays only the number of applications it receives.
 vi.mock('../app/components/HeroPanel', () => ({
   default: ({ applications }: { applications: JobApplication[] }) => (
     <div data-testid='hero-panel'>HeroPanel: {applications.length} applications</div>
   ),
 }))
 
+// --- SummaryCards mock ---
+// Similar strategy: render minimal output tied to props.
 vi.mock('../app/components/SummaryCards', () => ({
   SummaryCards: ({ applications }: { applications: JobApplication[] }) => (
     <div data-testid='summary-cards'>SummaryCards: {applications.length} applications</div>
   ),
 }))
 
+// --- ApplicationsTable mock ---
+// In addition to rendering a count, this mock exposes buttons
+// that deliberately invoke callback props so we can verify wiring.
 vi.mock('../app/components/ApplicationsTable', () => ({
   ApplicationsTable: ({
     applications,
@@ -46,14 +86,23 @@ vi.mock('../app/components/ApplicationsTable', () => ({
   }) => (
     <div data-testid='applications-table'>
       <div>ApplicationsTable: {applications.length} applications</div>
+
+      {/* Simulates a status update initiated by the user */}
       <button onClick={() => onStatusChange?.('1', 'Interview')}>Change Status</button>
+
+      {/* Simulates a notes update initiated by the user */}
       <button onClick={() => onNotesChange?.('1', 'New notes')}>Change Notes</button>
     </div>
   ),
 }))
 
+/* -------------------------------------------------------------------------- */
+/*                                   TESTS                                    */
+/* -------------------------------------------------------------------------- */
+
 describe('MyApplicationsPage', () => {
-  // --- Mock application data for testing ---
+  // --- Representative mock data ---
+  // Covers multiple statuses and realistic field values.
   const mockApplications: JobApplication[] = [
     {
       id: '1',
@@ -99,21 +148,24 @@ describe('MyApplicationsPage', () => {
     },
   ]
 
-  // --- Mock callback functions ---
+  // --- Mock callback handlers ---
+  // Used to verify that events are properly wired from child components.
   const mockOnStatusChange = vi.fn()
   const mockOnNotesChange = vi.fn()
 
-  // --- Reset mocks before each test ---
+  // --- Reset all spies and mocks before each test ---
+  // Ensures tests are isolated and order-independent.
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  // --- Cleanup after each test to remove mounted components from DOM ---
+  // --- Explicit DOM cleanup after each test ---
+  // Required for React 18 + Strict Mode to prevent duplicate nodes.
   afterEach(() => {
     cleanup()
   })
 
-  // --- Test rendering of page with applications ---
+  // --- Smoke test: main sections render ---
   it('renders the page with all main sections', () => {
     render(
       <MyApplicationsPage
@@ -123,12 +175,12 @@ describe('MyApplicationsPage', () => {
       />
     )
 
-    // Check for main headings
+    // Assert high-level structure rather than implementation details
     expect(screen.getByText('Dashboard Overview')).toBeTruthy()
     expect(screen.getByText('Key Metrics')).toBeTruthy()
   })
 
-  // --- Test that HeroPanel receives correct props ---
+  // --- HeroPanel integration test ---
   it('renders HeroPanel with correct application count', () => {
     render(
       <MyApplicationsPage
@@ -143,7 +195,7 @@ describe('MyApplicationsPage', () => {
     expect(heroPanel.textContent).toContain('3 applications')
   })
 
-  // --- Test that SummaryCards receives correct props ---
+  // --- SummaryCards integration test ---
   it('renders SummaryCards with correct application count', () => {
     render(
       <MyApplicationsPage
@@ -158,7 +210,7 @@ describe('MyApplicationsPage', () => {
     expect(summaryCards.textContent).toContain('3 applications')
   })
 
-  // --- Test that ApplicationsTable receives correct props ---
+  // --- ApplicationsTable integration test ---
   it('renders ApplicationsTable with correct application count', () => {
     render(
       <MyApplicationsPage
@@ -173,7 +225,7 @@ describe('MyApplicationsPage', () => {
     expect(applicationsTable.textContent).toContain('3 applications')
   })
 
-  // --- Test rendering with empty applications array ---
+  // --- Edge case: no applications ---
   it('renders correctly with empty applications array', () => {
     render(
       <MyApplicationsPage
@@ -188,7 +240,7 @@ describe('MyApplicationsPage', () => {
     expect(screen.getByTestId('applications-table').textContent).toContain('0 applications')
   })
 
-  // --- Test onStatusChange callback is passed and works ---
+  // --- Callback wiring: status changes ---
   it('passes onStatusChange callback to ApplicationsTable', () => {
     render(
       <MyApplicationsPage
@@ -198,14 +250,13 @@ describe('MyApplicationsPage', () => {
       />
     )
 
-    const changeStatusButton = screen.getByRole('button', { name: /Change Status/i })
-    fireEvent.click(changeStatusButton)
+    fireEvent.click(screen.getByRole('button', { name: /Change Status/i }))
 
     expect(mockOnStatusChange).toHaveBeenCalledTimes(1)
     expect(mockOnStatusChange).toHaveBeenCalledWith('1', 'Interview')
   })
 
-  // --- Test onNotesChange callback is passed and works ---
+  // --- Callback wiring: notes changes ---
   it('passes onNotesChange callback to ApplicationsTable', () => {
     render(
       <MyApplicationsPage
@@ -215,14 +266,13 @@ describe('MyApplicationsPage', () => {
       />
     )
 
-    const changeNotesButton = screen.getByRole('button', { name: /Change Notes/i })
-    fireEvent.click(changeNotesButton)
+    fireEvent.click(screen.getByRole('button', { name: /Change Notes/i }))
 
     expect(mockOnNotesChange).toHaveBeenCalledTimes(1)
     expect(mockOnNotesChange).toHaveBeenCalledWith('1', 'New notes')
   })
 
-  // --- Test that callbacks are optional ---
+  // --- Optional props safety ---
   it('renders correctly without optional callbacks', () => {
     render(<MyApplicationsPage applications={mockApplications} />)
 
@@ -231,7 +281,8 @@ describe('MyApplicationsPage', () => {
     expect(screen.getByTestId('applications-table')).toBeTruthy()
   })
 
-  // --- Test section structure and headings ---
+  // --- Semantic structure check ---
+  // Verifies heading hierarchy instead of raw text presence.
   it('renders all section headings correctly', () => {
     render(
       <MyApplicationsPage
