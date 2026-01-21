@@ -13,10 +13,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 
 // The page component under test
-import MyApplicationsPage from '../app/applications/page'
+import MyApplicationsPage from '../../app/applications/page'
 
 // Shared type used by the page and mocked child components
-import { JobApplication } from '../app/data/mockData'
+import { JobApplication } from '../../app/data/mockData'
 
 /* -------------------------------------------------------------------------- */
 /*                               GLOBAL MOCKS                                 */
@@ -34,7 +34,8 @@ vi.mock('@clerk/nextjs', () => ({
 
 // --- Mock Firebase client ---
 // Prevents the test environment from initializing a real Firebase instance.
-vi.mock('../app/lib/firebaseClient', () => ({
+vi.mock('../../app/lib/firebaseClient', () => ({
+  firebaseAuth: {},
   firestore: {},
 }))
 
@@ -57,7 +58,7 @@ vi.mock('firebase/firestore', () => ({
 
 // --- HeroPanel mock ---
 // Displays only the number of applications it receives.
-vi.mock('../app/components/HeroPanel', () => ({
+vi.mock('../../app/components/HeroPanel', () => ({
   default: ({ applications }: { applications: JobApplication[] }) => (
     <div data-testid='hero-panel'>HeroPanel: {applications.length} applications</div>
   ),
@@ -65,7 +66,7 @@ vi.mock('../app/components/HeroPanel', () => ({
 
 // --- SummaryCards mock ---
 // Similar strategy: render minimal output tied to props.
-vi.mock('../app/components/SummaryCards', () => ({
+vi.mock('../../app/components/SummaryCards', () => ({
   SummaryCards: ({ applications }: { applications: JobApplication[] }) => (
     <div data-testid='summary-cards'>SummaryCards: {applications.length} applications</div>
   ),
@@ -74,7 +75,7 @@ vi.mock('../app/components/SummaryCards', () => ({
 // --- ApplicationsTable mock ---
 // In addition to rendering a count, this mock exposes buttons
 // that deliberately invoke callback props so we can verify wiring.
-vi.mock('../app/components/ApplicationsTable', () => ({
+vi.mock('../../app/components/ApplicationsTable', () => ({
   ApplicationsTable: ({
     applications,
     onStatusChange,
