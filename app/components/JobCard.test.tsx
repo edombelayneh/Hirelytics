@@ -102,6 +102,19 @@ describe('JobCard', () => {
     expect(screen.getByText('Part-time')).toBeTruthy()
   })
 
+  // --- Test that contract badge is displayed for contract jobs ---
+  it('displays secondary badge variant for contract jobs', () => {
+    const contract = { ...mockJob, type: 'Contract' }
+    render(
+      <JobCard
+        job={contract}
+        onApply={mockOnApply}
+        isApplied={false}
+      />
+    )
+    expect(screen.getByText('Contract')).toBeTruthy()
+  })
+
   // --- Test that only the first 3 requirements are displayed ---
   it('displays only first 3 requirements', () => {
     render(
