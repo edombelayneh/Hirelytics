@@ -17,7 +17,10 @@ export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCar
   )
 
   return (
-    <Card className='h-full flex flex-col'>
+    <Card
+      data-testid={`job-card-${job.id}`}
+      className='h-full flex flex-col'
+    >
       <CardHeader>
         <div className='flex items-start justify-between gap-4'>
           <div className='flex-1'>
