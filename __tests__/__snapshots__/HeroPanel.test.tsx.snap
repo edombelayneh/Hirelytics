@@ -1,0 +1,457 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HeroPanel > matches snapshot with empty data 1`] = `
+<div
+  class="grid grid-cols-1 lg:grid-cols-3 gap-6"
+>
+  <div
+    class="lg:col-span-1"
+    data-testid="card"
+  >
+    <div
+      data-testid="card-header"
+    >
+      <div
+        data-testid="card-title"
+      >
+        Job Search Overview
+      </div>
+      <div
+        data-testid="card-description"
+      >
+        Your application performance metrics
+      </div>
+    </div>
+    <div
+      class="space-y-6"
+      data-testid="card-content"
+    >
+      <div
+        class="space-y-2"
+      >
+        <div
+          class="flex justify-between items-center"
+        >
+          <span
+            class="text-sm font-medium"
+          >
+            Response Rate
+          </span>
+          <span
+            class="text-sm text-muted-foreground"
+          >
+            0
+            %
+          </span>
+        </div>
+        <div
+          class="h-2"
+          data-testid="progress"
+          data-value="0"
+        />
+      </div>
+      <div
+        class="space-y-2"
+      >
+        <div
+          class="flex justify-between items-center"
+        >
+          <span
+            class="text-sm font-medium"
+          >
+            Success Rate
+          </span>
+          <span
+            class="text-sm text-muted-foreground"
+          >
+            0
+            %
+          </span>
+        </div>
+        <div
+          class="h-2"
+          data-testid="progress"
+          data-value="0"
+        />
+      </div>
+      <div
+        class="grid grid-cols-2 gap-4 pt-4"
+      >
+        <div
+          class="text-center"
+        >
+          <div
+            class="text-2xl font-bold text-blue-600"
+          >
+            0
+          </div>
+          <div
+            class="text-xs text-muted-foreground"
+          >
+            Active Interviews
+          </div>
+        </div>
+        <div
+          class="text-center"
+        >
+          <div
+            class="text-2xl font-bold text-green-600"
+          >
+            0
+          </div>
+          <div
+            class="text-xs text-muted-foreground"
+          >
+            Job Offers
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="lg:col-span-1"
+    data-testid="card"
+  >
+    <div
+      data-testid="card-header"
+    >
+      <div
+        data-testid="card-title"
+      >
+        Applications Timeline
+      </div>
+      <div
+        data-testid="card-description"
+      >
+        Monthly application activity
+      </div>
+    </div>
+    <div
+      data-testid="card-content"
+    >
+      <div
+        data-testid="responsive-container"
+      >
+        <div
+          data-testid="bar-chart"
+        >
+          <div
+            data-testid="cartesian-grid"
+          />
+          <div
+            data-testid="x-axis"
+          />
+          <div
+            data-testid="y-axis"
+          />
+          <div
+            data-testid="tooltip"
+          />
+          <div
+            data-testid="bar"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="lg:col-span-1"
+    data-testid="card"
+  >
+    <div
+      data-testid="card-header"
+    >
+      <div
+        data-testid="card-title"
+      >
+        Application Status
+      </div>
+      <div
+        data-testid="card-description"
+      >
+        Current status distribution
+      </div>
+    </div>
+    <div
+      data-testid="card-content"
+    >
+      <div
+        data-testid="responsive-container"
+      >
+        <div
+          data-testid="pie-chart"
+        >
+          <div
+            data-testid="pie"
+          />
+          <div
+            data-testid="tooltip"
+          />
+        </div>
+      </div>
+      <div
+        class="grid grid-cols-2 gap-2 mt-4"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`HeroPanel > matches snapshot with normal data 1`] = `
+<div
+  class="grid grid-cols-1 lg:grid-cols-3 gap-6"
+>
+  <div
+    class="lg:col-span-1"
+    data-testid="card"
+  >
+    <div
+      data-testid="card-header"
+    >
+      <div
+        data-testid="card-title"
+      >
+        Job Search Overview
+      </div>
+      <div
+        data-testid="card-description"
+      >
+        Your application performance metrics
+      </div>
+    </div>
+    <div
+      class="space-y-6"
+      data-testid="card-content"
+    >
+      <div
+        class="space-y-2"
+      >
+        <div
+          class="flex justify-between items-center"
+        >
+          <span
+            class="text-sm font-medium"
+          >
+            Response Rate
+          </span>
+          <span
+            class="text-sm text-muted-foreground"
+          >
+            75
+            %
+          </span>
+        </div>
+        <div
+          class="h-2"
+          data-testid="progress"
+          data-value="75"
+        />
+      </div>
+      <div
+        class="space-y-2"
+      >
+        <div
+          class="flex justify-between items-center"
+        >
+          <span
+            class="text-sm font-medium"
+          >
+            Success Rate
+          </span>
+          <span
+            class="text-sm text-muted-foreground"
+          >
+            25
+            %
+          </span>
+        </div>
+        <div
+          class="h-2"
+          data-testid="progress"
+          data-value="25"
+        />
+      </div>
+      <div
+        class="grid grid-cols-2 gap-4 pt-4"
+      >
+        <div
+          class="text-center"
+        >
+          <div
+            class="text-2xl font-bold text-blue-600"
+          >
+            3
+          </div>
+          <div
+            class="text-xs text-muted-foreground"
+          >
+            Active Interviews
+          </div>
+        </div>
+        <div
+          class="text-center"
+        >
+          <div
+            class="text-2xl font-bold text-green-600"
+          >
+            1
+          </div>
+          <div
+            class="text-xs text-muted-foreground"
+          >
+            Job Offers
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="lg:col-span-1"
+    data-testid="card"
+  >
+    <div
+      data-testid="card-header"
+    >
+      <div
+        data-testid="card-title"
+      >
+        Applications Timeline
+      </div>
+      <div
+        data-testid="card-description"
+      >
+        Monthly application activity
+      </div>
+    </div>
+    <div
+      data-testid="card-content"
+    >
+      <div
+        data-testid="responsive-container"
+      >
+        <div
+          data-testid="bar-chart"
+        >
+          <div
+            data-testid="cartesian-grid"
+          />
+          <div
+            data-testid="x-axis"
+          />
+          <div
+            data-testid="y-axis"
+          />
+          <div
+            data-testid="tooltip"
+          />
+          <div
+            data-testid="bar"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="lg:col-span-1"
+    data-testid="card"
+  >
+    <div
+      data-testid="card-header"
+    >
+      <div
+        data-testid="card-title"
+      >
+        Application Status
+      </div>
+      <div
+        data-testid="card-description"
+      >
+        Current status distribution
+      </div>
+    </div>
+    <div
+      data-testid="card-content"
+    >
+      <div
+        data-testid="responsive-container"
+      >
+        <div
+          data-testid="pie-chart"
+        >
+          <div
+            data-testid="pie"
+          >
+            <div
+              data-fill="#FF6384"
+              data-testid="cell"
+            />
+            <div
+              data-fill="#36A2EB"
+              data-testid="cell"
+            />
+            <div
+              data-fill="#FFCE56"
+              data-testid="cell"
+            />
+          </div>
+          <div
+            data-testid="tooltip"
+          />
+        </div>
+      </div>
+      <div
+        class="grid grid-cols-2 gap-2 mt-4"
+      >
+        <div
+          class="flex items-center gap-2"
+        >
+          <div
+            class="w-3 h-3 rounded-full"
+            style="background-color: rgb(255, 99, 132);"
+          />
+          <span
+            class="text-xs text-muted-foreground"
+          >
+            Applied
+             (
+            5
+            )
+          </span>
+        </div>
+        <div
+          class="flex items-center gap-2"
+        >
+          <div
+            class="w-3 h-3 rounded-full"
+            style="background-color: rgb(54, 162, 235);"
+          />
+          <span
+            class="text-xs text-muted-foreground"
+          >
+            Interview
+             (
+            3
+            )
+          </span>
+        </div>
+        <div
+          class="flex items-center gap-2"
+        >
+          <div
+            class="w-3 h-3 rounded-full"
+            style="background-color: rgb(255, 206, 86);"
+          />
+          <span
+            class="text-xs text-muted-foreground"
+          >
+            Offer
+             (
+            1
+            )
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
