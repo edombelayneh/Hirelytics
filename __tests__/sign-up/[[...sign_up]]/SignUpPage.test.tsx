@@ -11,6 +11,7 @@ describe('SignUp Page', () => {
   it('renders the Clerk SignUp component', () => {
     render(<Page />)
 
-    expect(screen.getByTestId('clerk-sign-up')).toBeInTheDocument()
+    const signUp = screen.getByTestId('clerk-sign-up')
+    expect(signUp).toBeTruthy()
   })
 })
