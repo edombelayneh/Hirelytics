@@ -1,34 +1,46 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import type { FirebaseApp, FirebaseOptions } from 'firebase/app'
 
 const ORIGINAL_ENV = process.env
 
-// Mocks/spies we assert against
-const initializeAppMock = vi.fn()
-const getAppMock = vi.fn()
-let getAppsMock: ReturnType<typeof vi.fn>
+type InitAppFn = (cfg: FirebaseOptions) => FirebaseApp
+type GetAppsFn = () => FirebaseApp[]
+type GetAppFn = () => FirebaseApp
 
-const getAuthMock = vi.fn()
-const getFirestoreMock = vi.fn()
+type GetAuthFn = (app: FirebaseApp) => unknown
+type GetFirestoreFn = (app: FirebaseApp) => unknown
 
-// We’ll use sentinel objects to ensure exports are wired correctly
-const mockFirebaseApp = { __app: true }
+// Hoist-safe mocks (Vitest hoists vi.mock calls)
+const mocks = vi.hoisted(() => {
+  const initializeAppMock = vi.fn<InitAppFn>()
+  const getAppsMock = vi.fn<GetAppsFn>()
+  const getAppMock = vi.fn<GetAppFn>()
+
+  const getAuthMock = vi.fn<GetAuthFn>()
+  const getFirestoreMock = vi.fn<GetFirestoreFn>()
+
+  return { initializeAppMock, getAppsMock, getAppMock, getAuthMock, getFirestoreMock }
+})
+
+// Sentinel objects
+const mockFirebaseApp = { __app: true } as unknown as FirebaseApp
 const mockAuth = { __auth: true }
 const mockDb = { __firestore: true }
 
 // Mock firebase/app
 vi.mock('firebase/app', () => ({
-  initializeApp: (cfg: any) => initializeAppMock(cfg),
-  getApps: () => getAppsMock(),
-  getApp: () => getAppMock(),
+  initializeApp: mocks.initializeAppMock,
+  getApps: mocks.getAppsMock,
+  getApp: mocks.getAppMock,
 }))
 
 // Mock firebase/auth + firestore
 vi.mock('firebase/auth', () => ({
-  getAuth: (app: any) => getAuthMock(app),
+  getAuth: mocks.getAuthMock,
 }))
 
 vi.mock('firebase/firestore', () => ({
-  getFirestore: (app: any) => getFirestoreMock(app),
+  getFirestore: mocks.getFirestoreMock,
 }))
 
 describe('app/lib/firebaseClient', () => {
@@ -37,8 +49,6 @@ describe('app/lib/firebaseClient', () => {
     vi.clearAllMocks()
 
     process.env = { ...ORIGINAL_ENV }
-
-    // set NEXT_PUBLIC env vars before importing module
     process.env.NEXT_PUBLIC_FIREBASE_API_KEY = 'api-key'
     process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = 'auth-domain'
     process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = 'project-id'
@@ -46,15 +56,12 @@ describe('app/lib/firebaseClient', () => {
     process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = 'sender-id'
     process.env.NEXT_PUBLIC_FIREBASE_APP_ID = 'app-id'
 
-    // default: no apps exist
-    getAppsMock = vi.fn(() => [])
+    mocks.getAppsMock.mockReturnValue([]) // default: no apps exist
+    mocks.initializeAppMock.mockReturnValue(mockFirebaseApp)
+    mocks.getAppMock.mockReturnValue(mockFirebaseApp)
 
-    // default mock returns
-    initializeAppMock.mockReturnValue(mockFirebaseApp)
-    getAppMock.mockReturnValue(mockFirebaseApp)
-
-    getAuthMock.mockReturnValue(mockAuth)
-    getFirestoreMock.mockReturnValue(mockDb)
+    mocks.getAuthMock.mockReturnValue(mockAuth)
+    mocks.getFirestoreMock.mockReturnValue(mockDb)
   })
 
   afterEach(() => {
@@ -62,14 +69,13 @@ describe('app/lib/firebaseClient', () => {
   })
 
   it('initializes a new Firebase app when none exists', async () => {
-    await import('@/app/lib/firebaseClient') // <-- ensure path matches your file
+    await import('@/app/lib/firebaseClient')
 
-    expect(getAppsMock).toHaveBeenCalledTimes(1)
-    expect(initializeAppMock).toHaveBeenCalledTimes(1)
-    expect(getAppMock).not.toHaveBeenCalled()
+    expect(mocks.getAppsMock).toHaveBeenCalledTimes(1)
+    expect(mocks.initializeAppMock).toHaveBeenCalledTimes(1)
+    expect(mocks.getAppMock).not.toHaveBeenCalled()
 
-    // Verify config came from env vars
-    expect(initializeAppMock).toHaveBeenCalledWith({
+    expect(mocks.initializeAppMock).toHaveBeenCalledWith({
       apiKey: 'api-key',
       authDomain: 'auth-domain',
       projectId: 'project-id',
@@ -78,22 +84,21 @@ describe('app/lib/firebaseClient', () => {
       appId: 'app-id',
     })
 
-    // Verify services initialized with the app
-    expect(getAuthMock).toHaveBeenCalledWith(mockFirebaseApp)
-    expect(getFirestoreMock).toHaveBeenCalledWith(mockFirebaseApp)
+    expect(mocks.getAuthMock).toHaveBeenCalledWith(mockFirebaseApp)
+    expect(mocks.getFirestoreMock).toHaveBeenCalledWith(mockFirebaseApp)
   })
 
   it('reuses an existing Firebase app when one already exists', async () => {
-    getAppsMock = vi.fn(() => [mockFirebaseApp]) // simulate existing app
+    mocks.getAppsMock.mockReturnValue([mockFirebaseApp])
 
     await import('@/app/lib/firebaseClient')
 
-    expect(getAppsMock).toHaveBeenCalledTimes(1)
-    expect(getAppMock).toHaveBeenCalledTimes(1)
-    expect(initializeAppMock).not.toHaveBeenCalled()
+    expect(mocks.getAppsMock).toHaveBeenCalledTimes(1)
+    expect(mocks.getAppMock).toHaveBeenCalledTimes(1)
+    expect(mocks.initializeAppMock).not.toHaveBeenCalled()
 
-    expect(getAuthMock).toHaveBeenCalledWith(mockFirebaseApp)
-    expect(getFirestoreMock).toHaveBeenCalledWith(mockFirebaseApp)
+    expect(mocks.getAuthMock).toHaveBeenCalledWith(mockFirebaseApp)
+    expect(mocks.getFirestoreMock).toHaveBeenCalledWith(mockFirebaseApp)
   })
 
   it('exports firebaseAuth and firestore services', async () => {
