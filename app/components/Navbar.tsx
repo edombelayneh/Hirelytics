@@ -3,13 +3,7 @@
 import { UserButton } from '@clerk/nextjs'
 import { Home, Briefcase, BarChart3, User } from 'lucide-react'
 
-export function Navbar({
-  currentPage,
-  applicationCount,
-}: {
-  currentPage: string
-  applicationCount: number
-}) {
+export function Navbar({ currentPage }: { currentPage: string }) {
   const navItems = [
     { label: 'Home', hash: '#/', icon: Home },
     { label: 'Available Jobs', hash: '#/jobs', icon: Briefcase },
@@ -37,7 +31,10 @@ export function Navbar({
       <div className='flex gap-12'>
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = currentPage === item.hash.slice(3)
+
+          // ✅ FIXED: "#/jobs" -> "jobs", "#/" -> ""
+          const pageFromHash = item.hash.startsWith('#/') ? item.hash.slice(2) : item.hash
+          const isActive = currentPage === pageFromHash
 
           return (
             <a
@@ -47,24 +44,15 @@ export function Navbar({
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {/* Nav Item Icon */}
               <Icon className='h-6 w-6' />
-
-              {/* Nav Item Text */}
               {item.label}
 
-              {/* ----------------------------------------------------- */}
-              {/* Notification badge (TEMPORARILY DISABLED)            */}
-              {/* This used to show applicationCount next to the text */}
-              {/* Uncomment when ready to display notification bubble */}
-              {/* ----------------------------------------------------- */}
-              {/*
+              {/* Notification badge (TEMPORARILY DISABLED)
               {item.label === 'My Applications' && (
                 <span className="ml-1 text-xs bg-primary text-white px-2 py-0.5 rounded-full">
                   {applicationCount}
                 </span>
-              )}
-              */}
+              )} */}
             </a>
           )
         })}
