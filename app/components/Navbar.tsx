@@ -32,7 +32,6 @@ export function Navbar({ currentPage }: { currentPage: string }) {
         {navItems.map((item) => {
           const Icon = item.icon
 
-          // ✅ FIXED: "#/jobs" -> "jobs", "#/" -> ""
           const pageFromHash = item.hash.startsWith('#/') ? item.hash.slice(2) : item.hash
           const isActive = currentPage === pageFromHash
 
