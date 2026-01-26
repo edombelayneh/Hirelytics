@@ -1,4 +1,9 @@
-'use client'
+AddNewJobPage
+
+// A form page that lets recruiters submit new jobs.
+// - Collect job information
+// - Shows a redirecting overlay and then sends the user to the "Available Jobs" page using hash navigation.
+;('use client')
 
 import { useState } from 'react'
 
@@ -28,10 +33,14 @@ export default function AddNewJobPage() {
   const [submitting, setSubmitting] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
 
+  // handleSubmit
+  // This prevents the form from default submission.
+  // Show a short success message and redirect overlay.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setMessage(null)
 
+    // Basic validation for required fields.
     if (!jobName || !companyName || !description || !recruiterEmail) {
       setMessage('Please fill in Job Name, Company Name, Description, and Recruiter Email.')
       return
@@ -87,6 +96,7 @@ export default function AddNewJobPage() {
           Fill in the job details below. This information will be sent for review.
         </p>
 
+        {/* Validation / status message. */}
         {message && <div className='rounded border p-3 text-sm mb-4'>{message}</div>}
 
         <form
@@ -289,6 +299,7 @@ export default function AddNewJobPage() {
             />
           </div>
 
+          {/* Submit button */}
           <button
             type='submit'
             disabled={submitting}
