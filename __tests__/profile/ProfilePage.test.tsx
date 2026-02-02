@@ -1,11 +1,11 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import { ProfilePage } from './page'
-import { toast } from '../components/ui/sonner'
+import { ProfilePage } from '../../app/profile/page'
+import { toast } from '../../app/components/ui/sonner'
 
-// Mock the toast 
-vi.mock('../components/ui/sonner', () => ({
+// Mock the toast
+vi.mock('../../app/components/ui/sonner', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
@@ -13,10 +13,15 @@ vi.mock('../components/ui/sonner', () => ({
 }))
 
 // Mock File Reader
-global.FileReader = vi.fn(function (this: any) {
+interface MockFileReader {
+  readAsDataURL: () => void
+  onloadend: (() => void) | null
+}
+
+global.FileReader = vi.fn(function (this: MockFileReader) {
   this.readAsDataURL = vi.fn()
   this.onloadend = null
-}) as any
+}) as unknown as typeof FileReader
 
 // Mock profile data
 const mockProfile = {
@@ -49,7 +54,12 @@ describe('ProfilePage', () => {
   })
 
   it('renders profile data correctly', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     // Check headers and form fields
     expect(screen.getByText('My Profile')).toBeTruthy()
@@ -59,7 +69,12 @@ describe('ProfilePage', () => {
   })
 
   it('enables Save button when a field is edited', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     // Change first name
     fireEvent.change(screen.getByLabelText(/first name/i), {
@@ -72,7 +87,12 @@ describe('ProfilePage', () => {
   })
 
   it('calls onUpdateProfile when Save button is clicked', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     // Change first name
     fireEvent.change(screen.getByLabelText(/first name/i), {
@@ -90,7 +110,12 @@ describe('ProfilePage', () => {
   })
 
   it('prevents saving with empty firstName', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     // Clear first name
     fireEvent.change(screen.getByLabelText(/first name/i), {
@@ -111,7 +136,12 @@ describe('ProfilePage', () => {
   })
 
   it('prevents saving with empty lastName', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     // Clear last name
     fireEvent.change(screen.getByLabelText(/last name/i), {
@@ -132,7 +162,12 @@ describe('ProfilePage', () => {
   })
 
   it('prevents saving with empty email', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     // Clear email
     fireEvent.change(screen.getByLabelText(/email address/i), {
@@ -153,7 +188,12 @@ describe('ProfilePage', () => {
   })
 
   it('prevents saving with invalid email format (missing @)', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     // Clear email and enter invalid format
     fireEvent.change(screen.getByLabelText(/email address/i), {
@@ -174,7 +214,12 @@ describe('ProfilePage', () => {
   })
 
   it('prevents saving with invalid email format (missing domain)', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     // Enter email without domain extension
     fireEvent.change(screen.getByLabelText(/email address/i), {
@@ -195,7 +240,12 @@ describe('ProfilePage', () => {
   })
 
   it('allows saving with valid email format', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     // Change first name to trigger editing mode
     fireEvent.change(screen.getByLabelText(/first name/i), {
@@ -211,7 +261,12 @@ describe('ProfilePage', () => {
   })
 
   it('shows success toast when profile is updated', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     // Change first name to trigger editing mode
     fireEvent.change(screen.getByLabelText(/first name/i), {
@@ -232,11 +287,18 @@ describe('ProfilePage', () => {
 
   // Resume Upload Tests
   it('accepts .pdf resume files', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     const file = new File(['resume content'], 'resume.pdf', { type: 'application/pdf' })
     const resumeInputs = document.querySelectorAll('input[type="file"]')
-    const resumeInput = Array.from(resumeInputs).find((input) => (input as HTMLInputElement).accept.includes('.pdf')) as HTMLInputElement
+    const resumeInput = Array.from(resumeInputs).find((input) =>
+      (input as HTMLInputElement).accept.includes('.pdf')
+    ) as HTMLInputElement
 
     fireEvent.change(resumeInput, { target: { files: [file] } })
 
@@ -245,11 +307,18 @@ describe('ProfilePage', () => {
   })
 
   it('accepts .doc resume files', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     const file = new File(['resume content'], 'resume.doc', { type: 'application/msword' })
     const resumeInputs = document.querySelectorAll('input[type="file"]')
-    const resumeInput = Array.from(resumeInputs).find((input) => (input as HTMLInputElement).accept.includes('.pdf')) as HTMLInputElement
+    const resumeInput = Array.from(resumeInputs).find((input) =>
+      (input as HTMLInputElement).accept.includes('.pdf')
+    ) as HTMLInputElement
 
     fireEvent.change(resumeInput, { target: { files: [file] } })
 
@@ -257,13 +326,20 @@ describe('ProfilePage', () => {
   })
 
   it('accepts .docx resume files', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     const file = new File(['resume content'], 'resume.docx', {
       type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     })
     const resumeInputs = document.querySelectorAll('input[type="file"]')
-    const resumeInput = Array.from(resumeInputs).find((input) => (input as HTMLInputElement).accept.includes('.pdf')) as HTMLInputElement
+    const resumeInput = Array.from(resumeInputs).find((input) =>
+      (input as HTMLInputElement).accept.includes('.pdf')
+    ) as HTMLInputElement
 
     fireEvent.change(resumeInput, { target: { files: [file] } })
 
@@ -271,15 +347,22 @@ describe('ProfilePage', () => {
   })
   // Invalid file type tests
   it('rejects .txt resume files', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     const file = new File(['resume content'], 'resume.txt', { type: 'text/plain' })
     const resumeInputs = document.querySelectorAll('input[type="file"]')
-    const resumeInput = Array.from(resumeInputs).find((input) => (input as HTMLInputElement).accept.includes('.pdf')) as HTMLInputElement
+    const resumeInput = Array.from(resumeInputs).find((input) =>
+      (input as HTMLInputElement).accept.includes('.pdf')
+    ) as HTMLInputElement
 
     fireEvent.change(resumeInput, { target: { files: [file] } })
 
-    // Error invalid file type toast 
+    // Error invalid file type toast
     expect(toast.error).toHaveBeenCalledWith(
       'Invalid file type',
       expect.objectContaining({
@@ -287,13 +370,20 @@ describe('ProfilePage', () => {
       })
     )
   })
- 
+
   it('rejects .jpg resume files', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     const file = new File(['resume content'], 'resume.jpg', { type: 'image/jpeg' })
     const resumeInputs = document.querySelectorAll('input[type="file"]')
-    const resumeInput = Array.from(resumeInputs).find((input) => (input as HTMLInputElement).accept.includes('.pdf')) as HTMLInputElement
+    const resumeInput = Array.from(resumeInputs).find((input) =>
+      (input as HTMLInputElement).accept.includes('.pdf')
+    ) as HTMLInputElement
 
     fireEvent.change(resumeInput, { target: { files: [file] } })
 
@@ -306,14 +396,21 @@ describe('ProfilePage', () => {
   })
 
   it('rejects resume files over 10MB', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     // Tests for files over 10MB - Resume
     const fileContent = new Array(Math.floor(10.1 * 1024 * 1024)).fill('a').join('')
     const file = new File([fileContent], 'resume.pdf', { type: 'application/pdf' })
 
     const resumeInputs = document.querySelectorAll('input[type="file"]')
-    const resumeInput = Array.from(resumeInputs).find((input) => (input as HTMLInputElement).accept.includes('.pdf')) as HTMLInputElement
+    const resumeInput = Array.from(resumeInputs).find((input) =>
+      (input as HTMLInputElement).accept.includes('.pdf')
+    ) as HTMLInputElement
     fireEvent.change(resumeInput, { target: { files: [file] } })
 
     expect(toast.error).toHaveBeenCalledWith(
@@ -325,14 +422,21 @@ describe('ProfilePage', () => {
   })
 
   it('rejects profile pictures over 5MB', () => {
-    render(<ProfilePage profile={mockProfile} onUpdateProfile={mockOnUpdateProfile} />)
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
     // Tests for files over 5MB - PFP
     const fileContent = new Array(Math.floor(5.1 * 1024 * 1024)).fill('a').join('')
     const file = new File([fileContent], 'profile.jpg', { type: 'image/jpeg' })
 
     const profilePicInputs = document.querySelectorAll('input[type="file"]')
-    const profilePicInput = Array.from(profilePicInputs).find((input) => !(input as HTMLInputElement).accept.includes('.pdf')) as HTMLInputElement
+    const profilePicInput = Array.from(profilePicInputs).find(
+      (input) => !(input as HTMLInputElement).accept.includes('.pdf')
+    ) as HTMLInputElement
     fireEvent.change(profilePicInput, { target: { files: [file] } })
 
     expect(toast.error).toHaveBeenCalledWith(
