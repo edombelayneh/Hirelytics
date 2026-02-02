@@ -6,7 +6,5 @@ export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
     environment: 'jsdom',
-    // Load setup file to register testing-library matchers (jest-dom)
-    setupFiles: './vitest.setup.ts',
   },
 })
