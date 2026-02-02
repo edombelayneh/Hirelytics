@@ -1,9 +1,8 @@
-AddNewJobPage
+'use client'
 
 // A form page that lets recruiters submit new jobs.
 // - Collect job information
 // - Shows a redirecting overlay and then sends the user to the "Available Jobs" page using hash navigation.
-;('use client')
 
 import { useState } from 'react'
 
