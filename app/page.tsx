@@ -129,7 +129,6 @@ function LandingPage() {
       {isLoaded && isSignedIn && (
         <Navbar
           currentPage={currentPage}
-          applicationCount={applications?.length ?? 0}
         />
       )}
 
