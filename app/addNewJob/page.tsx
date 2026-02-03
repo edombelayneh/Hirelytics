@@ -1,5 +1,4 @@
 'use client'
-//AddNewJobPage
 
 // A form page that lets recruiters submit new jobs.
 // - Collect job information
