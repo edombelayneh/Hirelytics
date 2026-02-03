@@ -33,7 +33,7 @@ import { toast } from '../components/ui/sonner'
 
 interface ProfilePageProps {
   profile: UserProfile
-  onUpdateProfile: (profile: UserProfile) => void
+  onUpdateProfile: (profile: UserProfile) => Promise<void> // async for firebase - basically waits for firebase now
 }
 
 export const ProfilePage = memo(function ProfilePage({
@@ -42,6 +42,8 @@ export const ProfilePage = memo(function ProfilePage({
 }: ProfilePageProps) {
   const [formData, setFormData] = useState<UserProfile>(profile)
   const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false) // disables save while writing
+
   const profilePicInputRef = useRef<HTMLInputElement>(null)
   const resumeInputRef = useRef<HTMLInputElement>(null)
 
@@ -94,7 +96,7 @@ export const ProfilePage = memo(function ProfilePage({
     }
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Validate required fields
     if (!formData.firstName || !formData.lastName || !formData.email) {
       toast.error('Missing required fields', {
@@ -103,11 +105,24 @@ export const ProfilePage = memo(function ProfilePage({
       return
     }
 
-    onUpdateProfile(formData)
-    setIsEditing(false)
-    toast.success('Profile updated successfully', {
-      description: 'Your changes have been saved',
-    })
+    setIsSaving(true)
+
+    try {
+      // Save to Firebase (async) and wait on firebase until that finishes
+      await onUpdateProfile(formData)
+
+      setIsEditing(false)
+      toast.success('Profile updated successfully', {
+        description: 'Your changes have been saved',
+      })
+    } catch (err) {
+      console.error('Save profile error:', err)
+      toast.error('Save failed', {
+        description: 'Please try again.',
+      })
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const getInitials = () => {
@@ -418,7 +433,7 @@ export const ProfilePage = memo(function ProfilePage({
         <Button
           size='lg'
           onClick={handleSave}
-          disabled={!isEditing}
+          disabled={!isEditing || isSaving} // disable while saving
           className='gap-2'
         >
           {isEditing ? (

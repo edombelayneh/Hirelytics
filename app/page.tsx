@@ -17,18 +17,34 @@ import { signOut as fbSignOut } from 'firebase/auth'
 import { firebaseAuth } from './lib/firebaseClient'
 import { JobApplication } from './data/mockData'
 import { AvailableJob } from './data/availableJobs'
+import { RolePage } from './components/RolePage'
+import { getUserProfile, saveUserProfile } from './utils/userProfiles'
+import { getUserRole, createUserDoc, type Role } from './utils/userRole'
 
-type Page = 'home' | 'available' | 'applications' | 'profile' | 'addNewJob' 
+type Page = 'home' | 'available' | 'applications' | 'profile' | 'addNewJob' | 'role'
 
 function LandingPage() {
-  const { isSignedIn, isLoaded } = useAuth()
+  const { isSignedIn, isLoaded, userId } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('home')
+
   const [applications, setApplications] = useState<JobApplication[]>([])
   const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
   const [profile, setProfile] = useState<UserProfile>(defaultProfile)
 
-  const handleUpdateProfile = (updatedProfile: UserProfile) => {
-    console.log('Profile updated:', updatedProfile)
+  const [firebaseReady, setFirebaseReady] = useState(false) // tells us when Firebase is signed in (after linkClerkToFirebase works)
+  const [role, setRole] = useState<Role | null>(null) // stores the user role from Firestore
+  const [roleLoaded, setRoleLoaded] = useState(false) // tells us when we finished checking Firestore for the role
+
+  const handleUpdateProfile = async (updatedProfile: UserProfile) => {
+    // Make sure Firebase user exists
+    const uid = firebaseAuth.currentUser?.uid
+    if (!uid) return
+
+    // Save profile in Firestore
+    await saveUserProfile(uid, updatedProfile)
+
+    // Update local state so UI also updates
+    setProfile(updatedProfile)
   }
 
   // ---------------------------
@@ -47,7 +63,7 @@ function LandingPage() {
           ? 'applications'
           : hash === '/jobs'
             ? 'available'
-            : hash === '/addNewJob' 
+            : hash === '/addNewJob'
               ? 'addNewJob'
               : hash === '/profile'
                 ? 'profile'
@@ -57,7 +73,7 @@ function LandingPage() {
         next === 'available' ||
         next === 'applications' ||
         next === 'profile' ||
-        next === 'addNewJob' // 
+        next === 'addNewJob' //
 
       if (isProtected && !isSignedIn) {
         setCurrentPage('home')
@@ -80,16 +96,228 @@ function LandingPage() {
   // When user signs in with Clerk, also sign them into Firebase using a custom token.
   // When user signs out, sign them out of Firebase
   useEffect(() => {
-    if (!isLoaded) return // wait for clerk to load
+    if (!isLoaded) return // Wait for Clerk to load
+
     if (isSignedIn) {
+      // When Clerk signs in, also sign into Firebase
       linkClerkToFirebase()
-        .then(() => console.log('Clerk linked to Firebase'))
-        .catch((err: any) => console.error('Firebase link error', err))
+        .then(() => {
+          console.log('Clerk linked to Firebase')
+          setFirebaseReady(true) // Firebase is ready now
+        })
+        .catch((err: unknown) => {
+          console.error('Firebase link error', err)
+          setFirebaseReady(false) // If linking failed, Firebase is not ready
+        })
     } else {
-      // Sign out of Firebase when Clerk signs out
+      // When Clerk signs out, also sign out of Firebase
       fbSignOut(firebaseAuth).catch(() => {})
+
+      // Reset state so next login is clean
+      setFirebaseReady(false)
+      setRole(null)
+      setRoleLoaded(false)
     }
   }, [isSignedIn, isLoaded])
+
+  // ---------------------------
+  // USER ROLE HANDLING
+  // ---------------------------
+  // After Firebase is ready, check Firestore for users/{uid}.
+  // If no doc exists -> send them to role picker.
+  // If doc exists -> route them to the correct default page (only if they are on home/role).
+  useEffect(() => {
+    // Only run when everything is ready
+    if (!isLoaded) return
+    if (!isSignedIn) return
+    if (!firebaseReady) return
+
+    const loadRole = async () => {
+      setRoleLoaded(false)
+
+      const uid = firebaseAuth.currentUser?.uid
+
+      // If Firebase user is missing, stop safely
+      if (!uid) {
+        setRole(null)
+        setRoleLoaded(true)
+        return
+      }
+
+      // Read role from Firestore
+      const foundRole = await getUserRole(uid)
+
+      // Save it
+      setRole(foundRole)
+      setRoleLoaded(true)
+
+      // If user has NO role yet, force them to the role picker
+      if (!foundRole) {
+        if (window.location.hash !== '#/role') {
+          window.location.hash = '/role'
+        }
+        return
+      }
+
+      // If user DOES have a role, and they are on home or role page,
+      // send them to the default dashboard page for that role.
+      const currentHash = window.location.hash.slice(1)
+      const onHome = currentHash === '' || currentHash === '/' || currentHash === '/home'
+      const onRolePage = currentHash === '/role'
+
+      if (onHome || onRolePage) {
+        window.location.hash = foundRole === 'applicant' ? '/applications' : '/addNewJob'
+      }
+    }
+
+    loadRole().catch((err) => {
+      console.error('Role load error:', err)
+      setRole(null)
+      setRoleLoaded(true)
+    })
+  }, [isLoaded, isSignedIn, firebaseReady])
+
+  // ---------------------------
+  // ROLE PICKER SAVE HANDLER
+  // ---------------------------
+  // This runs when the user clicks "Apply to jobs" or "Post jobs"
+  const handleSelectRole = async (picked: Role) => {
+    const uid = firebaseAuth.currentUser?.uid
+    if (!uid) return
+
+    // Create the user doc in Firestore with their role
+    await createUserDoc({
+      uid,
+      role: picked,
+      clerkUserId: userId ?? undefined,
+    })
+
+    // Save role locally so UI updates right away
+    setRole(picked)
+
+    // Send user to the correct page
+    window.location.hash = picked === 'applicant' ? '/applications' : '/addNewJob'
+  }
+
+  // ---------------------------
+  // LOAD PROFILE FROM FIRESTORE
+  // ---------------------------
+  useEffect(() => {
+    // Only load profile once we are signed in and Firebase is ready
+    if (!isLoaded) return
+    if (!isSignedIn) return
+    if (!firebaseReady) return
+    if (!roleLoaded) return
+
+    const loadProfile = async () => {
+      const uid = firebaseAuth.currentUser?.uid
+      if (!uid) return
+
+      // Read profile from Firestore
+      const saved = await getUserProfile(uid)
+
+      // If profile exists, use it
+      if (saved) {
+        setProfile(saved)
+      } else {
+        // If no profile exists yet, keep defaultProfile (your current behavior)
+        // (Later you can auto-create a profile doc if you want)
+      }
+    }
+
+    loadProfile().catch((err) => console.error('Load profile error:', err))
+  }, [isLoaded, isSignedIn, firebaseReady, roleLoaded])
+
+  // ---------------------------
+  // NAVIGATION + AUTH + ROLE PROTECTION
+  // ---------------------------
+  // Uses hash routes like #/applications
+  useEffect(() => {
+    if (!isLoaded) return
+
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1)
+
+      // Convert URL hash to our internal page name
+      const next: Page =
+        hash === '/applications'
+          ? 'applications'
+          : hash === '/jobs'
+            ? 'available'
+            : hash === '/addNewJob'
+              ? 'addNewJob'
+              : hash === '/profile'
+                ? 'profile'
+                : hash === '/role'
+                  ? 'role'
+                  : 'home'
+
+      // Pages that require sign-in
+      const isProtected =
+        next === 'available' ||
+        next === 'applications' ||
+        next === 'profile' ||
+        next === 'addNewJob' ||
+        next === 'role'
+
+      // 1) If signed out, block protected pages
+      if (isProtected && !isSignedIn) {
+        setCurrentPage('home')
+        toast('Please sign in to continue', {
+          description: 'This area is for members only.',
+        })
+
+        // Open Clerk sign-in modal
+        const btn = document.getElementById('__sign_in_bridge__') as HTMLButtonElement | null
+        btn?.click()
+        return
+      }
+
+      // 2) If signed in but we are still checking Firestore role,
+      // avoid navigating into protected pages (prevents UI flicker)
+      if (isSignedIn && isProtected && !roleLoaded) {
+        setCurrentPage('home')
+        return
+      }
+
+      // 3) If signed in, role check finished, but no role exists -> force role picker
+      if (isSignedIn && roleLoaded && !role && next !== 'role') {
+        window.location.hash = '/role'
+        return
+      }
+
+      // 4) If role exists, block the wrong pages
+      if (isSignedIn && roleLoaded && role) {
+        const applicantOnly = next === 'available' || next === 'applications'
+        const recruiterOnly = next === 'addNewJob'
+
+        if (applicantOnly && role !== 'applicant') {
+          toast('Recruiter account', { description: 'This page is for applicants.' })
+          window.location.hash = '/addNewJob'
+          return
+        }
+
+        if (recruiterOnly && role !== 'recruiter') {
+          toast('Applicant account', { description: 'This page is for recruiters.' })
+          window.location.hash = '/applications'
+          return
+        }
+
+        // If user already has a role, they should not go back to /role
+        if (next === 'role') {
+          window.location.hash = role === 'applicant' ? '/applications' : '/addNewJob'
+          return
+        }
+      }
+
+      // 5) If all checks pass, allow navigation
+      setCurrentPage(next)
+    }
+
+    handleHashChange()
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [isSignedIn, isLoaded, roleLoaded, role])
 
   // Handle adding a job application
   const handleAddApplication = (job: AvailableJob) => {
@@ -125,17 +353,17 @@ function LandingPage() {
     <div className='min-h-screen bg-background'>
       <Toaster />
       <SignInButtonBridge />
-
-      {isLoaded && isSignedIn && (
-        <Navbar
-          currentPage={currentPage}
-          applicationCount={applications?.length ?? 0}
-        />
+      {/* Show navbar only after we know the user's role, and not on role screen */}
+      {isLoaded && isSignedIn && roleLoaded && role && currentPage !== 'role' && (
+        <Navbar currentPage={currentPage} />
       )}
 
       {/* Render active page  */}
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
         {currentPage === 'home' && <HomePage />}
+
+        {currentPage === 'role' && <RolePage onSelectRole={handleSelectRole} />}
+
         {currentPage === 'available' && (
           <AvailableJobsPage
             onAddApplication={handleAddApplication}
