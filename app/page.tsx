@@ -11,7 +11,7 @@ import { defaultProfile } from './data/profileData'
 import { ProfilePage } from './profile/page'
 import { Navbar } from './components/Navbar'
 import { Toaster, toast } from './components/ui/sonner'
-import { SignInButtonBridge, protectedAction } from './utils/protectedAction'
+import { SignInButtonBridge } from './utils/protectedAction'
 import { linkClerkToFirebase } from './utils/linkClerkToFirebase'
 import { signOut as fbSignOut } from 'firebase/auth'
 import { firebaseAuth } from './lib/firebaseClient'
@@ -49,36 +49,10 @@ function LandingPage() {
     recruiterTitle: '',
   })
 
-  // update applicant profile handler
-  const handleUpdateProfile = async (updatedProfile: UserProfile) => {
-    // Make sure Firebase user exists
-    const uid = firebaseAuth.currentUser?.uid
-    if (!uid) return
-
-    // Save profile in Firestore
-    await saveUserProfile(uid, updatedProfile)
-
-    // Update local state so UI also updates
-    setProfile(updatedProfile)
-  }
-
-  // update recruiter profile handler
-  const handleSaveRecruiterProfile = async (updated: RecruiterProfile) => {
-    // Make sure Firebase user exists
-    const uid = firebaseAuth.currentUser?.uid
-    if (!uid) return
-
-    // Save recruiter profile in Firestore
-    await saveRecruiterProfile(uid, updated)
-
-    // Update local state so UI updates too
-    setRecruiterProfile(updated)
-  }
-
   // ---------------------------
   // NAVIGATION + AUTH PROTECTION
+  // Makes sure signed-out users cannot access protected routes via URL hash
   // ---------------------------
-  // Ensures signed-out users cannot access protected routes via URL hash (#)
   useEffect(() => {
     if (!isLoaded) return
 
@@ -101,7 +75,7 @@ function LandingPage() {
         next === 'available' ||
         next === 'applications' ||
         next === 'profile' ||
-        next === 'addNewJob' //
+        next === 'addNewJob'
 
       if (isProtected && !isSignedIn) {
         setCurrentPage('home')
@@ -120,9 +94,9 @@ function LandingPage() {
 
   // ---------------------------
   // CLERK ↔ FIREBASE LINKING
-  // ---------------------------
-  // When user signs in with Clerk, also sign them into Firebase using a custom token.
+  // When user signs in with Clerk, also sign them into Firebase using a custom token
   // When user signs out, sign them out of Firebase
+  // ---------------------------
   useEffect(() => {
     if (!isLoaded) return // Wait for Clerk to load
 
@@ -142,7 +116,7 @@ function LandingPage() {
       fbSignOut(firebaseAuth).catch(() => {})
 
       // Reset state so next login is clean
-      setFirebaseReady(false)
+      setFirebaseReady(false) // FIXME!
       setRole(null)
       setRoleLoaded(false)
     }
@@ -150,10 +124,10 @@ function LandingPage() {
 
   // ---------------------------
   // USER ROLE HANDLING
+  // After Firebase is ready, check Firestore for users/{uid}
+  // If no doc exists -> send them to role picker
+  // If doc exists -> route them to the correct default page (only if they are on home/role for now)
   // ---------------------------
-  // After Firebase is ready, check Firestore for users/{uid}.
-  // If no doc exists -> send them to role picker.
-  // If doc exists -> route them to the correct default page (only if they are on home/role).
   useEffect(() => {
     // Only run when everything is ready
     if (!isLoaded) return
@@ -165,7 +139,7 @@ function LandingPage() {
 
       const uid = firebaseAuth.currentUser?.uid
 
-      // If Firebase user is missing, stop safely
+      // If Firebase user is missing stop
       if (!uid) {
         setRole(null)
         setRoleLoaded(true)
@@ -175,7 +149,6 @@ function LandingPage() {
       // Read role from Firestore
       const foundRole = await getUserRole(uid)
 
-      // Save it
       setRole(foundRole)
       setRoleLoaded(true)
 
@@ -187,8 +160,7 @@ function LandingPage() {
         return
       }
 
-      // If user DOES have a role, and they are on home or role page,
-      // send them to the default dashboard page for that role.
+      // If user DOES have a role, and they are on home or role page send them to the dashboard page for that role
       const currentHash = window.location.hash.slice(1)
       const onHome = currentHash === '' || currentHash === '/' || currentHash === '/home'
       const onRolePage = currentHash === '/role'
@@ -206,29 +178,8 @@ function LandingPage() {
   }, [isLoaded, isSignedIn, firebaseReady])
 
   // ---------------------------
-  // ROLE PICKER SAVE HANDLER
-  // ---------------------------
-  // This runs when the user clicks "Apply to jobs" or "Post jobs"
-  const handleSelectRole = async (picked: Role) => {
-    const uid = firebaseAuth.currentUser?.uid
-    if (!uid) return
-
-    // Create the user doc in Firestore with their role
-    await createUserDoc({
-      uid,
-      role: picked,
-      clerkUserId: userId ?? undefined,
-    })
-
-    // Save role locally so UI updates right away
-    setRole(picked)
-
-    // Send user to the correct page
-    window.location.hash = picked === 'applicant' ? '/applications' : '/addNewJob'
-  }
-
-  // ---------------------------
   // LOAD PROFILE FROM FIRESTORE
+  // After role is loaded, fetch the profile data for the user based on their role
   // ---------------------------
   useEffect(() => {
     // Only load profile once we are signed in and Firebase is ready
@@ -259,15 +210,15 @@ function LandingPage() {
 
   // ---------------------------
   // NAVIGATION + AUTH + ROLE PROTECTION
+  // Makes sure users cannot access pages not allowed for their role using URL hash
   // ---------------------------
-  // Uses hash routes like #/applications
   useEffect(() => {
     if (!isLoaded) return
 
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1)
 
-      // Convert URL hash to our internal page name
+      // Convert URL hash to internal page name
       const next: Page =
         hash === '/applications'
           ? 'applications'
@@ -289,7 +240,7 @@ function LandingPage() {
         next === 'addNewJob' ||
         next === 'role'
 
-      // 1) If signed out, block protected pages
+      // If signed out, block protected pages
       if (isProtected && !isSignedIn) {
         setCurrentPage('home')
         toast('Please sign in to continue', {
@@ -302,20 +253,20 @@ function LandingPage() {
         return
       }
 
-      // 2) If signed in but we are still checking Firestore role,
-      // avoid navigating into protected pages (prevents UI flicker)
+      // If signed in but we are still checking Firestore role avoid navigating into protected pages
       if (isSignedIn && isProtected && !roleLoaded) {
         setCurrentPage('home')
         return
       }
 
-      // 3) If signed in, role check finished, but no role exists -> force role picker
+      // If signed in, role check finished, but no role exists force user to role picker
       if (isSignedIn && roleLoaded && !role && next !== 'role') {
         window.location.hash = '/role'
         return
       }
 
-      // 4) If role exists, block the wrong pages
+      // If role exists, block the wrong pages -- applicant vs recruiter pages
+      // FIXME: here make sure we create more recruiter based pages later on
       if (isSignedIn && roleLoaded && role) {
         const applicantOnly = next === 'available' || next === 'applications'
         const recruiterOnly = next === 'addNewJob'
@@ -339,7 +290,7 @@ function LandingPage() {
         }
       }
 
-      // 5) If all checks pass, allow navigation
+      // If all checks pass, allow navigation
       setCurrentPage(next)
     }
 
@@ -348,7 +299,59 @@ function LandingPage() {
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [isSignedIn, isLoaded, roleLoaded, role])
 
+  // ----------------
+  // update applicant profile handler
+  // ----------------
+  const handleUpdateProfile = async (updatedProfile: UserProfile) => {
+    const uid = firebaseAuth.currentUser?.uid
+    if (!uid) return
+
+    // Save profile in Firestore
+    await saveUserProfile(uid, updatedProfile)
+
+    // Update local state so UI also updates
+    setProfile(updatedProfile)
+  }
+
+  // ----------------
+  // update recruiter profile handler
+  // ----------------
+  const handleSaveRecruiterProfile = async (updated: RecruiterProfile) => {
+    const uid = firebaseAuth.currentUser?.uid
+    if (!uid) return
+
+    // Save recruiter profile in Firestore
+    await saveRecruiterProfile(uid, updated)
+
+    // Update local state so UI updates too
+    setRecruiterProfile(updated)
+  }
+
+  // ---------------------------
+  // ROLE PICKER SAVE HANDLER
+  // This runs when the user clicks "Apply to jobs" or "Post jobs"
+  // ---------------------------
+  const handleSelectRole = async (picked: Role) => {
+    const uid = firebaseAuth.currentUser?.uid
+    if (!uid) return
+
+    // Create the user doc in Firestore with their role
+    await createUserDoc({
+      uid,
+      role: picked,
+      clerkUserId: userId ?? undefined,
+    })
+
+    // Save role locally so UI updates right away
+    setRole(picked)
+
+    // Send user to the correct page
+    window.location.hash = picked === 'applicant' ? '/applications' : '/addNewJob'
+  }
+
+  // ---------------------------
   // Handle adding a job application
+  // ---------------------------
   const handleAddApplication = (job: AvailableJob) => {
     if (appliedJobIds.has(job.id)) return
 
@@ -375,14 +378,12 @@ function LandingPage() {
     window.location.hash = '/applications'
   }
 
-  // ---------------------------
-  // RENDER UI
-  // ---------------------------
   return (
     <div className='min-h-screen bg-background'>
       <Toaster />
       <SignInButtonBridge />
       {/* Show navbar only after we know the user's role, and not on role screen */}
+      {/* FIXME: Navbar currenly has pages dedicated only to applicants */}
       {isLoaded && isSignedIn && roleLoaded && role && currentPage !== 'role' && (
         <Navbar currentPage={currentPage} />
       )}
