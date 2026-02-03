@@ -34,3 +34,41 @@ export async function saveUserProfile(uid: string, profile: UserProfile): Promis
     { merge: true }
   )
 }
+
+// -------------------------
+// Recruiter profile support
+// -------------------------
+
+export type RecruiterProfile = {
+  companyName: string
+  companyWebsite: string
+  recruiterTitle: string
+}
+
+// Read recruiter profile from users/{uid}.recruiterProfile
+export async function getRecruiterProfile(uid: string): Promise<RecruiterProfile | null> {
+  const ref = doc(db, 'users', uid)
+  const snap = await getDoc(ref)
+
+  if (!snap.exists()) return null
+
+  const data = snap.data() as { recruiterProfile?: RecruiterProfile } | undefined
+  return data?.recruiterProfile ?? null
+}
+
+// Save recruiter profile to users/{uid}.recruiterProfile
+export async function saveRecruiterProfile(
+  uid: string,
+  recruiterProfile: RecruiterProfile
+): Promise<void> {
+  const ref = doc(db, 'users', uid)
+
+  await setDoc(
+    ref,
+    {
+      recruiterProfile,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  )
+}

@@ -1,4 +1,4 @@
-import { memo, useState, useRef } from 'react'
+import { memo, useEffect, useState, useRef } from 'react'
 import { Card } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
@@ -130,6 +130,11 @@ export const ProfilePage = memo(function ProfilePage({
     const last = formData.lastName.charAt(0).toUpperCase()
     return `${first}${last}` || 'U'
   }
+
+  useEffect(() => {
+    // When parent loads profile from Firestore, update the form fields
+    setFormData(profile)
+  }, [profile])
 
   return (
     <div className='space-y-6 max-w-5xl mx-auto'>

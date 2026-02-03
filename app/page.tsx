@@ -18,8 +18,15 @@ import { firebaseAuth } from './lib/firebaseClient'
 import { JobApplication } from './data/mockData'
 import { AvailableJob } from './data/availableJobs'
 import { RolePage } from './components/RolePage'
-import { getUserProfile, saveUserProfile } from './utils/userProfiles'
 import { getUserRole, createUserDoc, type Role } from './utils/userRole'
+import { RecruiterProfilePage } from './profile/recruiterProfile'
+import {
+  getUserProfile,
+  saveUserProfile,
+  getRecruiterProfile,
+  saveRecruiterProfile,
+  type RecruiterProfile,
+} from './utils/userProfiles'
 
 type Page = 'home' | 'available' | 'applications' | 'profile' | 'addNewJob' | 'role'
 
@@ -35,6 +42,14 @@ function LandingPage() {
   const [role, setRole] = useState<Role | null>(null) // stores the user role from Firestore
   const [roleLoaded, setRoleLoaded] = useState(false) // tells us when we finished checking Firestore for the role
 
+  // state of recruiter profile
+  const [recruiterProfile, setRecruiterProfile] = useState<RecruiterProfile>({
+    companyName: '',
+    companyWebsite: '',
+    recruiterTitle: '',
+  })
+
+  // update applicant profile handler
   const handleUpdateProfile = async (updatedProfile: UserProfile) => {
     // Make sure Firebase user exists
     const uid = firebaseAuth.currentUser?.uid
@@ -45,6 +60,19 @@ function LandingPage() {
 
     // Update local state so UI also updates
     setProfile(updatedProfile)
+  }
+
+  // update recruiter profile handler
+  const handleSaveRecruiterProfile = async (updated: RecruiterProfile) => {
+    // Make sure Firebase user exists
+    const uid = firebaseAuth.currentUser?.uid
+    if (!uid) return
+
+    // Save recruiter profile in Firestore
+    await saveRecruiterProfile(uid, updated)
+
+    // Update local state so UI updates too
+    setRecruiterProfile(updated)
   }
 
   // ---------------------------
@@ -213,20 +241,21 @@ function LandingPage() {
       const uid = firebaseAuth.currentUser?.uid
       if (!uid) return
 
-      // Read profile from Firestore
-      const saved = await getUserProfile(uid)
+      // If applicant, load applicant profile
+      if (role === 'applicant') {
+        const saved = await getUserProfile(uid)
+        if (saved) setProfile(saved)
+      }
 
-      // If profile exists, use it
-      if (saved) {
-        setProfile(saved)
-      } else {
-        // If no profile exists yet, keep defaultProfile (your current behavior)
-        // (Later you can auto-create a profile doc if you want)
+      // If recruiter, load recruiter profile
+      if (role === 'recruiter') {
+        const saved = await getRecruiterProfile(uid)
+        if (saved) setRecruiterProfile(saved)
       }
     }
 
     loadProfile().catch((err) => console.error('Load profile error:', err))
-  }, [isLoaded, isSignedIn, firebaseReady, roleLoaded])
+  }, [isLoaded, isSignedIn, firebaseReady, roleLoaded, role])
 
   // ---------------------------
   // NAVIGATION + AUTH + ROLE PROTECTION
@@ -385,12 +414,20 @@ function LandingPage() {
             }
           />
         )}
-        {currentPage === 'profile' && (
+        {currentPage === 'profile' && role === 'applicant' && (
           <ProfilePage
             profile={profile}
             onUpdateProfile={handleUpdateProfile}
           />
         )}
+
+        {currentPage === 'profile' && role === 'recruiter' && (
+          <RecruiterProfilePage
+            recruiterProfile={recruiterProfile}
+            onSave={handleSaveRecruiterProfile}
+          />
+        )}
+
         {currentPage === 'addNewJob' && <AddNewJobPage />}
       </main>
     </div>
