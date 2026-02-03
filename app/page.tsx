@@ -116,9 +116,15 @@ function LandingPage() {
       fbSignOut(firebaseAuth).catch(() => {})
 
       // Reset state so next login is clean
-      setFirebaseReady(false) // FIXME!
+      setFirebaseReady(false) // Firebase is not ready
       setRole(null)
       setRoleLoaded(false)
+      setProfile(defaultProfile)
+      setRecruiterProfile({
+        companyName: '',
+        companyWebsite: '',
+        recruiterTitle: '',
+      })
     }
   }, [isSignedIn, isLoaded])
 
