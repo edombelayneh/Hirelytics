@@ -1,18 +1,17 @@
 // This file reads and saves the user's profile in Firestore.
+// Both for regular applicant profiles and recruiter profiles.
 
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../lib/firebaseClient'
 import type { UserProfile } from '../data/profileData'
 
-// Read the profile from: users/{uid}
+// -----------------
+// Read the profile from: users/{uid}, which comes from firebase auth UID
+// -----------------
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
-  // Point to the user's doc
+  // Point to the user's doc and read it from Firestore id it exists, if it doesnt return null
   const ref = doc(db, 'users', uid)
-
-  // Read it once
   const snap = await getDoc(ref)
-
-  // If no doc, return null
   if (!snap.exists()) return null
 
   // We store profile under a "profile" field
@@ -20,7 +19,9 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   return data?.profile ?? null
 }
 
-// Save the profile to: users/{uid}
+// -----------------
+// Save the profile to: users/{uid}, which is stored in firebase auth UID
+// -----------------
 export async function saveUserProfile(uid: string, profile: UserProfile): Promise<void> {
   const ref = doc(db, 'users', uid)
 
@@ -38,14 +39,15 @@ export async function saveUserProfile(uid: string, profile: UserProfile): Promis
 // -------------------------
 // Recruiter profile support
 // -------------------------
-
 export type RecruiterProfile = {
   companyName: string
   companyWebsite: string
   recruiterTitle: string
 }
 
-// Read recruiter profile from users/{uid}.recruiterProfile
+// -------------------
+// Read recruiter profile from users/{uid}.recruiterProfile from Firestore
+// -------------------
 export async function getRecruiterProfile(uid: string): Promise<RecruiterProfile | null> {
   const ref = doc(db, 'users', uid)
   const snap = await getDoc(ref)
@@ -56,7 +58,9 @@ export async function getRecruiterProfile(uid: string): Promise<RecruiterProfile
   return data?.recruiterProfile ?? null
 }
 
+// -------------------
 // Save recruiter profile to users/{uid}.recruiterProfile
+// -------------------
 export async function saveRecruiterProfile(
   uid: string,
   recruiterProfile: RecruiterProfile

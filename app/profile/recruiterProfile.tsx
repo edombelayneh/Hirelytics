@@ -29,11 +29,17 @@ export function RecruiterProfilePage({
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
+  // ------------
+  // handle change for form fields
+  // ------------
   const handleChange = (key: keyof RecruiterProfile, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }))
     setIsEditing(true)
   }
 
+  // ------------
+  // handle save for form recruiter profile
+  // ------------
   const handleSave = async () => {
     if (!form.companyName) {
       toast.error('Missing required field', { description: 'Company name is required.' })

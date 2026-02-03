@@ -33,7 +33,7 @@ import { toast } from '../components/ui/sonner'
 
 interface ProfilePageProps {
   profile: UserProfile
-  onUpdateProfile: (profile: UserProfile) => Promise<void> // async for firebase - basically waits for firebase now
+  onUpdateProfile: (profile: UserProfile) => Promise<void> // async for firebase - basically waits for firebase write to finish
 }
 
 export const ProfilePage = memo(function ProfilePage({
@@ -47,11 +47,22 @@ export const ProfilePage = memo(function ProfilePage({
   const profilePicInputRef = useRef<HTMLInputElement>(null)
   const resumeInputRef = useRef<HTMLInputElement>(null)
 
+  useEffect(() => {
+    // When parent loads profile from Firestore, update the form fields
+    setFormData(profile)
+  }, [profile])
+
+  // -------------
+  // handle input changes
+  // -------------
   const handleInputChange = (field: keyof UserProfile, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     setIsEditing(true)
   }
 
+  // -------------
+  // handle file uploads
+  // -------------
   const handleProfilePictureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -96,6 +107,9 @@ export const ProfilePage = memo(function ProfilePage({
     }
   }
 
+  // -------------
+  // handle save form for applicant profile
+  // -------------
   const handleSave = async () => {
     // Validate required fields
     if (!formData.firstName || !formData.lastName || !formData.email) {
@@ -130,11 +144,6 @@ export const ProfilePage = memo(function ProfilePage({
     const last = formData.lastName.charAt(0).toUpperCase()
     return `${first}${last}` || 'U'
   }
-
-  useEffect(() => {
-    // When parent loads profile from Firestore, update the form fields
-    setFormData(profile)
-  }, [profile])
 
   return (
     <div className='space-y-6 max-w-5xl mx-auto'>
