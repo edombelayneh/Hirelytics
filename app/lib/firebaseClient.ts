@@ -22,4 +22,4 @@ const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig)
 
 // Export Firebase services
 export const firebaseAuth = getAuth(firebaseApp)
-export const firestore = getFirestore(firebaseApp)
+export const db = getFirestore(firebaseApp)
