@@ -103,8 +103,15 @@ export default function AddNewJobPage() {
           className='space-y-5'
         >
           <div>
-            <label className='block text-sm mb-1'>Job Name *</label>
+            <label
+              htmlFor='jobName'
+              className='block text-sm mb-1'
+            >
+              Job Name *
+            </label>
             <input
+              id='jobName'
+              name='jobName'
               type='text'
               value={jobName}
               onChange={(e) => setJobName(e.target.value)}
@@ -302,7 +309,7 @@ export default function AddNewJobPage() {
           <button
             type='submit'
             disabled={submitting}
-            className='rounded bg-blue-600 text-white px-4 py-2'
+            className='inline-flex items-center gap-2 rounded bg-black text-white px-4 py-2 text-sm font-medium'
           >
             {submitting ? 'Saving...' : 'Add Job'}
           </button>
