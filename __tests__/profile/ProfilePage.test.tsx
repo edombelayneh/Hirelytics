@@ -260,7 +260,10 @@ describe('ProfilePage', () => {
     expect(toast.error).not.toHaveBeenCalled()
   })
 
-  it('shows success toast when profile is updated', () => {
+  it('shows success toast when profile is updated', async () => {
+    // Make the mock resolve successfully
+    mockOnUpdateProfile.mockResolvedValueOnce(undefined)
+
     render(
       <ProfilePage
         profile={mockProfile}
@@ -275,6 +278,9 @@ describe('ProfilePage', () => {
 
     // Click Save
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+
+    // Wait for async operations to complete
+    await new Promise((resolve) => setTimeout(resolve, 0))
 
     // Should show success toast with correct message
     expect(toast.success).toHaveBeenCalledWith(
