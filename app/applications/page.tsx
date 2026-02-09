@@ -5,7 +5,7 @@ import HeroPanel from '../components/HeroPanel'
 import { SummaryCards } from '../components/SummaryCards'
 import { ApplicationsTable } from '../components/ApplicationsTable'
 import { JobApplication } from '../data/mockData'
-import { firestore } from '../lib/firebaseClient'
+import { db } from '../lib/firebaseClient'
 import { doc, setDoc } from 'firebase/firestore'
 import { useAuth } from '@clerk/nextjs'
 
@@ -19,7 +19,7 @@ function FirestoreTest() {
       return
     }
 
-    const ref = doc(firestore, 'users', userId, 'applications', 'hello')
+    const ref = doc(db, 'users', userId, 'applications', 'hello')
     await setDoc(ref, { test: true, createdAt: new Date() })
     alert('Wrote test doc!')
   }
