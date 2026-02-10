@@ -86,6 +86,17 @@ export const ProfilePage = memo(function ProfilePage({
   const handleResumeUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      // Validate file type
+      const allowedExtensions = ['.pdf', '.doc', '.docx']
+      const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
+      
+      if (!allowedExtensions.includes(fileExtension)) {
+        toast.error('Invalid file type', {
+          description: 'Resume must be in PDF, DOC, or DOCX format',
+        })
+        return
+      }
+
       if (file.size > 10 * 1024 * 1024) {
         toast.error('File too large', {
           description: 'Resume must be less than 10MB',
@@ -115,6 +126,15 @@ export const ProfilePage = memo(function ProfilePage({
     if (!formData.firstName || !formData.lastName || !formData.email) {
       toast.error('Missing required fields', {
         description: 'Please fill in your name and email',
+      })
+      return
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      toast.error('Invalid email format', {
+        description: 'Please enter a valid email address',
       })
       return
     }
@@ -465,4 +485,5 @@ export const ProfilePage = memo(function ProfilePage({
       </div>
     </div>
   )
+
 })
