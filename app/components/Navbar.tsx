@@ -11,7 +11,6 @@ export function Navbar({ currentPage }: { currentPage: string }) {
     { label: 'Home', hash: '#/', icon: Home },
     { label: 'Available Jobs', hash: '#/jobs', icon: Briefcase },
     { label: 'My Applications', hash: '#/applications', icon: BarChart3 },
-    { label: 'My Profile', hash: '#/profile', icon: User },
   ]
 
   return (
@@ -62,7 +61,20 @@ export function Navbar({ currentPage }: { currentPage: string }) {
 
       {/* Right Side - User Account Button */}
       <div className='absolute right-6 flex items-center gap-3'>
-        <UserButton afterSignOutUrl='/' />
+        {/* Right Side - User Account Button */}
+        <UserButton afterSignOutUrl='/'>
+          <UserButton.MenuItems>
+            <UserButton.Action
+              label='My Profile'
+              labelIcon={<User className='h-4 w-4' />}
+              onClick={() => {
+                window.location.hash = '#/profile'
+              }}
+            />
+            <UserButton.Action label='manageAccount' />
+            <UserButton.Action label='signOut' />
+          </UserButton.MenuItems>
+        </UserButton>
       </div>
     </nav>
   )
