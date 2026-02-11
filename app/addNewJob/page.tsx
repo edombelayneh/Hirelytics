@@ -3,10 +3,19 @@
 // A form page that lets recruiters submit new jobs.
 // - Collect job information
 // - Shows a redirecting overlay and then sends the user to the "Available Jobs" page using hash navigation.
+// - Saves job data to Firebase and checks user role (recruiter only)
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '@clerk/nextjs'
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore'
+import { db } from '../lib/firebaseClient'
+import { getUserRole, type Role } from '../utils/userRole'
 
 export default function AddNewJobPage() {
+  const { userId } = useAuth()
+  const [userRole, setUserRole] = useState<Role | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
   const [jobName, setJobName] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [recruiterEmail, setRecruiterEmail] = useState('')
@@ -32,10 +41,33 @@ export default function AddNewJobPage() {
   const [submitting, setSubmitting] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
 
+  // Firebase listener: Check user role
+  useEffect(() => {
+    const checkUserRole = async () => {
+      if (!userId) {
+        setIsLoading(false)
+        return
+      }
+
+      try {
+        const role = await getUserRole(userId)
+        setUserRole(role)
+        setIsLoading(false)
+      } catch (error) {
+        console.error('Error checking user role:', error)
+        setMessage('Error verifying your role. Please refresh the page.')
+        setIsLoading(false)
+      }
+    }
+
+    checkUserRole()
+  }, [userId])
+
   // handleSubmit
   // This prevents the form from default submission.
+  // Saves the job data to Firebase in the 'jobs' collection
   // Show a short success message and redirect overlay.
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setMessage(null)
 
@@ -57,24 +89,47 @@ export default function AddNewJobPage() {
       country,
       state: stateValue,
       city,
-      hourlyRate,
+      hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
       visaRequired,
       jobType,
       employmentType,
       experienceLevel,
       applicationDeadline,
       generalDescription,
+      recruiterId: userId,
+      createdAt: serverTimestamp(),
     }
 
-    console.log('New job submitted: ', jobData)
+    try {
+      // Save job data to Firebase 'jobs' collection
+      const jobsRef = collection(db, 'jobs')
+      await addDoc(jobsRef, jobData)
 
-    setMessage('Job submitted. Redirecting to Available Jobs...')
-    setRedirecting(true)
+      console.log('Job submitted to Firebase:', jobData)
 
-    // small delay so the user sees the overlay, then go to Available Jobs
-    setTimeout(() => {
-      window.location.hash = '/jobs'
-    }, 2000)
+      setMessage('Job submitted successfully. Redirecting to Available Jobs...')
+      setRedirecting(true)
+
+      // small delay so the user sees the overlay, then go to Available Jobs
+      setTimeout(() => {
+        window.location.hash = '/jobs'
+      }, 2000)
+    } catch (error) {
+      console.error('Error saving job to Firebase:', error)
+      setMessage('Error saving job. Please try again.')
+      setSubmitting(false)
+    }
+  }
+
+  // Show loading state while checking user role
+  if (isLoading) {
+    return (
+      <main className='min-h-screen bg-gray-50 flex items-center justify-center'>
+        <div className='bg-white rounded-lg px-6 py-4 shadow-lg text-center'>
+          <p className='font-medium'>Loading...</p>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -305,14 +360,16 @@ export default function AddNewJobPage() {
             />
           </div>
 
-          {/* Submit button */}
-          <button
-            type='submit'
-            disabled={submitting}
-            className='inline-flex items-center gap-2 rounded bg-black text-white px-4 py-2 text-sm font-medium'
-          >
-            {submitting ? 'Saving...' : 'Add Job'}
-          </button>
+          {/* Submit button - only visible to recruiters */}
+          {userRole === 'recruiter' && (
+            <button
+              type='submit'
+              disabled={submitting}
+              className='inline-flex items-center gap-2 rounded bg-black text-white px-4 py-2 text-sm font-medium'
+            >
+              {submitting ? 'Saving...' : 'Add Job'}
+            </button>
+          )}
         </form>
       </div>
     </main>
