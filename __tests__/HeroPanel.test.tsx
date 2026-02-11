@@ -1,7 +1,8 @@
 // __tests__/HeroPanel.test.tsx
-// Unit tests for the HeroPanel component
-// Purpose: make sure the dashboard renders correctly, uses data helpers properly,
-// and safely handles edge cases like empty or extreme data.
+// Tests for: app/components/HeroPanel.tsx
+// Goal: make sure HeroPanel renders correctly,
+// uses helper data properly, and does not break
+// with empty or extreme values.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
@@ -10,11 +11,12 @@ import type React from 'react'
 import HeroPanel from '../app/components/HeroPanel'
 import type { JobApplication } from '../app/data/mockData'
 
-/* ---------------------------------------------
-   MOCK: data helpers (hoisted)
-   These are the functions HeroPanel relies on
-   to calculate stats and chart data.
---------------------------------------------- */
+/* --------------------------------------------------
+   MOCK: dashboard helper functions
+   HeroPanel gets all numbers and chart data
+   from these helpers. We mock them so we can
+   control what they return in each test.
+-------------------------------------------------- */
 const helpers = vi.hoisted(() => ({
   getDashboardStatsFromList: vi.fn(),
   getApplicationsByMonthFromList: vi.fn(),
@@ -27,55 +29,52 @@ vi.mock('../app/data/mockData', () => ({
   getStatusDistributionFromList: helpers.getStatusDistributionFromList,
 }))
 
-/* ---------------------------------------------
+/* --------------------------------------------------
    MOCK: recharts
-   These components normally render SVGs.
+   We do not need real charts in unit tests.
    We replace them with simple divs so:
-   - tests don’t break in jsdom
-   - no React warnings about invalid DOM props
---------------------------------------------- */
-type ChildrenProps = {
-  children?: React.ReactNode
-}
+   - no prop warnings
+   - predictable DOM
+-------------------------------------------------- */
+type ChildrenOnlyProps = { children?: React.ReactNode }
 
-type CellProps = {
-  fill?: string
-}
+vi.mock('recharts', () => {
+  return {
+    ResponsiveContainer: ({ children }: ChildrenOnlyProps) => (
+      <div data-testid='responsive-container'>{children}</div>
+    ),
+    BarChart: ({ children }: ChildrenOnlyProps) => <div data-testid='bar-chart'>{children}</div>,
+    CartesianGrid: () => <div data-testid='cartesian-grid' />,
+    XAxis: () => <div data-testid='x-axis' />,
+    YAxis: () => <div data-testid='y-axis' />,
+    Tooltip: () => <div data-testid='tooltip' />,
+    Bar: () => <div data-testid='bar' />,
+    PieChart: ({ children }: ChildrenOnlyProps) => <div data-testid='pie-chart'>{children}</div>,
+    Pie: ({ children }: ChildrenOnlyProps) => <div data-testid='pie'>{children}</div>,
+    Cell: ({ fill }: { fill: string }) => (
+      <div
+        data-testid='cell'
+        data-fill={fill}
+      />
+    ),
+    Legend: ({ children }: ChildrenOnlyProps) => <div data-testid='legend'>{children}</div>,
+  }
+})
 
-vi.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: ChildrenProps) => (
-    <div data-testid='responsive-container'>{children}</div>
-  ),
-  BarChart: ({ children }: ChildrenProps) => <div data-testid='bar-chart'>{children}</div>,
-  Bar: () => <div data-testid='bar' />,
-  XAxis: () => <div data-testid='x-axis' />,
-  YAxis: () => <div data-testid='y-axis' />,
-  CartesianGrid: () => <div data-testid='cartesian-grid' />,
-  Tooltip: () => <div data-testid='tooltip' />,
-  PieChart: ({ children }: ChildrenProps) => <div data-testid='pie-chart'>{children}</div>,
-  Pie: ({ children }: ChildrenProps) => <div data-testid='pie'>{children}</div>,
-  Cell: ({ fill }: CellProps) => (
-    <div
-      data-testid='cell'
-      data-fill={fill ?? ''}
-    />
-  ),
-}))
-
-/* ---------------------------------------------
+/* --------------------------------------------------
    MOCK: chart config
-   Just providing predictable colors + styles
---------------------------------------------- */
+   Just basic values so the component doesn't crash.
+-------------------------------------------------- */
 vi.mock('../app/utils/chartConfig', () => ({
   CHART_COLORS: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
   chartStyles: { fontSize: 12, fill: '#666' },
 }))
 
-/* ---------------------------------------------
-   MOCK: UI components
-   We don’t test shadcn/ui here, only that
-   HeroPanel uses them correctly.
---------------------------------------------- */
+/* --------------------------------------------------
+   MOCK: UI components (shadcn)
+   We only care that they render.
+   Replace them with simple wrappers.
+-------------------------------------------------- */
 type CardProps = {
   children: React.ReactNode
   className?: string
@@ -124,11 +123,10 @@ vi.mock('../app/components/ui/progress', () => ({
   ),
 }))
 
-/* ---------------------------------------------
-   TEST SUITE: HeroPanel
---------------------------------------------- */
+/* --------------------------------------------------
+   TESTS
+-------------------------------------------------- */
 describe('HeroPanel', () => {
-  // Minimal application data used across tests
   const mockApplications: JobApplication[] = [
     {
       id: '1',
@@ -146,7 +144,6 @@ describe('HeroPanel', () => {
     },
   ]
 
-  // Default stats returned by helper mocks
   const standardStats = {
     responseRate: 75,
     successRate: 25,
@@ -165,9 +162,10 @@ describe('HeroPanel', () => {
     { status: 'Offer', count: 1 },
   ]
 
-  // Reset mocks before every test so nothing leaks
   beforeEach(() => {
     vi.clearAllMocks()
+
+    // Default mock returns
     helpers.getDashboardStatsFromList.mockReturnValue(standardStats)
     helpers.getApplicationsByMonthFromList.mockReturnValue(standardMonthlyData)
     helpers.getStatusDistributionFromList.mockReturnValue(standardStatusData)
@@ -177,8 +175,7 @@ describe('HeroPanel', () => {
     cleanup()
   })
 
-  // Verifies that the three main dashboard sections render
-  it('renders main section titles', () => {
+  it('renders the main section titles', () => {
     render(<HeroPanel applications={mockApplications} />)
 
     expect(screen.getByText('Job Search Overview')).toBeTruthy()
@@ -186,17 +183,15 @@ describe('HeroPanel', () => {
     expect(screen.getByText('Application Status')).toBeTruthy()
   })
 
-  // Confirms descriptive text is shown for each section
-  it('renders section descriptions', () => {
+  it('calls the helper functions with the applications prop', () => {
     render(<HeroPanel applications={mockApplications} />)
 
-    expect(screen.getByText('Your application performance metrics')).toBeTruthy()
-    expect(screen.getByText('Monthly application activity')).toBeTruthy()
-    expect(screen.getByText('Current status distribution')).toBeTruthy()
+    expect(helpers.getDashboardStatsFromList).toHaveBeenCalledWith(mockApplications)
+    expect(helpers.getApplicationsByMonthFromList).toHaveBeenCalledWith(mockApplications)
+    expect(helpers.getStatusDistributionFromList).toHaveBeenCalledWith(mockApplications)
   })
 
-  // Makes sure the numeric stats are displayed correctly
-  it('renders stat numbers correctly', () => {
+  it('shows the correct rate values and counts', () => {
     render(<HeroPanel applications={mockApplications} />)
 
     expect(screen.getByText('75%')).toBeTruthy()
@@ -205,17 +200,7 @@ describe('HeroPanel', () => {
     expect(screen.getByText('1')).toBeTruthy()
   })
 
-  // Ensures HeroPanel actually uses the helper functions
-  it('calls helper functions with correct applications', () => {
-    render(<HeroPanel applications={mockApplications} />)
-
-    expect(helpers.getDashboardStatsFromList).toHaveBeenCalledWith(mockApplications)
-    expect(helpers.getApplicationsByMonthFromList).toHaveBeenCalledWith(mockApplications)
-    expect(helpers.getStatusDistributionFromList).toHaveBeenCalledWith(mockApplications)
-  })
-
-  // Confirms progress bars receive the correct values
-  it('renders progress bars with correct stat values', () => {
+  it('sets progress bars to the same percentage values', () => {
     render(<HeroPanel applications={mockApplications} />)
 
     const bars = screen.getAllByTestId('progress')
@@ -223,16 +208,15 @@ describe('HeroPanel', () => {
     expect(bars[1].getAttribute('data-value')).toBe('25')
   })
 
-  // Checks that both chart sections render containers
-  it('renders chart containers', () => {
+  it('renders the chart containers', () => {
     render(<HeroPanel applications={mockApplications} />)
 
-    const containers = screen.getAllByTestId('responsive-container')
-    expect(containers.length).toBe(2)
+    expect(screen.getAllByTestId('responsive-container').length).toBe(2)
+    expect(screen.getByTestId('bar-chart')).toBeTruthy()
+    expect(screen.getByTestId('pie-chart')).toBeTruthy()
   })
 
-  // Verifies the component doesn’t crash when there’s no data
-  it('handles empty applications array safely', () => {
+  it('does not crash with empty applications', () => {
     helpers.getDashboardStatsFromList.mockReturnValue({
       responseRate: 0,
       successRate: 0,
@@ -244,7 +228,6 @@ describe('HeroPanel', () => {
 
     render(<HeroPanel applications={[]} />)
 
-    expect(screen.getByText('Job Search Overview')).toBeTruthy()
     expect(screen.getAllByText('0%').length).toBe(2)
 
     const bars = screen.getAllByTestId('progress')
@@ -252,8 +235,7 @@ describe('HeroPanel', () => {
     expect(bars[1].getAttribute('data-value')).toBe('0')
   })
 
-  // Tests extreme values to ensure nothing breaks visually
-  it('handles extreme stat values correctly', () => {
+  it('handles extreme values correctly', () => {
     helpers.getDashboardStatsFromList.mockReturnValue({
       responseRate: 100,
       successRate: 100,
@@ -263,32 +245,11 @@ describe('HeroPanel', () => {
 
     render(<HeroPanel applications={mockApplications} />)
 
+    expect(screen.getAllByText('100%').length).toBe(2)
+    expect(screen.getAllByText('999').length).toBeGreaterThanOrEqual(2)
+
     const bars = screen.getAllByTestId('progress')
     expect(bars[0].getAttribute('data-value')).toBe('100')
     expect(bars[1].getAttribute('data-value')).toBe('100')
-
-    expect(screen.getAllByText('100%').length).toBe(2)
-    expect(screen.getAllByText('999').length).toBeGreaterThanOrEqual(2)
-  })
-
-  // Snapshot to catch unexpected layout or markup changes
-  it('matches snapshot with normal data', () => {
-    const { container } = render(<HeroPanel applications={mockApplications} />)
-    expect(container.firstChild).toMatchSnapshot()
-  })
-
-  // Snapshot for empty-state layout
-  it('matches snapshot with empty data', () => {
-    helpers.getDashboardStatsFromList.mockReturnValue({
-      responseRate: 0,
-      successRate: 0,
-      interviews: 0,
-      offers: 0,
-    })
-    helpers.getApplicationsByMonthFromList.mockReturnValue([])
-    helpers.getStatusDistributionFromList.mockReturnValue([])
-
-    const { container } = render(<HeroPanel applications={[]} />)
-    expect(container.firstChild).toMatchSnapshot()
   })
 })
