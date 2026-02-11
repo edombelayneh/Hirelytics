@@ -1,7 +1,7 @@
 'use client'
 
 import { UserButton } from '@clerk/nextjs'
-import { Home, Briefcase, BarChart3, User } from 'lucide-react'
+import { Home, Briefcase, BarChart3 } from 'lucide-react'
 
 // FIXME: Navbar currenly has pages dedicated only to applicants
 // Make sure to add recruiter-specific pages and links later after we finish adding firebase listeners to our pages
@@ -11,7 +11,6 @@ export function Navbar({ currentPage }: { currentPage: string }) {
     { label: 'Home', hash: '#/', icon: Home },
     { label: 'Available Jobs', hash: '#/jobs', icon: Briefcase },
     { label: 'My Applications', hash: '#/applications', icon: BarChart3 },
-    // { label: 'My Profile', hash: '#/profile', icon: User },
   ]
 
   return (
