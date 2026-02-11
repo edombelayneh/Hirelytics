@@ -137,6 +137,6 @@ describe('app/lib/firebaseClient', () => {
     const mod = await import('@/app/lib/firebaseClient')
 
     expect(mod.firebaseAuth).toBe(mockAuth)
-    expect(mod.firestore).toBe(mockDb)
+    expect(mod.db).toBe(mockDb)
   })
 })
