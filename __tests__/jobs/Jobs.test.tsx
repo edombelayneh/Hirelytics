@@ -1,11 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
+import Jobs from '../../app/jobs/page'
+import { AvailableJob } from '../../app/data/availableJobs'
+import type { Role } from '../../app/utils/userRole'
+import { onSnapshot } from 'firebase/firestore'
 
 // Mock Clerk authentication
 vi.mock('@clerk/nextjs', () => ({
   useAuth: vi.fn(() => ({
     userId: 'test-user-id-123',
     isSignedIn: true,
+    isLoaded: true,
   })),
 }))
 
@@ -34,10 +39,6 @@ vi.mock('firebase/firestore', () => ({
   updateDoc: vi.fn(),
   serverTimestamp: vi.fn(),
 }))
-
-import Jobs from '../../app/jobs/page'
-import { AvailableJob } from '../../app/data/availableJobs'
-import type { Role } from '../../app/utils/userRole'
 
 // Mock AvailableJobsList to isolate Jobs page testing
 vi.mock('../../app/components/AvailableJobsList', () => ({
@@ -125,6 +126,25 @@ describe('Jobs Page', () => {
     const appliedJobsCount = screen.getByTestId('applied-jobs-count')
     // Component initializes with empty Set, so count should be 0
     expect(appliedJobsCount.textContent).toBe('0')
+  })
+
+  // override onSnapshot ONLY in this test
+  it('load applied jobs from Firestore and pass them to AvailableJobsList', () => {
+    vi.mocked(onSnapshot).mockImplementationOnce((queryArg: unknown, callback: unknown) => {
+      const cb = callback as (snapshot: { docs: Array<{ id: string }>; data: () => object }) => void
+
+      cb({
+        docs: [{ id: '1' }, { id: '2' }, { id: '3' }],
+        data: () => ({}),
+      })
+
+      return vi.fn()
+    })
+
+    render(<Jobs onAddApplication={mockOnAddApplication} />)
+
+    const appliedJobsCount = screen.getByTestId('applied-jobs-count')
+    expect(appliedJobsCount.textContent).toBe('3')
   })
 
   // Callback wiring
