@@ -115,15 +115,17 @@ function LandingPage() {
       // When Clerk signs out, also sign out of Firebase
       fbSignOut(firebaseAuth).catch(() => {})
 
-      // Reset state so next login is clean
-      setFirebaseReady(false) // Firebase is not ready
-      setRole(null)
-      setRoleLoaded(false)
-      setProfile(defaultProfile)
-      setRecruiterProfile({
-        companyName: '',
-        companyWebsite: '',
-        recruiterTitle: '',
+      // Defer state resets to avoid synchronous setState in effect
+      queueMicrotask(() => {
+        setFirebaseReady(false) // Firebase is not ready
+        setRole(null)
+        setRoleLoaded(false)
+        setProfile(defaultProfile)
+        setRecruiterProfile({
+          companyName: '',
+          companyWebsite: '',
+          recruiterTitle: '',
+        })
       })
     }
   }, [isSignedIn, isLoaded])
@@ -404,6 +406,7 @@ function LandingPage() {
           <AvailableJobsPage
             onAddApplication={handleAddApplication}
             appliedJobIds={appliedJobIds}
+            role={role}
           />
         )}
         {currentPage === 'applications' && (
