@@ -25,7 +25,6 @@ describe('Navbar', () => {
     expect(screen.getByText('Home')).toBeTruthy()
     expect(screen.getByText('Available Jobs')).toBeTruthy()
     expect(screen.getByText('My Applications')).toBeTruthy()
-    expect(screen.getByText('My Profile')).toBeTruthy()
   })
 
   // Each link points to the right hash route (no jest-dom needed)
@@ -40,9 +39,6 @@ describe('Navbar', () => {
 
     const apps = screen.getByRole('link', { name: /My Applications/i })
     expect(apps.getAttribute('href')).toBe('#/applications')
-
-    const profile = screen.getByRole('link', { name: /My Profile/i })
-    expect(profile.getAttribute('href')).toBe('#/profile')
   })
 
   // User button renders

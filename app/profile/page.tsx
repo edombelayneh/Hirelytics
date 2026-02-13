@@ -68,14 +68,14 @@ export const ProfilePage = memo(function ProfilePage({
       next.firstName = next.firstName || clerkFirst
       next.lastName = next.lastName || clerkLast
 
-      // if the user is currently editing, don't clobber what they typed
       if (isEditing) {
         return {
           ...prev,
-          // but still allow Clerk to fill truly empty fields
-          email: prev.email || next.email,
-          firstName: prev.firstName || next.firstName,
-          lastName: prev.lastName || next.lastName,
+          // only fill if the field is actually missing (undefined/null),
+          // not if the user intentionally cleared it to ''
+          email: prev.email ?? next.email,
+          firstName: prev.firstName ?? next.firstName,
+          lastName: prev.lastName ?? next.lastName,
         }
       }
 

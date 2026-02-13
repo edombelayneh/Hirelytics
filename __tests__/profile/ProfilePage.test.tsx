@@ -12,6 +12,19 @@ vi.mock('../../app/components/ui/sonner', () => ({
   },
 }))
 
+// Mock Clerk useUser to provide consistent user data for tests
+vi.mock('@clerk/nextjs', () => ({
+  useUser: () => ({
+    isLoaded: true,
+    user: {
+      id: 'user_123',
+      firstName: 'Jane',
+      lastName: 'Doe',
+      primaryEmailAddress: { emailAddress: 'jane.doe@example.com' },
+    },
+  }),
+}))
+
 // Mock File Reader
 interface MockFileReader {
   readAsDataURL: () => void
