@@ -36,7 +36,7 @@ vi.mock('@clerk/nextjs', () => ({
 // Prevents the test environment from initializing a real Firebase instance.
 vi.mock('../../app/lib/firebaseClient', () => ({
   firebaseAuth: {},
-  firestore: {},
+  db: {},
 }))
 
 // --- Mock Firestore methods ---
@@ -45,6 +45,17 @@ vi.mock('../../app/lib/firebaseClient', () => ({
 vi.mock('firebase/firestore', () => ({
   doc: vi.fn(),
   setDoc: vi.fn(),
+  query: vi.fn(),
+  collection: vi.fn(),
+  orderBy: vi.fn(),
+  onSnapshot: vi.fn((q, callback) => {
+    // Don't call the callback - let the component keep the initial state from props
+    // This allows the component to render with the passed-in applications
+    // Return an unsubscribe function
+    return vi.fn()
+  }),
+  updateDoc: vi.fn(),
+  serverTimestamp: vi.fn(),
 }))
 
 /* -------------------------------------------------------------------------- */

@@ -3,6 +3,42 @@ import { render, screen, cleanup } from '@testing-library/react'
 import Jobs from '../../app/jobs/page'
 import { AvailableJob } from '../../app/data/availableJobs'
 import type { Role } from '../../app/utils/userRole'
+import { onSnapshot } from 'firebase/firestore'
+
+// Mock Clerk authentication
+vi.mock('@clerk/nextjs', () => ({
+  useAuth: vi.fn(() => ({
+    userId: 'test-user-id-123',
+    isSignedIn: true,
+    isLoaded: true,
+  })),
+}))
+
+// Mock Firebase client before importing the page
+vi.mock('../../app/lib/firebaseClient', () => ({
+  firebaseAuth: {},
+  db: {},
+}))
+
+// Mock Firebase/firestore functions
+vi.mock('firebase/firestore', () => ({
+  doc: vi.fn(),
+  setDoc: vi.fn(),
+  query: vi.fn(),
+  collection: vi.fn(),
+  orderBy: vi.fn(),
+  onSnapshot: vi.fn((query, callback) => {
+    // Call the callback immediately with a mock snapshot that has no docs
+    callback({
+      docs: [],
+      data: () => ({}),
+    })
+    // Return an unsubscribe function
+    return vi.fn()
+  }),
+  updateDoc: vi.fn(),
+  serverTimestamp: vi.fn(),
+}))
 
 // Mock AvailableJobsList to isolate Jobs page testing
 vi.mock('../../app/components/AvailableJobsList', () => ({
@@ -47,37 +83,27 @@ vi.mock('../../app/components/AvailableJobsList', () => ({
 describe('Jobs Page', () => {
   // Setup mock functions and test data
   const mockOnAddApplication = vi.fn()
-  const mockAppliedJobIds = new Set<number>([1, 2, 3])
 
   // Clear mocks before each test
   beforeEach(() => {
     mockOnAddApplication.mockClear()
   })
 
+  // Clean up DOM after each test
   afterEach(() => {
     cleanup()
   })
 
   // Checking to make sure it renders
   it('should render the Jobs page without crashing', () => {
-    render(
-      <Jobs
-        onAddApplication={mockOnAddApplication}
-        appliedJobIds={mockAppliedJobIds}
-      />
-    )
+    render(<Jobs onAddApplication={mockOnAddApplication} />)
 
     expect(screen.getByTestId('available-jobs-list')).toBeTruthy()
   })
 
   // Component presence
   it('should render the AvailableJobsList component', () => {
-    render(
-      <Jobs
-        onAddApplication={mockOnAddApplication}
-        appliedJobIds={mockAppliedJobIds}
-      />
-    )
+    render(<Jobs onAddApplication={mockOnAddApplication} />)
 
     expect(screen.getByText('AvailableJobsList Component')).toBeTruthy()
   })
@@ -86,7 +112,6 @@ describe('Jobs Page', () => {
     render(
       <Jobs
         onAddApplication={mockOnAddApplication}
-        appliedJobIds={mockAppliedJobIds}
         role='recruiter'
       />
     )
@@ -96,12 +121,27 @@ describe('Jobs Page', () => {
 
   // Props validation
   it('should pass appliedJobIds to AvailableJobsList', () => {
-    render(
-      <Jobs
-        onAddApplication={mockOnAddApplication}
-        appliedJobIds={mockAppliedJobIds}
-      />
-    )
+    render(<Jobs onAddApplication={mockOnAddApplication} />)
+
+    const appliedJobsCount = screen.getByTestId('applied-jobs-count')
+    // Component initializes with empty Set, so count should be 0
+    expect(appliedJobsCount.textContent).toBe('0')
+  })
+
+  // override onSnapshot ONLY in this test
+  it('load applied jobs from Firestore and pass them to AvailableJobsList', () => {
+    vi.mocked(onSnapshot).mockImplementationOnce((queryArg: unknown, callback: unknown) => {
+      const cb = callback as (snapshot: { docs: Array<{ id: string }>; data: () => object }) => void
+
+      cb({
+        docs: [{ id: '1' }, { id: '2' }, { id: '3' }],
+        data: () => ({}),
+      })
+
+      return vi.fn()
+    })
+
+    render(<Jobs onAddApplication={mockOnAddApplication} />)
 
     const appliedJobsCount = screen.getByTestId('applied-jobs-count')
     expect(appliedJobsCount.textContent).toBe('3')
@@ -109,12 +149,7 @@ describe('Jobs Page', () => {
 
   // Callback wiring
   it('should call onAddApplication when handleApply is triggered', () => {
-    render(
-      <Jobs
-        onAddApplication={mockOnAddApplication}
-        appliedJobIds={new Set()}
-      />
-    )
+    render(<Jobs onAddApplication={mockOnAddApplication} />)
 
     const applyButton = screen.getByTestId('apply-button')
     applyButton.click()
@@ -131,12 +166,7 @@ describe('Jobs Page', () => {
 
   // Layout validation
   it('should render main content container', () => {
-    render(
-      <Jobs
-        onAddApplication={mockOnAddApplication}
-        appliedJobIds={mockAppliedJobIds}
-      />
-    )
+    render(<Jobs onAddApplication={mockOnAddApplication} />)
 
     const main = screen.getByRole('main')
     expect(main).toBeTruthy()
@@ -150,12 +180,7 @@ describe('Jobs Page', () => {
 
   // Styling validation
   it('should render with correct background styling', () => {
-    const { container } = render(
-      <Jobs
-        onAddApplication={mockOnAddApplication}
-        appliedJobIds={mockAppliedJobIds}
-      />
-    )
+    const { container } = render(<Jobs onAddApplication={mockOnAddApplication} />)
 
     const mainDiv = container.querySelector('.min-h-screen.bg-background')
     expect(mainDiv).toBeTruthy()
