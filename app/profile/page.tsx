@@ -30,6 +30,7 @@ import {
 } from 'lucide-react'
 import { UserProfile } from '../data/profileData'
 import { toast } from '../components/ui/sonner'
+import { useUser } from '@clerk/nextjs'
 
 interface ProfilePageProps {
   profile: UserProfile
@@ -47,10 +48,40 @@ export const ProfilePage = memo(function ProfilePage({
   const profilePicInputRef = useRef<HTMLInputElement>(null)
   const resumeInputRef = useRef<HTMLInputElement>(null)
 
+  const { user, isLoaded } = useUser()
+
+  // When parent loads profile from Firestore, update the form fields
+  // + auto-fill from Clerk if Firestore fields are missing
   useEffect(() => {
-    // When parent loads profile from Firestore, update the form fields
-    setFormData(profile)
-  }, [profile])
+    if (!isLoaded) return
+
+    const clerkEmail = user?.primaryEmailAddress?.emailAddress ?? ''
+    const clerkFirst = user?.firstName ?? ''
+    const clerkLast = user?.lastName ?? ''
+
+    setFormData((prev) => {
+      // start from Firestore profile (source of truth if it exists)
+      const next: UserProfile = { ...profile }
+
+      // only fill missing values (don’t overwrite Firestore)
+      next.email = next.email || clerkEmail
+      next.firstName = next.firstName || clerkFirst
+      next.lastName = next.lastName || clerkLast
+
+      // if the user is currently editing, don't clobber what they typed
+      if (isEditing) {
+        return {
+          ...prev,
+          // but still allow Clerk to fill truly empty fields
+          email: prev.email || next.email,
+          firstName: prev.firstName || next.firstName,
+          lastName: prev.lastName || next.lastName,
+        }
+      }
+
+      return next
+    })
+  }, [profile, isLoaded, user?.id, isEditing])
 
   // -------------
   // handle input changes
@@ -89,7 +120,7 @@ export const ProfilePage = memo(function ProfilePage({
       // Validate file type
       const allowedExtensions = ['.pdf', '.doc', '.docx']
       const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
-      
+
       if (!allowedExtensions.includes(fileExtension)) {
         toast.error('Invalid file type', {
           description: 'Resume must be in PDF, DOC, or DOCX format',
@@ -485,5 +516,4 @@ export const ProfilePage = memo(function ProfilePage({
       </div>
     </div>
   )
-
 })
