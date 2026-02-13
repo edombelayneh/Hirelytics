@@ -97,6 +97,7 @@ export default function AddNewJobPage() {
       applicationDeadline,
       generalDescription,
       recruiterId: userId,
+      jobSource: userRole === 'recruiter' ? 'internal' : 'external',
       createdAt: serverTimestamp(),
     }
 
@@ -107,12 +108,14 @@ export default function AddNewJobPage() {
 
       console.log('Job submitted to Firebase:', jobData)
 
-      setMessage('Job submitted successfully. Redirecting to Available Jobs...')
+      setMessage('Job submitted successfully. Redirecting...')
       setRedirecting(true)
 
-      // small delay so the user sees the overlay, then go to Available Jobs
+      // small delay so the user sees the overlay, then redirect based on role
       setTimeout(() => {
-        window.location.hash = '/jobs'
+        // Recruiters go to job details page, others go to available jobs
+        const redirectPath = userRole === 'recruiter' ? '/jobdetails' : '/jobs'
+        window.location.hash = redirectPath
       }, 2000)
     } catch (error) {
       console.error('Error saving job to Firebase:', error)
