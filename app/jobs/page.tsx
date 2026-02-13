@@ -2,27 +2,28 @@
 
 import { AvailableJobsList } from '../components/AvailableJobsList'
 import { AvailableJob } from '../data/availableJobs'
+import type { Role } from '../utils/userRole'
 
 interface JobsPageProps {
   onAddApplication: (job: AvailableJob) => void
   appliedJobIds: Set<number>
+  role?: Role | null
 }
 
-function Jobs({ onAddApplication, appliedJobIds }: JobsPageProps) {
+function Jobs({ onAddApplication, appliedJobIds, role }: JobsPageProps) {
   const handleApply = (job: AvailableJob) => {
     onAddApplication(job)
   }
 
   return (
     <div className='min-h-screen bg-background'>
-     
-
       {/* Main Content */}
       <main className='container mx-auto px-6 py-8 space-y-8'>
         <section>
           <AvailableJobsList
             onApply={handleApply}
             appliedJobIds={appliedJobIds}
+            role={role}
           />
         </section>
       </main>

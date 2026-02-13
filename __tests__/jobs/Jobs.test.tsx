@@ -1,20 +1,24 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, cleanup } from '@testing-library/react'
 import Jobs from '../../app/jobs/page'
 import { AvailableJob } from '../../app/data/availableJobs'
+import type { Role } from '../../app/utils/userRole'
 
 // Mock AvailableJobsList to isolate Jobs page testing
 vi.mock('../../app/components/AvailableJobsList', () => ({
   AvailableJobsList: ({
     onApply,
     appliedJobIds,
+    role,
   }: {
     onApply: (job: AvailableJob) => void
     appliedJobIds: Set<number>
+    role?: Role | null
   }) => (
     <div data-testid='available-jobs-list'>
       <div>AvailableJobsList Component</div>
       <div data-testid='applied-jobs-count'>{appliedJobIds.size}</div>
+      <div data-testid='role-value'>{role ?? 'none'}</div>
       {/* Button to trigger apply callback */}
       <button
         onClick={() =>
@@ -50,10 +54,17 @@ describe('Jobs Page', () => {
     mockOnAddApplication.mockClear()
   })
 
+  afterEach(() => {
+    cleanup()
+  })
+
   // Checking to make sure it renders
   it('should render the Jobs page without crashing', () => {
     render(
-      <Jobs onAddApplication={mockOnAddApplication} appliedJobIds={mockAppliedJobIds} />
+      <Jobs
+        onAddApplication={mockOnAddApplication}
+        appliedJobIds={mockAppliedJobIds}
+      />
     )
 
     expect(screen.getByTestId('available-jobs-list')).toBeTruthy()
@@ -62,16 +73,34 @@ describe('Jobs Page', () => {
   // Component presence
   it('should render the AvailableJobsList component', () => {
     render(
-      <Jobs onAddApplication={mockOnAddApplication} appliedJobIds={mockAppliedJobIds} />
+      <Jobs
+        onAddApplication={mockOnAddApplication}
+        appliedJobIds={mockAppliedJobIds}
+      />
     )
 
     expect(screen.getByText('AvailableJobsList Component')).toBeTruthy()
   })
 
+  it('should pass role to AvailableJobsList', () => {
+    render(
+      <Jobs
+        onAddApplication={mockOnAddApplication}
+        appliedJobIds={mockAppliedJobIds}
+        role='recruiter'
+      />
+    )
+
+    expect(screen.getByTestId('role-value').textContent).toBe('recruiter')
+  })
+
   // Props validation
   it('should pass appliedJobIds to AvailableJobsList', () => {
     render(
-      <Jobs onAddApplication={mockOnAddApplication} appliedJobIds={mockAppliedJobIds} />
+      <Jobs
+        onAddApplication={mockOnAddApplication}
+        appliedJobIds={mockAppliedJobIds}
+      />
     )
 
     const appliedJobsCount = screen.getByTestId('applied-jobs-count')
@@ -81,7 +110,10 @@ describe('Jobs Page', () => {
   // Callback wiring
   it('should call onAddApplication when handleApply is triggered', () => {
     render(
-      <Jobs onAddApplication={mockOnAddApplication} appliedJobIds={new Set()} />
+      <Jobs
+        onAddApplication={mockOnAddApplication}
+        appliedJobIds={new Set()}
+      />
     )
 
     const applyButton = screen.getByTestId('apply-button')
@@ -100,7 +132,10 @@ describe('Jobs Page', () => {
   // Layout validation
   it('should render main content container', () => {
     render(
-      <Jobs onAddApplication={mockOnAddApplication} appliedJobIds={mockAppliedJobIds} />
+      <Jobs
+        onAddApplication={mockOnAddApplication}
+        appliedJobIds={mockAppliedJobIds}
+      />
     )
 
     const main = screen.getByRole('main')
@@ -116,7 +151,10 @@ describe('Jobs Page', () => {
   // Styling validation
   it('should render with correct background styling', () => {
     const { container } = render(
-      <Jobs onAddApplication={mockOnAddApplication} appliedJobIds={mockAppliedJobIds} />
+      <Jobs
+        onAddApplication={mockOnAddApplication}
+        appliedJobIds={mockAppliedJobIds}
+      />
     )
 
     const mainDiv = container.querySelector('.min-h-screen.bg-background')
