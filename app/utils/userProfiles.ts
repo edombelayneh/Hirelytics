@@ -97,3 +97,18 @@ export async function saveRecruiterProfile(
     { merge: true }
   )
 }
+
+// -------------------
+// Default recruiter profile to use when creating a new one or resetting the form
+// -------------------
+export const defaultRecruiterProfile: RecruiterProfile = {
+  companyName: '',
+  companyWebsite: '',
+  companyLogo: '',
+  companyLocation: '',
+  companyDescription: '',
+  recruiterName: '',
+  recruiterTitle: '',
+  recruiterEmail: '',
+  recruiterPhone: '',
+}

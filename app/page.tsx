@@ -21,6 +21,7 @@ import { RolePage } from './components/RolePage'
 import { getOnboardingStatus, getUserRole, createUserDoc, type Role } from './utils/userRole'
 import { RecruiterProfilePage } from './profile/recruiterProfile'
 import {
+  defaultRecruiterProfile,
   getUserProfile,
   saveUserProfile,
   getRecruiterProfile,
@@ -46,11 +47,7 @@ function LandingPage() {
   const [recruiterProfileCompleted, setRecruiterProfileCompleted] = useState(false)
 
   // state of recruiter profile
-  const [recruiterProfile, setRecruiterProfile] = useState<RecruiterProfile>({
-    companyName: '',
-    companyWebsite: '',
-    recruiterTitle: '',
-  })
+  const [recruiterProfile, setRecruiterProfile] = useState<RecruiterProfile | null>(null)
 
   // ---------------------------
   // NAVIGATION + AUTH PROTECTION
@@ -123,14 +120,9 @@ function LandingPage() {
       setRole(null)
       setRoleLoaded(false)
       setProfile(defaultProfile)
+      setRecruiterProfile(null)
       setApplicantProfileCompleted(false)
       setRecruiterProfileCompleted(false)
-
-      setRecruiterProfile({
-        companyName: '',
-        companyWebsite: '',
-        recruiterTitle: '',
-      })
     }
   }, [isSignedIn, isLoaded])
 
@@ -218,7 +210,7 @@ function LandingPage() {
       // If recruiter, load recruiter profile
       if (role === 'recruiter') {
         const saved = await getRecruiterProfile(uid)
-        if (saved) setRecruiterProfile(saved)
+        setRecruiterProfile(saved ?? defaultRecruiterProfile)
       }
     }
 
@@ -463,7 +455,7 @@ function LandingPage() {
           />
         )}
 
-        {currentPage === 'profile' && role === 'recruiter' && (
+        {currentPage === 'profile' && role === 'recruiter' && recruiterProfile && (
           <RecruiterProfilePage
             recruiterProfile={recruiterProfile}
             onSave={handleSaveRecruiterProfile}

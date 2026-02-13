@@ -53,8 +53,8 @@ export async function createUserDoc(params: {
       clerkUserId: clerkUserId ?? null,
 
       // defaults
-      applicantProfileCompleted: role === 'applicant' ? false : null,
-      recruiterProfileCompleted: role === 'recruiter' ? false : null,
+      applicantProfileCompleted: role === 'applicant' ? false : false,
+      recruiterProfileCompleted: role === 'recruiter' ? false : false,
 
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
