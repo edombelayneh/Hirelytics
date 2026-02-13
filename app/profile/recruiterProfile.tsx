@@ -279,7 +279,7 @@ export const RecruiterProfilePage = memo(function RecruiterProfilePage({
               <Input
                 id='recruiterPhone'
                 type='tel'
-                placeholder='+1 (555) 987-6543'
+                placeholder='+1 (123) 456-7890'
                 value={formData.recruiterPhone || ''}
                 onChange={(e) => handleInputChange('recruiterPhone', e.target.value)}
                 className='pl-9'

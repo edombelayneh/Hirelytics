@@ -18,7 +18,7 @@ import { firebaseAuth } from './lib/firebaseClient'
 import { JobApplication } from './data/mockData'
 import { AvailableJob } from './data/availableJobs'
 import { RolePage } from './components/RolePage'
-import { getUserRole, createUserDoc, type Role } from './utils/userRole'
+import { getOnboardingStatus, getUserRole, createUserDoc, type Role } from './utils/userRole'
 import { RecruiterProfilePage } from './profile/recruiterProfile'
 import {
   getUserProfile,
@@ -41,6 +41,9 @@ function LandingPage() {
   const [firebaseReady, setFirebaseReady] = useState(false) // tells us when Firebase is signed in (after linkClerkToFirebase works)
   const [role, setRole] = useState<Role | null>(null) // stores the user role from Firestore
   const [roleLoaded, setRoleLoaded] = useState(false) // tells us when we finished checking Firestore for the role
+
+  const [applicantProfileCompleted, setApplicantProfileCompleted] = useState(false)
+  const [recruiterProfileCompleted, setRecruiterProfileCompleted] = useState(false)
 
   // state of recruiter profile
   const [recruiterProfile, setRecruiterProfile] = useState<RecruiterProfile>({
@@ -120,6 +123,9 @@ function LandingPage() {
       setRole(null)
       setRoleLoaded(false)
       setProfile(defaultProfile)
+      setApplicantProfileCompleted(false)
+      setRecruiterProfileCompleted(false)
+
       setRecruiterProfile({
         companyName: '',
         companyWebsite: '',
@@ -148,14 +154,19 @@ function LandingPage() {
       // If Firebase user is missing stop
       if (!uid) {
         setRole(null)
+        setApplicantProfileCompleted(false)
+        setRecruiterProfileCompleted(false)
         setRoleLoaded(true)
         return
       }
 
-      // Read role from Firestore
-      const foundRole = await getUserRole(uid)
+      // get role and onboarding status from firebase
+      const status = await getOnboardingStatus(uid)
+      const foundRole = status.role
 
-      setRole(foundRole)
+      setRole(status.role)
+      setApplicantProfileCompleted(status.applicantProfileCompleted)
+      setRecruiterProfileCompleted(status.recruiterProfileCompleted)
       setRoleLoaded(true)
 
       // If user has NO role yet, force them to the role picker
@@ -271,6 +282,18 @@ function LandingPage() {
         return
       }
 
+      // If onboarding is NOT complete, force them to /profile
+      if (isSignedIn && roleLoaded && role) {
+        const needsApplicantProfile = role === 'applicant' && !applicantProfileCompleted
+
+        const needsRecruiterProfile = role === 'recruiter' && !recruiterProfileCompleted
+
+        if ((needsApplicantProfile || needsRecruiterProfile) && next !== 'profile') {
+          window.location.hash = '/profile'
+          return
+        }
+      }
+
       // If role exists, block the wrong pages -- applicant vs recruiter pages
       // FIXME: here make sure we create more recruiter based pages later on
       if (isSignedIn && roleLoaded && role) {
@@ -303,7 +326,7 @@ function LandingPage() {
     handleHashChange()
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
-  }, [isSignedIn, isLoaded, roleLoaded, role])
+  }, [isSignedIn, isLoaded, roleLoaded, role, applicantProfileCompleted, recruiterProfileCompleted])
 
   // ----------------
   // update applicant profile handler
@@ -317,6 +340,7 @@ function LandingPage() {
 
     // Update local state so UI also updates
     setProfile(updatedProfile)
+    setApplicantProfileCompleted(true)
   }
 
   // ----------------
@@ -331,6 +355,7 @@ function LandingPage() {
 
     // Update local state so UI updates too
     setRecruiterProfile(updated)
+    setRecruiterProfileCompleted(true)
   }
 
   // ---------------------------
@@ -351,8 +376,12 @@ function LandingPage() {
     // Save role locally so UI updates right away
     setRole(picked)
 
-    // Send user to the correct page
-    window.location.hash = picked === 'applicant' ? '/applications' : '/addNewJob'
+    // Immediately mark profile as incomplete (locks UI)
+    setApplicantProfileCompleted(false)
+    setRecruiterProfileCompleted(false)
+
+    // Send them to profile page first
+    window.location.hash = '/profile'
   }
 
   // ---------------------------
@@ -390,9 +419,15 @@ function LandingPage() {
       <SignInButtonBridge />
       {/* Show navbar only after we know the user's role, and not on role screen */}
       {/* FIXME: Navbar currenly has pages dedicated only to applicants */}
-      {isLoaded && isSignedIn && roleLoaded && role && currentPage !== 'role' && (
-        <Navbar currentPage={currentPage} />
-      )}
+      {isLoaded &&
+        isSignedIn &&
+        roleLoaded &&
+        role &&
+        currentPage !== 'role' &&
+        !(
+          (role === 'applicant' && !applicantProfileCompleted) ||
+          (role === 'recruiter' && !recruiterProfileCompleted)
+        ) && <Navbar currentPage={currentPage} />}
 
       {/* Render active page  */}
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>

@@ -25,11 +25,17 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 export async function saveUserProfile(uid: string, profile: UserProfile): Promise<void> {
   const ref = doc(db, 'users', uid)
 
+  const isComplete =
+    Boolean(profile.firstName?.trim()) &&
+    Boolean(profile.lastName?.trim()) &&
+    Boolean(profile.email?.trim())
+
   // Merge so we do not overwrite the role or other fields
   await setDoc(
     ref,
     {
       profile,
+      applicantProfileCompleted: isComplete,
       updatedAt: serverTimestamp(),
     },
     { merge: true }
@@ -77,10 +83,15 @@ export async function saveRecruiterProfile(
 ): Promise<void> {
   const ref = doc(db, 'users', uid)
 
+  const isComplete =
+    Boolean(recruiterProfile.companyName?.trim()) &&
+    Boolean(recruiterProfile.recruiterEmail?.trim())
+
   await setDoc(
     ref,
     {
       recruiterProfile,
+      recruiterProfileCompleted: isComplete,
       updatedAt: serverTimestamp(),
     },
     { merge: true }
