@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { UserButton } from '@clerk/nextjs'
 import { Home, Briefcase, BarChart3, User } from 'lucide-react'
 
