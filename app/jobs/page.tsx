@@ -3,15 +3,18 @@
 import { useEffect, useState } from 'react'
 import { AvailableJobsList } from '../components/AvailableJobsList'
 import { AvailableJob } from '../data/availableJobs'
+import type { Role } from '../utils/userRole'
 import { useAuth } from '@clerk/nextjs'
 import { db } from '../lib/firebaseClient'
 import { collection, onSnapshot, doc, setDoc, serverTimestamp } from 'firebase/firestore'
 
 interface JobsPageProps {
   onAddApplication: (job: AvailableJob) => void
+  // appliedJobIds: Set<number>
+  role?: Role | null
 }
 
-function Jobs({ onAddApplication }: JobsPageProps) {
+function Jobs({ onAddApplication, role }: JobsPageProps) {
   const { userId } = useAuth()
 
   //THIS is what disables Apply Now
@@ -69,11 +72,13 @@ function Jobs({ onAddApplication }: JobsPageProps) {
 
   return (
     <div className='min-h-screen bg-background'>
+      {/* Main Content */}
       <main className='container mx-auto px-6 py-8 space-y-8'>
         <section>
           <AvailableJobsList
             onApply={handleApply}
             appliedJobIds={appliedJobIds}
+            role={role}
           />
         </section>
       </main>

@@ -120,16 +120,29 @@ describe('AvailableJobsList', () => {
   })
 
   // Add Job link points to correct page
-  it('renders Add Job link to correct page', () => {
+  it('renders Add Job link to correct page for recruiters', () => {
     render(
       <AvailableJobsList
         onApply={mockOnApply}
         appliedJobIds={new Set()}
+        role='recruiter'
       />
     )
 
     const addJob = screen.getByRole('link', { name: /Add Job/i })
     expect(addJob.getAttribute('href')).toBe('#/addNewJob')
+  })
+
+  it('does not render Add Job link for applicants', () => {
+    render(
+      <AvailableJobsList
+        onApply={mockOnApply}
+        appliedJobIds={new Set()}
+        role='applicant'
+      />
+    )
+
+    expect(screen.queryByRole('link', { name: /Add Job/i })).toBeNull()
   })
 
   // Renders all jobs initially

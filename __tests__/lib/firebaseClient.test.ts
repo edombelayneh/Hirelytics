@@ -133,7 +133,7 @@ describe('app/lib/firebaseClient', () => {
   })
 
   // --- Test: exported services are correct ---
-  it('exports firebaseAuth and firestore services', async () => {
+  it('exports firebaseAuth and db services', async () => {
     const mod = await import('@/app/lib/firebaseClient')
 
     expect(mod.firebaseAuth).toBe(mockAuth)

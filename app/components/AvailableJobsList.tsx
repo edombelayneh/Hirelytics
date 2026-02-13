@@ -6,15 +6,18 @@ import { Input } from './ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Search, Filter } from 'lucide-react'
 import { AvailableJob, availableJobs } from '../data/availableJobs'
+import type { Role } from '../utils/userRole'
 
 interface AvailableJobsListProps {
   onApply: (job: AvailableJob) => void
   appliedJobIds: Set<number>
+  role?: Role | null
 }
 
 export const AvailableJobsList = memo(function AvailableJobsList({
   onApply,
   appliedJobIds,
+  role,
 }: AvailableJobsListProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
@@ -47,13 +50,15 @@ export const AvailableJobsList = memo(function AvailableJobsList({
           </p>
         </div>
 
-        <a
-          href='#/addNewJob'
-          className='inline-flex items-center gap-2 rounded bg-black text-white px-4 py-2 text-sm font-medium'
-        >
-          <span className='text-lg'>+</span>
-          Add Job
-        </a>
+        {role === 'recruiter' && (
+          <a
+            href='#/addNewJob'
+            className='inline-flex items-center gap-2 rounded bg-black text-white px-4 py-2 text-sm font-medium'
+          >
+            <span className='text-lg'>+</span>
+            Add Job
+          </a>
+        )}
       </div>
 
       {/* Filters */}

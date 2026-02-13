@@ -37,19 +37,23 @@ vi.mock('firebase/firestore', () => ({
 
 import Jobs from '../../app/jobs/page'
 import { AvailableJob } from '../../app/data/availableJobs'
+import type { Role } from '../../app/utils/userRole'
 
 // Mock AvailableJobsList to isolate Jobs page testing
 vi.mock('../../app/components/AvailableJobsList', () => ({
   AvailableJobsList: ({
     onApply,
     appliedJobIds,
+    role,
   }: {
     onApply: (job: AvailableJob) => void
     appliedJobIds: Set<number>
+    role?: Role | null
   }) => (
     <div data-testid='available-jobs-list'>
       <div>AvailableJobsList Component</div>
       <div data-testid='applied-jobs-count'>{appliedJobIds.size}</div>
+      <div data-testid='role-value'>{role ?? 'none'}</div>
       {/* Button to trigger apply callback */}
       <button
         onClick={() =>
@@ -101,6 +105,17 @@ describe('Jobs Page', () => {
     render(<Jobs onAddApplication={mockOnAddApplication} />)
 
     expect(screen.getByText('AvailableJobsList Component')).toBeTruthy()
+  })
+
+  it('should pass role to AvailableJobsList', () => {
+    render(
+      <Jobs
+        onAddApplication={mockOnAddApplication}
+        role='recruiter'
+      />
+    )
+
+    expect(screen.getByTestId('role-value').textContent).toBe('recruiter')
   })
 
   // Props validation
