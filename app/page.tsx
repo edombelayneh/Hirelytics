@@ -6,6 +6,7 @@ import HomePage from './home/page'
 import AvailableJobsPage from './jobs/page'
 import MyApplicationsPage from './applications/page'
 import AddNewJobPage from './addNewJob/page'
+import AddExternalJobPage from './addExternalJob/page'
 import type { UserProfile } from './data/profileData'
 import { defaultProfile } from './data/profileData'
 import { ProfilePage } from './profile/page'
@@ -28,7 +29,7 @@ import {
   type RecruiterProfile,
 } from './utils/userProfiles'
 
-type Page = 'home' | 'available' | 'applications' | 'profile' | 'addNewJob' | 'role'
+type Page = 'home' | 'available' | 'applications' | 'profile' | 'addNewJob' | 'addExternalJob' | 'role'
 
 function LandingPage() {
   const { isSignedIn, isLoaded, userId } = useAuth()
@@ -67,15 +68,18 @@ function LandingPage() {
             ? 'available'
             : hash === '/addNewJob'
               ? 'addNewJob'
-              : hash === '/profile'
-                ? 'profile'
-                : 'home'
+              : hash === '/addExternalJob' 
+                ? 'addExternalJob'
+                : hash === '/profile'
+                  ? 'profile'
+                  : 'home'
 
       const isProtected =
         next === 'available' ||
         next === 'applications' ||
         next === 'profile' ||
-        next === 'addNewJob'
+        next === 'addNewJob' ||
+        next === 'addExternalJob'
 
       if (isProtected && !isSignedIn) {
         setCurrentPage('home')
@@ -234,11 +238,13 @@ function LandingPage() {
             ? 'available'
             : hash === '/addNewJob'
               ? 'addNewJob'
-              : hash === '/profile'
-                ? 'profile'
-                : hash === '/role'
-                  ? 'role'
-                  : 'home'
+              : hash === '/addExternalJob'
+                ? 'addExternalJob'
+                : hash === '/profile'
+                  ? 'profile'
+                  : hash === '/role'
+                    ? 'role'
+                      : 'home'
 
       // Pages that require sign-in
       const isProtected =
@@ -246,7 +252,9 @@ function LandingPage() {
         next === 'applications' ||
         next === 'profile' ||
         next === 'addNewJob' ||
+        next === 'addExternalJob'||
         next === 'role'
+        
 
       // If signed out, block protected pages
       if (isProtected && !isSignedIn) {
@@ -276,7 +284,7 @@ function LandingPage() {
       // If role exists, block the wrong pages -- applicant vs recruiter pages
       // FIXME: here make sure we create more recruiter based pages later on
       if (isSignedIn && roleLoaded && role) {
-        const applicantOnly = next === 'available' || next === 'applications'
+        const applicantOnly = next === 'available' || next === 'applications' || next === 'addExternalJob'
         const recruiterOnly = next === 'addNewJob'
 
         if (applicantOnly && role !== 'applicant') {
@@ -439,6 +447,7 @@ function LandingPage() {
         )}
 
         {currentPage === 'addNewJob' && <AddNewJobPage />}
+        {currentPage === 'addExternalJob' && <AddExternalJobPage />}
       </main>
     </div>
   )
