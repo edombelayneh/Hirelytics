@@ -4,10 +4,11 @@
 import { useEffect, useMemo, useState } from 'react'
 
 type VisaRequired = 'yes' | 'no' | ''
-type JobType = 'onsite' | 'remote' | 'hybrid' | ''
+type WorkArrangement = 'onsite' | 'remote' | 'hybrid' | ''
 type EmploymentType = 'full-time' | 'part-time' | 'contract' | 'internship' | ''
 type ExperienceLevel = 'entry' | 'mid' | 'senior' | 'lead' | ''
 type JobSource = 'LinkedIn' | 'Indeed' | 'Handshake' | 'Glassdoor' | 'Google Jobs' | 'Other' | ''
+type PaymentType = 'hourly' | 'salary' | ''
 
 function safeToday() {
   const d = new Date()
@@ -29,7 +30,7 @@ function guessCompanyFromUrl(url: string) {
 }
 
 
-export default function addExternalJobPage() {
+export default function AddExternalJobPage() {
   // Step control
   const [step, setStep] = useState<1 | 2>(1)
 
@@ -38,24 +39,23 @@ export default function addExternalJobPage() {
   const [urlError, setUrlError] = useState<string | null>(null)
 
   // Step 2: autofill + editable fields (modeled after the AddNewJob page)
-  const [jobName, setJobName] = useState('')
-  const [companyName, setCompanyName] = useState('')
-  const [recruiterEmail, setRecruiterEmail] = useState('')
-  const [description, setDescription] = useState('')
+  const [JobName, setJobName] = useState('')
+  const [CompanyName, setCompanyName] = useState('')
+  const [CompanyContact, setCompanyContact] = useState('')
+  const [Description, setDescription] = useState('')
   const [qualifications, setQualifications] = useState('')
   const [preferredSkills, setPreferredSkills] = useState('')
   const [country, setCountry] = useState('')
   const [stateValue, setStateValue] = useState('')
   const [city, setCity] = useState('')
-  const [hourlyRate, setHourlyRate] = useState('')
+  const [PaymentAmount, setPaymentAmount] = useState('')
+  const [PaymentType, setPaymentType] = useState('')
   const [visaRequired, setVisaRequired] = useState<VisaRequired>('')
-  const [jobType, setJobType] = useState<JobType>('')
+  const [WorkArrangement, setWorkArrangement] = useState<WorkArrangement>('')
   const [employmentType, setEmploymentType] = useState<EmploymentType>('')
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>('')
   const [applicationDate, setApplicationDate] = useState(safeToday())
   const [jobSource, setJobSource] = useState<JobSource>('Other')
-
-  // UI states
   const [message, setMessage] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
@@ -70,7 +70,14 @@ export default function addExternalJobPage() {
     }
   }, [jobUrl])
 
-  // When step becomes 2, do lightweight “autofill” (no scraper for now)
+  const handleCancel = () => {
+    setMessage(null)
+    setSaving(false)
+    setRedirecting(false)
+    window.location.hash = '/applications'
+  }
+
+  // When step becomes 2, autofill without scraper for now
   useEffect(() => {
     if (step !== 2) return
     const url = jobUrl.trim()
@@ -111,31 +118,31 @@ export default function addExternalJobPage() {
     e.preventDefault()
     setMessage(null)
 
-    if (!jobName.trim() || !companyName.trim() || !description.trim()) {
+    if (!JobName.trim() || !CompanyName.trim() || !Description.trim()) {
       setMessage('Please fill in Job Name, Company Name, and Description.')
       return
     }
 
     setSaving(true)
 
-    // Build a “tracked application” payload
+    try {
     const trackedJob = {
       id: `tracked-${Date.now()}`,
       jobLink: jobUrl.trim(),
       jobSource,
       applicationDate,
-      jobName: jobName.trim(),
-      companyName: companyName.trim(),
-      recruiterEmail: recruiterEmail.trim(),
-      description: description.trim(),
+      jobName: JobName.trim(),
+      companyName: CompanyName.trim(),
+      CompanyContact: CompanyContact.trim(),
+      description: Description.trim(),
       qualifications: qualifications.trim(),
       preferredSkills: preferredSkills.trim(),
       country: country.trim(),
       state: stateValue.trim(),
       city: city.trim(),
-      hourlyRate: hourlyRate.trim(),
+      PaymentAmount: PaymentAmount.trim(),
       visaRequired,
-      jobType,
+      WorkArrangement,
       employmentType,
       experienceLevel,
       status: 'Applied',
@@ -144,17 +151,24 @@ export default function addExternalJobPage() {
       createdAt: new Date().toISOString(),
     }
 
-    // For now: just log. Later you can save to Firestore here.
+    // For now: just log
     console.log('Tracked job saved:', trackedJob)
 
     setMessage('Saved. Redirecting to My Applications...')
     setRedirecting(true)
 
-    // simulate save delay
+    // save delay
     setTimeout(() => {
       window.location.hash = '/applications'
     }, 1500)
+  } catch (err) {
+    console.error('Save failed: ', err)
+    setMessage('Save failed. Please try again.')
+    setRedirecting(false)
+  } finally {
+    setSaving(false)
   }
+}
 
   return (
     <main className='min-h-screen bg-gray-50'>
@@ -192,6 +206,14 @@ export default function addExternalJobPage() {
 
             <div className='flex justify-end gap-2'>
               <button
+                type='button'
+                className='rounded border px-4 py-2'
+                onClick={handleCancel}
+              >
+                Cancel
+              </button>
+
+              <button
                 className='rounded bg-black text-white px-4 py-2 disabled:opacity-50'
                 onClick={handleNext}
                 disabled={!canGoNext}
@@ -223,6 +245,15 @@ export default function addExternalJobPage() {
                   Back
                 </button>
 
+                 <button
+                  type='button'
+                  className='rounded border px-4 py-2'
+                  onClick={handleCancel}
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+
                 <button
                   type='submit'
                   disabled={saving}
@@ -230,6 +261,7 @@ export default function addExternalJobPage() {
                 >
                   {saving ? 'Saving...' : 'Save'}
                 </button>
+
               </div>
             </div>
 
@@ -242,7 +274,7 @@ export default function addExternalJobPage() {
               <label className='block text-sm mb-1'>Job Name *</label>
               <input
                 type='text'
-                value={jobName}
+                value={JobName}
                 onChange={(e) => setJobName(e.target.value)}
                 placeholder='Software Engineer'
                 className='w-full border rounded p-2'
@@ -253,9 +285,20 @@ export default function addExternalJobPage() {
               <label className='block text-sm mb-1'>Company Name *</label>
               <input
                 type='text'
-                value={companyName}
+                value={CompanyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 placeholder='Company Name'
+                className='w-full border rounded p-2'
+              />
+            </div>
+
+            <div>
+              <label className='block text-sm mb-1'>Description *</label>
+              <textarea
+                value={Description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder='Main role summary and responsibilities'
+                rows={4}
                 className='w-full border rounded p-2'
               />
             </div>
@@ -291,33 +334,35 @@ export default function addExternalJobPage() {
             </div>
 
             <div>
-              <label className='block text-sm mb-1'>Recruiter Email</label>
+              <label className='block text-sm mb-1'>Company Contact</label>
               <input
                 type='email'
-                value={recruiterEmail}
-                onChange={(e) => setRecruiterEmail(e.target.value)}
+                value={CompanyContact}
+                onChange={(e) => setCompanyContact(e.target.value)}
                 placeholder='recruiter@company.com'
                 className='w-full border rounded p-2'
               />
             </div>
 
             <div>
-              <label className='block text-sm mb-1'>Description *</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder='Main role summary and responsibilities'
-                rows={4}
+              <label className='block text-sm mb-1'>Payment Type</label>
+              <select
+                value={PaymentType}
+                onChange={(e) => setPaymentType(e.target.value as PaymentType)}
                 className='w-full border rounded p-2'
-              />
+              >
+                  <option value=''>Select payment type</option>
+                  <option value='hourly'>Hourly</option>
+                  <option value='salary'>Salary</option>
+              </select>
             </div>
 
             <div>
-              <label className='block text-sm mb-1'>Pay per hour (USD)</label>
+              <label className='block text-sm mb-1'>Payment Amount(USD)</label>
               <input
                 type='number'
-                value={hourlyRate}
-                onChange={(e) => setHourlyRate(e.target.value)}
+                value={PaymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
                 placeholder='e.g. 25.00'
                 step='0.01'
                 min='0'
@@ -326,10 +371,10 @@ export default function addExternalJobPage() {
             </div>
 
             <div>
-              <label className='block text-sm mb-1'>Job Type</label>
+              <label className='block text-sm mb-1'>Work Arrangement</label>
               <select
-                value={jobType}
-                onChange={(e) => setJobType(e.target.value as JobType)}
+                value={WorkArrangement}
+                onChange={(e) => setWorkArrangement(e.target.value as WorkArrangement)}
                 className='w-full border rounded p-2'
               >
                 <option value=''>Select job type</option>
