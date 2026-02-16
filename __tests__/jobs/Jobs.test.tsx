@@ -115,27 +115,19 @@ describe('Jobs Page', () => {
     expect(appliedJobsCount.textContent).toBe('0')
   })
 
-  // Firestore populated snapshot test
   it('load applied jobs from Firestore and pass them to AvailableJobsList', () => {
-    ;(onSnapshot as unknown as ReturnType<typeof vi.fn>).mockImplementationOnce(
-      (_query, callback) => {
-        const cb = callback as (snapshot: {
-          docs: Array<{ id: string; data: () => object }>
-        }) => void
+    vi.mocked(onSnapshot).mockImplementationOnce((queryArg: unknown, callback: unknown) => {
+      const cb = callback as (snapshot: { docs: Array<{ id: string; data: () => object }> }) => void
+      cb({
+        docs: [
+          { id: '1', data: () => ({}) },
+          { id: '2', data: () => ({}) },
+          { id: '3', data: () => ({}) },
+        ],
+      })
 
-        cb({
-          docs: [
-            { id: '1', data: () => ({}) },
-            { id: '2', data: () => ({}) },
-            { id: '3', data: () => ({}) },
-          ],
-        })
-        // -------------------------------------------
-
-        return vi.fn()
-      }
-    )
-
+      return vi.fn()
+    })
     render(<Jobs onAddApplication={mockOnAddApplication} />)
 
     const appliedJobsCount = screen.getByTestId('applied-jobs-count')
