@@ -432,6 +432,7 @@ function LandingPage() {
           <AvailableJobsPage
             onAddApplication={handleAddApplication}
             appliedJobIds={appliedJobIds}
+            role={role}
           />
         )}
         {currentPage === 'applications' && (
