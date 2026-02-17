@@ -52,19 +52,10 @@ describe('AddNewJobPage Firebase Logic', () => {
     cleanup()
   })
 
-  const getJobSource = (role: 'applicant' | 'recruiter') =>
-    role === 'recruiter' ? 'internal' : 'external'
-
-  it('should set jobSource to internal for recruiters', () => {
-    const jobSource = getJobSource('recruiter')
+  it('should always set jobSource to internal since this page is for internal jobs only', () => {
+    const jobSource = 'internal'
 
     expect(jobSource).toBe('internal')
-  })
-
-  it('should set jobSource to external for applicants', () => {
-    const jobSource = getJobSource('applicant')
-
-    expect(jobSource).toBe('external')
   })
 
   it('should include all required job data fields when saving', () => {
