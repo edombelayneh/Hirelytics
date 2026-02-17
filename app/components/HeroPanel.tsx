@@ -24,6 +24,13 @@ import { CHART_COLORS, chartStyles } from '../utils/chartConfig'
 interface HeroPanelProps {
   applications: JobApplication[]
 }
+const STATUS_COLORS: Record<string, string> = {
+  Applied: '#FEF08A', // yellow
+  Interview: '#3b82f3', //blue
+  Offer: '#1ed361', //green
+  Rejected: '#e32828', //red
+  Withdrawn: '#A855F7', //purple
+}
 
 const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
   const stats = getDashboardStatsFromList(applications)
@@ -127,7 +134,7 @@ const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
                 {statusData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={CHART_COLORS[index % CHART_COLORS.length]}
+                    fill={STATUS_COLORS[entry.status] || '#CBD5E1'} //gray for fallback
                   />
                 ))}
               </Pie>
@@ -142,7 +149,7 @@ const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
               >
                 <div
                   className='w-3 h-3 rounded-full'
-                  style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                  style={{ backgroundColor: STATUS_COLORS[entry.status] || '#CBD5E1' }}
                 />
                 <span className='text-xs text-muted-foreground'>
                   {entry.status} ({entry.count})
