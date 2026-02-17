@@ -49,7 +49,7 @@ export default function AddExternalJobPage() {
   const [stateValue, setStateValue] = useState('')
   const [city, setCity] = useState('')
   const [PaymentAmount, setPaymentAmount] = useState('')
-  const [PaymentType, setPaymentType] = useState('')
+  const [PaymentType, setPaymentType] = useState<PaymentType>('')
   const [visaRequired, setVisaRequired] = useState<VisaRequired>('')
   const [WorkArrangement, setWorkArrangement] = useState<WorkArrangement>('')
   const [employmentType, setEmploymentType] = useState<EmploymentType>('')
