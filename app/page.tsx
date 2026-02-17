@@ -281,6 +281,7 @@ function LandingPage() {
         const needsRecruiterProfile = role === 'recruiter' && !recruiterProfileCompleted
 
         if ((needsApplicantProfile || needsRecruiterProfile) && next !== 'profile') {
+          toast.info('Please complete your profile before continuing.')
           window.location.hash = '/profile'
           return
         }
