@@ -41,8 +41,20 @@ export const ApplicationsTable = memo(function ApplicationsTable({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Job Applications</CardTitle>
-        <CardDescription>Track and manage all your job applications in one place</CardDescription>
+        <div className='flex items-center justify-between'>
+          <div>
+            <CardTitle>Job Applications</CardTitle>
+            <CardDescription>Track and manage all your job applications in one place</CardDescription>
+          </div>
+          <button
+            className='rounded bg-black text-white px-4 py-1'
+            onClick={() => {
+              window.location.hash = '/addExternalJob'
+            }}
+          >
+            Add External Job
+          </button>
+          </div>
 
         {/* Filters */}
         <div className='flex flex-col sm:flex-row gap-4'>

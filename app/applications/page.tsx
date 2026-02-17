@@ -96,26 +96,7 @@ const MyApplicationsPage = memo(function MyApplicationsPage({
 
   return (
     <div className='space-y-8'>
-      {isApplicantView && (
-        <div className='flex items-center justify-between'>
-          <div>
-            <h2 className='text-xl font-semibold'>My Applications</h2>
-            <p className='text-sm text-muted-foreground'>
-              Add a job you applied to by pasting the job link.
-            </p>
-          </div>
-
-          <button
-            className='rounded bg-black text-white px-4 py-2'
-            onClick={() => {
-              window.location.hash = '/addExternalJob'
-            }}
-          >
-            Add External Job
-          </button>
-        </div>
-      )}
-
+      
       <section>
         <h2 className='text-xl font-semibold mb-4'>Dashboard Overview</h2>
         <HeroPanel applications={liveApplications} />

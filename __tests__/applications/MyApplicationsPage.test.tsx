@@ -305,8 +305,9 @@ describe('MyApplicationsPage', () => {
     )
 
     const headings = screen.getAllByRole('heading', { level: 2 })
-    expect(headings).toHaveLength(2)
-    expect(headings[0].textContent).toBe('Dashboard Overview')
-    expect(headings[1].textContent).toBe('Key Metrics')
+    expect(headings).toHaveLength(3)
+    expect(headings[0].textContent).toBe('My Applications')
+    expect(headings[1].textContent).toBe('Dashboard Overview')
+    expect(headings[2].textContent).toBe('Key Metrics')
   })
 })

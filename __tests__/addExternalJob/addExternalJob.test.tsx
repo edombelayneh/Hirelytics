@@ -86,7 +86,7 @@ describe('AddExternalJobPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Save$/i }))
 
     
-    expect(screen.getByRole('button', { name: /Saving\.\.\./i })).toBeTruthy()
+    expect(screen.getByText(/Saving application\.\.\./i)).toBeTruthy()
 
     // Message + overlay text
     expect(screen.getByText(/Saved\. Redirecting to My Applications\.\.\./i)).toBeTruthy()

@@ -7,7 +7,7 @@ type VisaRequired = 'yes' | 'no' | ''
 type WorkArrangement = 'onsite' | 'remote' | 'hybrid' | ''
 type EmploymentType = 'full-time' | 'part-time' | 'contract' | 'internship' | ''
 type ExperienceLevel = 'entry' | 'mid' | 'senior' | 'lead' | ''
-type JobSource = 'LinkedIn' | 'Indeed' | 'Handshake' | 'Glassdoor' | 'Google Jobs' | 'Other' | ''
+type JobSource = 'LinkedIn' | 'Indeed' | 'Handshake' | 'Glassdoor' | 'Google Jobs' | 'Company Career Page' | 'Other' | ''
 type PaymentType = 'hourly' | 'salary' | ''
 
 function safeToday() {
@@ -35,40 +35,40 @@ export default function AddExternalJobPage() {
   const [step, setStep] = useState<1 | 2>(1)
 
   // Step 1: URL
-  const [jobUrl, setJobUrl] = useState('')
-  const [urlError, setUrlError] = useState<string | null>(null)
+  const [JobUrl, setJobUrl] = useState('')
+  const [UrlError, setUrlError] = useState<string | null>(null)
 
   // Step 2: autofill + editable fields (modeled after the AddNewJob page)
   const [JobName, setJobName] = useState('')
   const [CompanyName, setCompanyName] = useState('')
   const [CompanyContact, setCompanyContact] = useState('')
   const [Description, setDescription] = useState('')
-  const [qualifications, setQualifications] = useState('')
-  const [preferredSkills, setPreferredSkills] = useState('')
-  const [country, setCountry] = useState('')
-  const [stateValue, setStateValue] = useState('')
-  const [city, setCity] = useState('')
+  const [Qualifications, setQualifications] = useState('')
+  const [PreferredSkills, setPreferredSkills] = useState('')
+  const [Country, setCountry] = useState('')
+  const [StateValue, setStateValue] = useState('')
+  const [City, setCity] = useState('')
   const [PaymentAmount, setPaymentAmount] = useState('')
   const [PaymentType, setPaymentType] = useState<PaymentType>('')
-  const [visaRequired, setVisaRequired] = useState<VisaRequired>('')
+  const [VisaRequired, setVisaRequired] = useState<VisaRequired>('')
   const [WorkArrangement, setWorkArrangement] = useState<WorkArrangement>('')
-  const [employmentType, setEmploymentType] = useState<EmploymentType>('')
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>('')
-  const [applicationDate, setApplicationDate] = useState(safeToday())
-  const [jobSource, setJobSource] = useState<JobSource>('Other')
-  const [message, setMessage] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [redirecting, setRedirecting] = useState(false)
+  const [EmploymentType, setEmploymentType] = useState<EmploymentType>('')
+  const [ExperienceLevel, setExperienceLevel] = useState<ExperienceLevel>('')
+  const [ApplicationDate, setApplicationDate] = useState(safeToday())
+  const [JobSource, setJobSource] = useState<JobSource>('Other')
+  const [Message, setMessage] = useState<string | null>(null)
+  const [Saving, setSaving] = useState(false)
+  const [Redirecting, setRedirecting] = useState(false)
 
   const canGoNext = useMemo(() => {
-    if (!jobUrl.trim()) return false
+    if (!JobUrl.trim()) return false
     try {
-      new URL(jobUrl.trim())
+      new URL(JobUrl.trim())
       return true
     } catch {
       return false
     }
-  }, [jobUrl])
+  }, [JobUrl])
 
   const handleCancel = () => {
     setMessage(null)
@@ -80,20 +80,20 @@ export default function AddExternalJobPage() {
   // When step becomes 2, autofill without scraper for now
   useEffect(() => {
     if (step !== 2) return
-    const url = jobUrl.trim()
+    const url = JobUrl.trim()
 
     // Autofill placeholders based on URL
     setCompanyName((prev) => prev || guessCompanyFromUrl(url))
 
     // If user hasn’t typed a title yet, set a placeholder title
     setJobName((prev) => prev || 'Unknown Position')
-  }, [step, jobUrl])
+  }, [step, JobUrl])
 
   const handleNext = () => {
     setUrlError(null)
     setMessage(null)
 
-    const url = jobUrl.trim()
+    const url = JobUrl.trim()
     if (!url) {
       setUrlError('Please paste a job link.')
       return
@@ -128,23 +128,23 @@ export default function AddExternalJobPage() {
     try {
     const trackedJob = {
       id: `tracked-${Date.now()}`,
-      jobLink: jobUrl.trim(),
-      jobSource,
-      applicationDate,
-      jobName: JobName.trim(),
-      companyName: CompanyName.trim(),
+      jobLink: JobUrl.trim(),
+      JobSource,
+      ApplicationDate,
+      JobName: JobName.trim(),
+      CompanyName: CompanyName.trim(),
       CompanyContact: CompanyContact.trim(),
-      description: Description.trim(),
-      qualifications: qualifications.trim(),
-      preferredSkills: preferredSkills.trim(),
-      country: country.trim(),
-      state: stateValue.trim(),
-      city: city.trim(),
+      DOMExceptionescription: Description.trim(),
+      Qualifications: Qualifications.trim(),
+      PreferredSkills: PreferredSkills.trim(),
+      Country: Country.trim(),
+      State: StateValue.trim(),
+      City: City.trim(),
       PaymentAmount: PaymentAmount.trim(),
-      visaRequired,
+      VisaRequired,
       WorkArrangement,
-      employmentType,
-      experienceLevel,
+      EmploymentType,
+      ExperienceLevel,
       status: 'Applied',
       outcome: 'Pending',
       notes: '',
@@ -172,7 +172,7 @@ export default function AddExternalJobPage() {
 
   return (
     <main className='min-h-screen bg-gray-50'>
-      {redirecting && (
+      {Redirecting && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
           <div className='bg-white rounded-lg px-6 py-4 shadow-lg text-center'>
             <p className='font-medium mb-2'>Saving application...</p>
@@ -187,7 +187,7 @@ export default function AddExternalJobPage() {
           Step {step} of 2. Paste the job link first, then confirm or edit the details.
         </p>
 
-        {message && <div className='rounded border bg-white p-3 text-sm mb-4'>{message}</div>}
+        {Message && <div className='rounded border bg-white p-3 text-sm mb-4'>{Message}</div>}
 
         {/* STEP 1: URL */}
         {step === 1 && (
@@ -196,12 +196,12 @@ export default function AddExternalJobPage() {
               <label className='block text-sm mb-1'>Job Link *</label>
               <input
                 type='url'
-                value={jobUrl}
+                value={JobUrl}
                 onChange={(e) => setJobUrl(e.target.value)}
                 placeholder='https://www.linkedin.com/jobs/view/...'
                 className='w-full border rounded p-2'
               />
-              {urlError && <p className='text-sm text-red-600 mt-2'>{urlError}</p>}
+              {UrlError && <p className='text-sm text-red-600 mt-2'>{UrlError}</p>}
             </div>
 
             <div className='flex justify-end gap-2'>
@@ -249,17 +249,17 @@ export default function AddExternalJobPage() {
                   type='button'
                   className='rounded border px-4 py-2'
                   onClick={handleCancel}
-                  disabled={saving}
+                  disabled={Saving}
                 >
                   Cancel
                 </button>
 
                 <button
                   type='submit'
-                  disabled={saving}
+                  disabled={Saving}
                   className='rounded bg-black text-white px-4 py-2 disabled:opacity-50'
                 >
-                  {saving ? 'Saving...' : 'Save'}
+                  {Saving ? 'Saving...' : 'Save'}
                 </button>
 
               </div>
@@ -267,7 +267,7 @@ export default function AddExternalJobPage() {
 
             <div className='rounded border p-3 text-sm bg-gray-50'>
               <p className='font-medium'>Job Link</p>
-              <p className='break-all text-gray-700'>{jobUrl.trim()}</p>
+              <p className='break-all text-gray-700'>{JobUrl.trim()}</p>
             </div>
 
             <div>
@@ -307,7 +307,7 @@ export default function AddExternalJobPage() {
               <div>
                 <label className='block text-sm mb-1'>Job Source</label>
                 <select
-                  value={jobSource}
+                  value={JobSource}
                   onChange={(e) => setJobSource(e.target.value as JobSource)}
                   className='w-full border rounded p-2'
                   >
@@ -317,6 +317,7 @@ export default function AddExternalJobPage() {
                     <option value='Handshake'>Handshake</option>
                     <option value='Glassdoor'>Glassdoor</option>
                     <option value='Google Jobs'>Google Jobs</option>
+                    <option value='Company Career Page'>Company Career Page</option>
                     <option value='Other'>Other</option>
                 </select>
               </div>
@@ -326,7 +327,7 @@ export default function AddExternalJobPage() {
                 <label className='block text-sm mb-1'>Application Date</label>
                 <input
                   type='date'
-                  value={applicationDate}
+                  value={ApplicationDate}
                   onChange={(e) => setApplicationDate(e.target.value)}
                   className='w-full border rounded p-2'
                 />
@@ -358,7 +359,7 @@ export default function AddExternalJobPage() {
             </div>
 
             <div>
-              <label className='block text-sm mb-1'>Payment Amount(USD)</label>
+              <label className='block text-sm mb-1'>Payment Amount (USD)</label>
               <input
                 type='number'
                 value={PaymentAmount}
@@ -387,7 +388,7 @@ export default function AddExternalJobPage() {
             <div>
               <label className='block text-sm mb-1'>Employment Type</label>
               <select
-                value={employmentType}
+                value={EmploymentType}
                 onChange={(e) => setEmploymentType(e.target.value as EmploymentType)}
                 className='w-full border rounded p-2'
               >
@@ -402,7 +403,7 @@ export default function AddExternalJobPage() {
             <div>
               <label className='block text-sm mb-1'>Experience Level</label>
               <select
-                value={experienceLevel}
+                value={ExperienceLevel}
                 onChange={(e) => setExperienceLevel(e.target.value as ExperienceLevel)}
                 className='w-full border rounded p-2'
               >
@@ -417,7 +418,7 @@ export default function AddExternalJobPage() {
             <div>
               <label className='block text-sm mb-1'>Qualifications</label>
               <textarea
-                value={qualifications}
+                value={Qualifications}
                 onChange={(e) => setQualifications(e.target.value)}
                 placeholder='Required skills, experience, or education'
                 rows={3}
@@ -428,7 +429,7 @@ export default function AddExternalJobPage() {
             <div>
               <label className='block text-sm mb-1'>Preferred Skills</label>
               <textarea
-                value={preferredSkills}
+                value={PreferredSkills}
                 onChange={(e) => setPreferredSkills(e.target.value)}
                 placeholder='Preferred but not required skills'
                 rows={3}
@@ -441,7 +442,7 @@ export default function AddExternalJobPage() {
                 <label className='block text-sm mb-1'>Country</label>
                 <input
                   type='text'
-                  value={country}
+                  value={Country}
                   onChange={(e) => setCountry(e.target.value)}
                   placeholder='United States'
                   className='w-full border rounded p-2'
@@ -452,7 +453,7 @@ export default function AddExternalJobPage() {
                 <label className='block text-sm mb-1'>State</label>
                 <input
                   type='text'
-                  value={stateValue}
+                  value={StateValue}
                   onChange={(e) => setStateValue(e.target.value)}
                   placeholder='Michigan'
                   className='w-full border rounded p-2'
@@ -463,7 +464,7 @@ export default function AddExternalJobPage() {
                 <label className='block text-sm mb-1'>City</label>
                 <input
                   type='text'
-                  value={city}
+                  value={City}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder='Mount Pleasant'
                   className='w-full border rounded p-2'
@@ -474,12 +475,12 @@ export default function AddExternalJobPage() {
             <div>
               <label className='block text-sm mb-1'>Visa Sponsorship Available?</label>
               <select
-                value={visaRequired}
+                value={VisaRequired}
                 onChange={(e) => setVisaRequired(e.target.value as VisaRequired)}
                 className='w-full border rounded p-2'
               >
                 <option value=''>Select an option</option>
-                <option value='yes'>Yes, we can sponsor visas</option>
+                <option value='yes'>Yes, they can sponsor visas</option>
                 <option value='no'>No, visa sponsorship is not available</option>
               </select>
             </div>
