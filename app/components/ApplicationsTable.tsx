@@ -12,6 +12,14 @@ import { JobApplication } from '../data/mockData'
 import { formatDate } from '../utils/dateFormatter'
 import { getStatusColor, getOutcomeColor } from '../utils/badgeColors'
 
+const STATUS_STYLES: Record<string, string> ={
+  Applied: '!bg-yellow-200',
+  Interview: '!bg-blue-200',
+  Offer: '!bg-green-200',
+  Rejected: '!bg-red-200',
+  Withdrawn: '!bg-purple-200',
+}
+
 interface ApplicationsTableProps {
   applications: JobApplication[]
   onStatusChange?: (id: string, status: JobApplication['status']) => void
@@ -41,10 +49,20 @@ export const ApplicationsTable = memo(function ApplicationsTable({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Job Applications</CardTitle>
-        <CardDescription>Track and manage all your job applications in one place</CardDescription>
-
-        {/* Filters */}
+        <div className='flex items-center justify-between'>
+          <div>
+            <CardTitle>Job Applications</CardTitle>
+            <CardDescription>Track and manage all your job applications in one place</CardDescription>
+          </div>
+          <button
+            className='rounded bg-black text-white px-4 py-1'
+            onClick={() => {
+              window.location.hash = '/addExternalJob'
+            }}
+          >
+            Add External Job
+          </button>
+        </div>
         <div className='flex flex-col sm:flex-row gap-4'>
           <div className='relative flex-1'>
             <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4' />
@@ -113,15 +131,16 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                         onStatusChange?.(app.id, status as JobApplication['status'])
                       }
                     >
-                      <SelectTrigger className='w-[120px]'>
+                      <SelectTrigger className={`w-[120px] ${STATUS_STYLES[app.status] ?? ''}`}
+                      >
                         <SelectValue placeholder='Status' />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value='Applied'>Applied</SelectItem>
-                        <SelectItem value='Interview'>Interview</SelectItem>
-                        <SelectItem value='Offer'>Offer</SelectItem>
-                        <SelectItem value='Rejected'>Rejected</SelectItem>
-                        <SelectItem value='Withdrawn'>Withdrawn</SelectItem>
+                        <SelectItem value='Applied' className={STATUS_STYLES.Applied}>Applied</SelectItem>
+                        <SelectItem value='Interview' className={STATUS_STYLES.Interview}>Interview</SelectItem>
+                        <SelectItem value='Offer' className={STATUS_STYLES.Offer}>Offer</SelectItem>
+                        <SelectItem value='Rejected' className={STATUS_STYLES.Rejected}>Rejected</SelectItem>
+                        <SelectItem value='Withdrawn' className={STATUS_STYLES.Withdrawn}>Withdrawn</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
