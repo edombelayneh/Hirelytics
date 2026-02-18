@@ -8,9 +8,9 @@ import { Home, Briefcase, BarChart3, User } from 'lucide-react'
 
 export function Navbar({ currentPage }: { currentPage: string }) {
   const navItems = [
-    { label: 'Home', hash: '#/', icon: Home },
-    { label: 'Available Jobs', hash: '#/jobs', icon: Briefcase },
-    { label: 'My Applications', hash: '#/applications', icon: BarChart3 },
+    { label: 'Home', hash: '#/', icon: Home, page: 'home' },
+    { label: 'Available Jobs', hash: '#/jobs', icon: Briefcase, page: 'available' },
+    { label: 'My Applications', hash: '#/applications', icon: BarChart3, page: 'applications' },
   ]
 
   return (
@@ -34,15 +34,16 @@ export function Navbar({ currentPage }: { currentPage: string }) {
         {navItems.map((item) => {
           const Icon = item.icon
 
-          const pageFromHash = item.hash.startsWith('#/') ? item.hash.slice(2) : item.hash
-          const isActive = currentPage === pageFromHash
+          const isActive = currentPage === item.page
 
           return (
             <a
               key={item.label}
               href={item.hash}
-              className={`flex items-center gap-3 text-xl font-bold ${
-                isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+              className={`flex items-center gap-3 text-xl ${
+                isActive
+                  ? 'font-bold text-foreground'
+                  : 'font-medium text-muted-foreground hover:text-foreground'
               }`}
             >
               <Icon className='h-6 w-6' />
