@@ -136,7 +136,7 @@ describe('RecruiterProfilePage', () => {
     expect(mockOnSave).not.toHaveBeenCalled()
   })
 
-  it('prevents saving with empty recruiterEmail', () => {
+  it('prevents saving with empty recruiterEmail', async () => {
     render(
       <RecruiterProfilePage
         recruiterProfile={mockRecruiterProfile}
@@ -144,11 +144,16 @@ describe('RecruiterProfilePage', () => {
       />
     )
 
-    fireEvent.change(screen.getByLabelText(/recruiter email/i), {
-      target: { value: '' },
-    })
+    const emailInput = screen.getByRole('textbox', { name: /recruiter email/i })
 
-    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    // force editing state + ensure value really becomes empty
+    fireEvent.change(emailInput, { target: { value: 'temp@x.com' } })
+    fireEvent.change(emailInput, { target: { value: '' } })
+
+    const saveButton = screen.getByRole('button', { name: /save changes/i })
+    fireEvent.click(saveButton)
+
+    await Promise.resolve()
 
     expect(toast.error).toHaveBeenCalledWith(
       'Missing required fields',
