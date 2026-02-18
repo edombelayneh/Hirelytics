@@ -35,6 +35,8 @@ function LandingPage() {
   const { isSignedIn, isLoaded, userId } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('home')
 
+  const [showProfileBanner, setShowProfileBanner] = useState(false) //redirect banner
+
   const [applications, setApplications] = useState<JobApplication[]>([])
   const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
   const [profile, setProfile] = useState<UserProfile>(defaultProfile)
@@ -281,7 +283,7 @@ function LandingPage() {
         const needsRecruiterProfile = role === 'recruiter' && !recruiterProfileCompleted
 
         if ((needsApplicantProfile || needsRecruiterProfile) && next !== 'profile') {
-          toast.info('Please complete your profile before continuing.')
+          setShowProfileBanner(true)
           window.location.hash = '/profile'
           return
         }
@@ -373,6 +375,8 @@ function LandingPage() {
     setApplicantProfileCompleted(false)
     setRecruiterProfileCompleted(false)
 
+    setShowProfileBanner(true)
+
     // Send them to profile page first
     window.location.hash = '/profile'
   }
@@ -412,15 +416,32 @@ function LandingPage() {
       <SignInButtonBridge />
       {/* Show navbar only after we know the user's role, and not on role screen */}
       {/* FIXME: Navbar currenly has pages dedicated only to applicants */}
-      {isLoaded &&
+      {/* This is where the red banner is shown after being redirected to /profile for first time user */}
+      {currentPage === 'profile' &&
         isSignedIn &&
         roleLoaded &&
         role &&
-        currentPage !== 'role' &&
-        !(
-          (role === 'applicant' && !applicantProfileCompleted) ||
-          (role === 'recruiter' && !recruiterProfileCompleted)
-        ) && <Navbar currentPage={currentPage} />}
+        ((role === 'applicant' && !applicantProfileCompleted) ||
+          (role === 'recruiter' && !recruiterProfileCompleted)) &&
+        showProfileBanner && (
+          <div className='w-full bg-red-600 text-white'>
+            <div className='container mx-auto px-6 py-3 flex items-center justify-between'>
+              <div>
+                <div className='font-semibold'>Tell us about yourself</div>
+                <div className='text-sm opacity-90'>
+                  Please complete the required fields before continuing.
+                </div>
+              </div>
+
+              <button
+                className='text-sm underline hover:opacity-80'
+                onClick={() => setShowProfileBanner(false)}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
 
       {/* Render active page  */}
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
