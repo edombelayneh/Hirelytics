@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, waitFor, within } from '@testing-library/react'
 import { ApplicationsTable } from './ApplicationsTable'
 import { JobApplication } from '../data/mockData'
 
@@ -343,5 +343,24 @@ describe('ApplicationsTable', () => {
 
     // Elements should be the same (component memoized)
     expect(initialCompanyElement).toBe(afterRerenderCompanyElement)
+  })
+
+  // --- Graph and status color styling ---
+  it('applies the correct background color class for each status', () => {
+    render(<ApplicationsTable applications={mockApplications} />)
+
+    const rows = screen.getAllByRole('row')
+
+    const firstRow = rows[1]
+    const firstStatustrigger = within(firstRow).getByRole('combobox')
+    expect(firstStatustrigger.className).toContain('bg-yellow-200')
+
+    const secondRow = rows[2]
+    const secondStatusTrigger = within(secondRow).getByRole('combobox')
+    expect(secondStatusTrigger.className).toContain('bg-blue-200')
+
+    const thirdRow = rows[3]
+    const thirdStatusTrigger = within(thirdRow).getByRole('combobox')
+    expect(thirdStatusTrigger.className).toContain('bg-red-200')
   })
 })
