@@ -1,8 +1,19 @@
-
 'use client'
+
+/**
+ * Add External Job Page
+ * 
+ * This page allows users to 
+ * 1. Paste a job link
+ * 2. Confirm/edit job details
+ * 3. Save the job as an application for tracking
+ * 
+ * This data should eventually be saved to: users/{uid}/applications not to a shared/global jobs collection.
+ */
 
 import { useEffect, useMemo, useState } from 'react'
 
+// Controlled select fields types 
 type VisaRequired = 'yes' | 'no' | ''
 type WorkArrangement = 'onsite' | 'remote' | 'hybrid' | ''
 type EmploymentType = 'full-time' | 'part-time' | 'contract' | 'internship' | ''
@@ -10,6 +21,7 @@ type ExperienceLevel = 'entry' | 'mid' | 'senior' | 'lead' | ''
 type JobSource = 'LinkedIn' | 'Indeed' | 'Handshake' | 'Glassdoor' | 'Google Jobs' | 'Company Career Page' | 'Other' | ''
 type PaymentType = 'hourly' | 'salary' | ''
 
+// Returns todays date, used as default value for applicationDate
 function safeToday() {
   const d = new Date()
   const yyyy = d.getFullYear()
@@ -18,6 +30,7 @@ function safeToday() {
   return `${yyyy}-${mm}-${dd}`
 }
 
+// Extracts a company name guess from Job URL
 function guessCompanyFromUrl(url: string) {
   try {
     const u = new URL(url)
@@ -60,6 +73,7 @@ export default function AddExternalJobPage() {
   const [Saving, setSaving] = useState(false)
   const [Redirecting, setRedirecting] = useState(false)
 
+  // Enables next button only if URL is valid
   const canGoNext = useMemo(() => {
     if (!JobUrl.trim()) return false
     try {
@@ -70,6 +84,7 @@ export default function AddExternalJobPage() {
     }
   }, [JobUrl])
 
+  // Cancel always returns user to applications page
   const handleCancel = () => {
     setMessage(null)
     setSaving(false)
@@ -113,11 +128,13 @@ export default function AddExternalJobPage() {
     setMessage(null)
     setStep(1)
   }
-
+ 
+  // Builds tracked job object and should eventually save to firestore
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setMessage(null)
 
+    // Basic validation
     if (!JobName.trim() || !CompanyName.trim() || !Description.trim()) {
       setMessage('Please fill in Job Name, Company Name, and Description.')
       return

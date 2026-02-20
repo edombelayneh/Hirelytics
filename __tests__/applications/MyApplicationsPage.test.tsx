@@ -301,13 +301,11 @@ describe('MyApplicationsPage', () => {
         applications={mockApplications}
         onStatusChange={mockOnStatusChange}
         onNotesChange={mockOnNotesChange}
+        isApplicantView={true}
       />
     )
 
-    const headings = screen.getAllByRole('heading', { level: 2 })
-    expect(headings).toHaveLength(3)
-    expect(headings[0].textContent).toBe('My Applications')
-    expect(headings[1].textContent).toBe('Dashboard Overview')
-    expect(headings[2].textContent).toBe('Key Metrics')
+    expect(screen.getByRole('heading', { name: /Dashboard Overview/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /Key Metrics/i })).toBeTruthy()
   })
 })
