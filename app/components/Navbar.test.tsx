@@ -49,10 +49,11 @@ describe('Navbar', () => {
 
   // Active link gets highlighted
   it('applies active class to the current page', () => {
-    render(<Navbar currentPage='jobs' />)
+    render(<Navbar currentPage='available' />)
 
     const jobsLink = screen.getByRole('link', { name: /Available Jobs/i })
-    expect(jobsLink.className.includes('text-primary')).toBe(true)
+    expect(jobsLink.className.includes('font-bold')).toBe(true)
+    expect(jobsLink.className.includes('text-foreground')).toBe(true)
   })
 
   // Icons render (SVGs)
