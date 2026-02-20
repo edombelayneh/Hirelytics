@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, memo } from 'react'
+import { useState, memo, useEffect } from 'react'
 import { JobCard } from './JobCard'
 import { Input } from './ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Search, Filter } from 'lucide-react'
 import { AvailableJob, availableJobs } from '../data/availableJobs'
 import type { Role } from '../utils/userRole'
+// Import functions to fetch real recruiter UIDs from Firebase
+import { fetchAllRecruiters, getAllRecruiterUids } from '../utils/recruiterCache'
 
 interface AvailableJobsListProps {
   onApply: (job: AvailableJob) => void
@@ -22,8 +24,34 @@ export const AvailableJobsList = memo(function AvailableJobsList({
   const [searchTerm, setSearchTerm] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [locationFilter, setLocationFilter] = useState<string>('all')
+  // State for jobs with real recruiter UIDs from Firebase
+  const [jobs, setJobs] = useState<AvailableJob[]>(availableJobs)
 
-  const filteredJobs = availableJobs.filter((job) => {
+  // On component load: fetch recruiters from Firebase and assign them to mock jobs
+  useEffect(() => {
+    const loadJobsWithRecruiters = async () => {
+      // Fetch all registered recruiters from Firestore
+      await fetchAllRecruiters()
+      // Get the cached list of recruiter UIDs
+      const recruiterUids = getAllRecruiterUids()
+
+      if (recruiterUids.length > 0) {
+        // Cycle through recruiter UIDs and assign each one to a job
+        // Example: if 2 recruiters exist, job 1 gets recruiter 1, job 2 gets recruiter 2, job 3 gets recruiter 1 again, etc.
+        const jobsWithRecruiters = availableJobs.map((job, index) => ({
+          ...job,
+          // Replace placeholder recruiter UID with real one from Firebase
+          recruiterId: recruiterUids[index % recruiterUids.length],
+        }))
+        // Update state with jobs that now have real recruiter UIDs
+        setJobs(jobsWithRecruiters)
+      }
+    }
+
+    loadJobsWithRecruiters()
+  }, [])
+
+  const filteredJobs = jobs.filter((job) => {
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -38,7 +66,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
     return matchesSearch && matchesType && matchesLocation
   })
 
-  const uniqueTypes = Array.from(new Set(availableJobs.map((job) => job.type)))
+  const uniqueTypes = Array.from(new Set(jobs.map((job) => job.type)))
 
   return (
     <div className='space-y-6'>
@@ -46,7 +74,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
         <div>
           <h2 className='text-2xl font-bold mb-1'>Available Jobs</h2>
           <p className='text-muted-foreground'>
-            Browse and apply to {availableJobs.length} open positions
+            Browse and apply to {jobs.length} open positions
           </p>
         </div>
 

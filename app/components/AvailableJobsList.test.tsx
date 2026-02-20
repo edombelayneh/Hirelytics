@@ -49,6 +49,7 @@ vi.mock('./ui/select', () => ({
 }))
 
 // --- Mock availableJobs so results are predictable ---
+// Added recruiterId field to match the updated AvailableJob interface
 vi.mock('../data/availableJobs', () => {
   const availableJobs = [
     {
@@ -63,6 +64,7 @@ vi.mock('../data/availableJobs', () => {
       requirements: [],
       status: 'Open',
       applyLink: '#',
+      recruiterId: 'recruiter-uid-1', // Mock recruiter UID for testing
     },
     {
       id: 2,
@@ -76,6 +78,7 @@ vi.mock('../data/availableJobs', () => {
       requirements: [],
       status: 'Open',
       applyLink: '#',
+      recruiterId: 'recruiter-uid-1',
     },
     {
       id: 3,
@@ -89,10 +92,20 @@ vi.mock('../data/availableJobs', () => {
       requirements: [],
       status: 'Open',
       applyLink: '#',
+      recruiterId: 'recruiter-uid-1',
     },
   ]
   return { availableJobs }
 })
+
+// --- Mock recruiter cache to prevent Firebase initialization during tests ---
+// This prevents the component from trying to fetch real recruiters from Firebase
+vi.mock('../utils/recruiterCache', () => ({
+  fetchAllRecruiters: vi.fn(),
+  getAllRecruiterUids: vi.fn(() => ['recruiter-uid-1', 'recruiter-uid-2']),
+  getRandomRecruiterUid: vi.fn(() => 'recruiter-uid-1'),
+  clearRecruiterCache: vi.fn(),
+}))
 
 describe('AvailableJobsList', () => {
   const mockOnApply = vi.fn()

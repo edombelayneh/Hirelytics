@@ -363,6 +363,7 @@ function LandingPage() {
   const handleAddApplication = (job: AvailableJob) => {
     if (appliedJobIds.has(job.id)) return
 
+    // Create a new application object with job details
     const newApp: JobApplication = {
       id: `app-${Date.now()}`,
       company: job.company,
@@ -376,6 +377,8 @@ function LandingPage() {
       notes: `Applied via job board. ${job.type} position.`,
       jobSource: 'Other',
       outcome: 'Pending',
+      // Capture the recruiter's UID so the application is linked to the recruiter who posted the job
+      recruiterId: job.recruiterId,
     }
 
     setApplications((prev) => [newApp, ...prev])
