@@ -414,7 +414,17 @@ function LandingPage() {
     <div className='min-h-screen bg-background'>
       <Toaster />
       <SignInButtonBridge />
-      {/* Show navbar only after we know the user's role, and not on role screen */}
+      {currentPage !== 'role' &&
+        isSignedIn &&
+        roleLoaded &&
+        role &&
+        !(
+          currentPage === 'profile' &&
+          showProfileBanner &&
+          ((role === 'applicant' && !applicantProfileCompleted) ||
+            (role === 'recruiter' && !recruiterProfileCompleted))
+        ) && <Navbar currentPage={currentPage} />}
+      {/* Show navbar only after we know the user's role, not on role screen, and not when profile banner is showing */}
       {/* FIXME: Navbar currenly has pages dedicated only to applicants */}
       {/* This is where the red banner is shown after being redirected to /profile for first time user */}
       {currentPage === 'profile' &&
