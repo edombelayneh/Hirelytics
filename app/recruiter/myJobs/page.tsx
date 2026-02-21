@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import Link from 'next/link'
 import { Button } from '@/app/components/ui/button'
 import { Navbar } from '@/app/components/Navbar'
-import { RecruiterJobCard } from '../../components/recruiterJobCard'
+import { RecruiterJobCard } from '../../components/RecruiterJobCard'
 import { EmptyMyJobs } from '../../components/EmptyMyJobs'
 import type { RecruiterJob } from '../../types/recruiterJobs'
 
