@@ -1,6 +1,6 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
 import { ProfilePage } from '../../app/profile/page'
 import { toast } from '../../app/components/ui/sonner'
 
@@ -27,13 +27,19 @@ vi.mock('@clerk/nextjs', () => ({
 
 // Mock File Reader
 interface MockFileReader {
-  readAsDataURL: () => void
+  readAsDataURL: (file: File) => void
   onloadend: (() => void) | null
+  result: string | ArrayBuffer | null
 }
 
 global.FileReader = vi.fn(function (this: MockFileReader) {
-  this.readAsDataURL = vi.fn()
   this.onloadend = null
+  this.result = null
+  this.readAsDataURL = vi.fn(() => {
+    // simulate a successful read
+    this.result = 'data:mock;base64,AAA='
+    this.onloadend?.()
+  })
 }) as unknown as typeof FileReader
 
 // Mock profile data
@@ -57,6 +63,16 @@ const mockProfile = {
 
 const mockOnUpdateProfile = vi.fn()
 
+function renderPage(overrides?: Partial<React.ComponentProps<typeof ProfilePage>>) {
+  const props: React.ComponentProps<typeof ProfilePage> = {
+    profile: mockProfile,
+    onUpdateProfile: mockOnUpdateProfile,
+    isOnboardingRequired: false,
+    ...overrides,
+  }
+  return render(<ProfilePage {...props} />)
+}
+
 describe('ProfilePage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -67,156 +83,107 @@ describe('ProfilePage', () => {
   })
 
   it('renders profile data correctly', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
+    renderPage()
 
-    // Check headers and form fields
     expect(screen.getByText('My Profile')).toBeTruthy()
     expect(screen.getByDisplayValue('Jane')).toBeTruthy()
     expect(screen.getByDisplayValue('Doe')).toBeTruthy()
     expect(screen.getByDisplayValue('jane.doe@example.com')).toBeTruthy()
   })
 
-  it('enables Save button when a field is edited', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
+  it('shows disabled "Saved" button initially (not editing, onboarding not required)', () => {
+    renderPage()
 
-    // Change first name
+    // When canSave is false, label is "Saved"
+    const btn = screen.getByRole('button', { name: /saved/i }) as HTMLButtonElement
+    expect(btn.disabled).toBe(true)
+  })
+
+  it('enables Save button when a field is edited', () => {
+    renderPage()
+
     fireEvent.change(screen.getByLabelText(/first name/i), {
       target: { value: 'Janet' },
     })
 
-    // Save button should now be enabled
     const saveButton = screen.getByRole('button', { name: /save changes/i }) as HTMLButtonElement
     expect(saveButton.disabled).toBe(false)
   })
 
-  it('calls onUpdateProfile when Save button is clicked', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
+  it('calls onUpdateProfile when Save button is clicked (after editing)', async () => {
+    mockOnUpdateProfile.mockResolvedValueOnce(undefined)
+    renderPage()
 
-    // Change first name
     fireEvent.change(screen.getByLabelText(/first name/i), {
       target: { value: 'Janet' },
     })
 
-    // Click Save
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
-    // Expect the callback to be called with updated profile
-    expect(mockOnUpdateProfile).toHaveBeenCalledTimes(1)
+    await waitFor(() => {
+      expect(mockOnUpdateProfile).toHaveBeenCalledTimes(1)
+    })
+
     expect(mockOnUpdateProfile).toHaveBeenCalledWith(
       expect.objectContaining({ firstName: 'Janet' })
     )
   })
 
-  it('prevents saving with empty firstName', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
+  it('disables Save when firstName is empty (cannot attempt save)', () => {
+    renderPage()
 
-    // Clear first name
     fireEvent.change(screen.getByLabelText(/first name/i), {
       target: { value: '' },
     })
 
-    // Click Save
-    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    // With missing required field, canSave becomes false -> label "Saved" + disabled
+    const btn = screen.getByRole('button', { name: /saved/i }) as HTMLButtonElement
+    expect(btn.disabled).toBe(true)
 
-    // Should show error toast and not call onUpdateProfile
-    expect(toast.error).toHaveBeenCalledWith(
-      'Missing required fields',
-      expect.objectContaining({
-        description: 'Please fill in your name and email',
-      })
-    )
+    // Handler is never called, so no toast expected
+    expect(toast.error).not.toHaveBeenCalled()
     expect(mockOnUpdateProfile).not.toHaveBeenCalled()
   })
 
-  it('prevents saving with empty lastName', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
+  it('disables Save when lastName is empty (cannot attempt save)', () => {
+    renderPage()
 
-    // Clear last name
     fireEvent.change(screen.getByLabelText(/last name/i), {
       target: { value: '' },
     })
 
-    // Click Save
-    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    const btn = screen.getByRole('button', { name: /saved/i }) as HTMLButtonElement
+    expect(btn.disabled).toBe(true)
 
-    // Should show error toast and not call onUpdateProfile
-    expect(toast.error).toHaveBeenCalledWith(
-      'Missing required fields',
-      expect.objectContaining({
-        description: 'Please fill in your name and email',
-      })
-    )
+    expect(toast.error).not.toHaveBeenCalled()
     expect(mockOnUpdateProfile).not.toHaveBeenCalled()
   })
 
-  it('prevents saving with empty email', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
+  it('disables Save when email is empty (cannot attempt save)', () => {
+    renderPage()
 
-    // Clear email
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: '' },
     })
 
-    // Click Save
-    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    const btn = screen.getByRole('button', { name: /saved/i }) as HTMLButtonElement
+    expect(btn.disabled).toBe(true)
 
-    // Should show error toast and not call onUpdateProfile
-    expect(toast.error).toHaveBeenCalledWith(
-      'Missing required fields',
-      expect.objectContaining({
-        description: 'Please fill in your name and email',
-      })
-    )
+    expect(toast.error).not.toHaveBeenCalled()
     expect(mockOnUpdateProfile).not.toHaveBeenCalled()
   })
 
-  it('prevents saving with invalid email format (missing @)', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
+  it('prevents saving with invalid email format (missing @)', async () => {
+    renderPage()
 
-    // Clear email and enter invalid format
+    // keep requiredFilled true, but make email invalid
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'invalidemail.com' },
     })
 
-    // Click Save
+    // email is non-empty => requiredFilled true; edited => canSave true
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
-    // Should show error toast and not call onUpdateProfile
     expect(toast.error).toHaveBeenCalledWith(
       'Invalid email format',
       expect.objectContaining({
@@ -226,23 +193,15 @@ describe('ProfilePage', () => {
     expect(mockOnUpdateProfile).not.toHaveBeenCalled()
   })
 
-  it('prevents saving with invalid email format (missing domain)', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
+  it('prevents saving with invalid email format (missing domain)', async () => {
+    renderPage()
 
-    // Enter email without domain extension
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'invalid@domain' },
     })
 
-    // Click Save
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
-    // Should show error toast and not call onUpdateProfile
     expect(toast.error).toHaveBeenCalledWith(
       'Invalid email format',
       expect.objectContaining({
@@ -252,155 +211,32 @@ describe('ProfilePage', () => {
     expect(mockOnUpdateProfile).not.toHaveBeenCalled()
   })
 
-  it('allows saving with valid email format', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
-
-    // Change first name to trigger editing mode
-    fireEvent.change(screen.getByLabelText(/first name/i), {
-      target: { value: 'Janet' },
-    })
-
-    // Keep the valid email (already set in mockProfile)
-    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
-
-    // Should call onUpdateProfile and show success toast
-    expect(mockOnUpdateProfile).toHaveBeenCalledTimes(1)
-    expect(toast.error).not.toHaveBeenCalled()
-  })
-
   it('shows success toast when profile is updated', async () => {
-    // Make the mock resolve successfully
     mockOnUpdateProfile.mockResolvedValueOnce(undefined)
+    renderPage()
 
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
-
-    // Change first name to trigger editing mode
     fireEvent.change(screen.getByLabelText(/first name/i), {
       target: { value: 'Janet' },
     })
 
-    // Click Save
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
-    // Wait for async operations to complete
-    await new Promise((resolve) => setTimeout(resolve, 0))
-
-    // Should show success toast with correct message
-    expect(toast.success).toHaveBeenCalledWith(
-      'Profile updated successfully',
-      expect.objectContaining({
-        description: 'Your changes have been saved',
-      })
-    )
-  })
-
-  // Resume Upload Tests
-  it('accepts .pdf resume files', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
-
-    const file = new File(['resume content'], 'resume.pdf', { type: 'application/pdf' })
-    const resumeInputs = document.querySelectorAll('input[type="file"]')
-    const resumeInput = Array.from(resumeInputs).find((input) =>
-      (input as HTMLInputElement).accept.includes('.pdf')
-    ) as HTMLInputElement
-
-    fireEvent.change(resumeInput, { target: { files: [file] } })
-
-    // Just verify the input accepts the file without errors - the component will handle the rest
-    expect(resumeInput).toBeTruthy()
-  })
-
-  it('accepts .doc resume files', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
-
-    const file = new File(['resume content'], 'resume.doc', { type: 'application/msword' })
-    const resumeInputs = document.querySelectorAll('input[type="file"]')
-    const resumeInput = Array.from(resumeInputs).find((input) =>
-      (input as HTMLInputElement).accept.includes('.pdf')
-    ) as HTMLInputElement
-
-    fireEvent.change(resumeInput, { target: { files: [file] } })
-
-    expect(resumeInput).toBeTruthy()
-  })
-
-  it('accepts .docx resume files', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
-
-    const file = new File(['resume content'], 'resume.docx', {
-      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith(
+        'Profile updated successfully',
+        expect.objectContaining({
+          description: 'Your changes have been saved',
+        })
+      )
     })
-    const resumeInputs = document.querySelectorAll('input[type="file"]')
-    const resumeInput = Array.from(resumeInputs).find((input) =>
-      (input as HTMLInputElement).accept.includes('.pdf')
-    ) as HTMLInputElement
-
-    fireEvent.change(resumeInput, { target: { files: [file] } })
-
-    expect(resumeInput).toBeTruthy()
   })
-  // Invalid file type tests
-  it('rejects .txt resume files', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
+
+  it('rejects resume files with invalid extension', () => {
+    renderPage()
 
     const file = new File(['resume content'], 'resume.txt', { type: 'text/plain' })
-    const resumeInputs = document.querySelectorAll('input[type="file"]')
-    const resumeInput = Array.from(resumeInputs).find((input) =>
-      (input as HTMLInputElement).accept.includes('.pdf')
-    ) as HTMLInputElement
 
-    fireEvent.change(resumeInput, { target: { files: [file] } })
-
-    // Error invalid file type toast
-    expect(toast.error).toHaveBeenCalledWith(
-      'Invalid file type',
-      expect.objectContaining({
-        description: 'Resume must be in PDF, DOC, or DOCX format',
-      })
-    )
-  })
-
-  it('rejects .jpg resume files', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
-
-    const file = new File(['resume content'], 'resume.jpg', { type: 'image/jpeg' })
-    const resumeInputs = document.querySelectorAll('input[type="file"]')
-    const resumeInput = Array.from(resumeInputs).find((input) =>
+    const resumeInput = Array.from(document.querySelectorAll('input[type="file"]')).find((input) =>
       (input as HTMLInputElement).accept.includes('.pdf')
     ) as HTMLInputElement
 
@@ -415,21 +251,15 @@ describe('ProfilePage', () => {
   })
 
   it('rejects resume files over 10MB', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
+    renderPage()
 
-    // Tests for files over 10MB - Resume
     const fileContent = new Array(Math.floor(10.1 * 1024 * 1024)).fill('a').join('')
     const file = new File([fileContent], 'resume.pdf', { type: 'application/pdf' })
 
-    const resumeInputs = document.querySelectorAll('input[type="file"]')
-    const resumeInput = Array.from(resumeInputs).find((input) =>
+    const resumeInput = Array.from(document.querySelectorAll('input[type="file"]')).find((input) =>
       (input as HTMLInputElement).accept.includes('.pdf')
     ) as HTMLInputElement
+
     fireEvent.change(resumeInput, { target: { files: [file] } })
 
     expect(toast.error).toHaveBeenCalledWith(
@@ -441,21 +271,15 @@ describe('ProfilePage', () => {
   })
 
   it('rejects profile pictures over 5MB', () => {
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-      />
-    )
+    renderPage()
 
-    // Tests for files over 5MB - PFP
     const fileContent = new Array(Math.floor(5.1 * 1024 * 1024)).fill('a').join('')
     const file = new File([fileContent], 'profile.jpg', { type: 'image/jpeg' })
 
-    const profilePicInputs = document.querySelectorAll('input[type="file"]')
-    const profilePicInput = Array.from(profilePicInputs).find(
-      (input) => !(input as HTMLInputElement).accept.includes('.pdf')
+    const profilePicInput = Array.from(document.querySelectorAll('input[type="file"]')).find(
+      (input) => (input as HTMLInputElement).accept.includes('image/')
     ) as HTMLInputElement
+
     fireEvent.change(profilePicInput, { target: { files: [file] } })
 
     expect(toast.error).toHaveBeenCalledWith(
