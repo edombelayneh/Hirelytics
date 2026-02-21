@@ -11,6 +11,7 @@ import { ExternalLink, Search, Filter } from 'lucide-react'
 import { JobApplication } from '../data/mockData'
 import { formatDate } from '../utils/dateFormatter'
 import { getStatusColor, getOutcomeColor } from '../utils/badgeColors'
+import { useRouter } from 'next/navigation'
 
 interface ApplicationsTableProps {
   applications: JobApplication[]
@@ -25,6 +26,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
 }: ApplicationsTableProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const router = useRouter()
 
   const filteredApplications = applications.filter((app) => {
     const matchesSearch =
@@ -145,7 +147,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                     <Button
                       variant='ghost'
                       size='sm'
-                      onClick={() => window.open(app.jobLink, '_blank')}
+                      onClick={() => router.push(`/applicant/applications/${app.id}`)}
                     >
                       <ExternalLink className='h-4 w-4' />
                     </Button>

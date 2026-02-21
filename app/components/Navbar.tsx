@@ -30,7 +30,7 @@ export function Navbar({ currentPage }: { currentPage: string }) {
           className='inline-block'
         >
           <img
-            src='../Hirelytics_Logo.png'
+            src='/Hirelytics_Logo.png'
             alt='Hirelytics Logo'
             className='h-10 w-auto'
           />
