@@ -49,16 +49,16 @@ export function Navbar() {
   const recruiterNav: NavItem[] = [
     { label: 'Home', href: '/', icon: Home, match: (p) => p === '/' },
     {
+      label: 'Available Jobs',
+      href: '/applicant/jobs',
+      icon: Briefcase,
+      match: (p) => p.startsWith('/applicant/jobs'),
+    },
+    {
       label: 'My Jobs',
       href: '/recruiter/myJobs',
       icon: Briefcase,
       match: (p) => p.startsWith('/recruiter/myJobs') || p.startsWith('/recruiter/jobDetails'),
-    },
-    {
-      label: 'Post Job',
-      href: '/recruiter/addNewJob',
-      icon: PlusCircle,
-      match: (p) => p.startsWith('/recruiter/add-new-job'),
     },
   ]
 
