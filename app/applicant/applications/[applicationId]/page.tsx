@@ -13,35 +13,25 @@ import { Button } from '@/app/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card'
 import type { JobApplication } from '@/app/data/mockData'
 
+// TODO: Replace with Firestore fetch
 export default function ApplicationDetailsPage() {
   const router = useRouter()
-  const params = useParams<{ applicationId: string }>()
-  const applicationId = params.applicationId
+  const { applicationId } = useParams<{ applicationId: string }>()
 
-  // TODO: Replace with Firestore fetch
-  const [application, setApplication] = useState<JobApplication | null>(null)
-
-  useEffect(() => {
-    // TEMP: Replace this with real fetch based on applicationId
-    // For now just show placeholder so the route works.
-    setApplication({
-      id: applicationId,
-      company: 'Example Company',
-      city: 'Remote',
-      country: 'USA',
-      jobLink: 'https://example.com',
-      position: 'Software Engineer Intern',
-      applicationDate: '2026-02-21',
-      status: 'Applied',
-      contactPerson: '',
-      notes: '',
-      jobSource: 'Other',
-      outcome: 'Pending',
-    })
-  }, [applicationId])
-
-  if (!application) {
-    return <div className='container mx-auto px-6 py-8'>Loading...</div>
+  // TEMP: placeholder derived from route param (no state, no effect)
+  const application: JobApplication = {
+    id: applicationId,
+    company: 'Example Company',
+    city: 'Remote',
+    country: 'USA',
+    jobLink: 'https://example.com',
+    position: 'Software Engineer Intern',
+    applicationDate: '2026-02-21',
+    status: 'Applied',
+    contactPerson: '',
+    notes: '',
+    jobSource: 'Other',
+    outcome: 'Pending',
   }
 
   return (
