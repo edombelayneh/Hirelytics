@@ -31,7 +31,7 @@ export function Navbar() {
   const role = metaRole ?? inferredRole
 
   const applicantNav: NavItem[] = [
-    { label: 'Home', href: '/', icon: Home, match: (p) => p === '/' },
+    { label: 'Home', href: '/home', icon: Home, match: (p) => p === '/home' },
     {
       label: 'Available Jobs',
       href: '/applicant/jobs',
@@ -47,7 +47,7 @@ export function Navbar() {
   ]
 
   const recruiterNav: NavItem[] = [
-    { label: 'Home', href: '/', icon: Home, match: (p) => p === '/' },
+    { label: 'Home', href: '/home', icon: Home, match: (p) => p === '/home' },
     {
       label: 'Available Jobs',
       href: '/applicant/jobs',

@@ -40,8 +40,6 @@ export default function RecruiterMyJobsPage() {
 
   return (
     <div className='min-h-screen bg-background'>
-      <Navbar />
-
       <main className='container mx-auto px-6 py-8 space-y-6'>
         <div className='flex items-start justify-between gap-4'>
           <div>
