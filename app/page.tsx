@@ -1,14 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '@clerk/nextjs'
+import { useAuth, useUser } from '@clerk/nextjs'
 import HomePage from './home/page'
 import AvailableJobsPage from './applicant/jobs/page'
 import MyApplicationsPage from './applicant/applications/page'
 import AddNewJobPage from './recruiter/addNewJob/page'
 import type { UserProfile } from './data/profileData'
 import { defaultProfile } from './data/profileData'
-import { ProfilePage } from './applicant/profile/page'
+import { ProfilePage } from './applicant/profile/ProfilePage'
 import { Navbar } from './components/Navbar'
 import { Toaster, toast } from './components/ui/sonner'
 import { SignInButtonBridge } from './utils/protectedAction'
@@ -19,7 +19,7 @@ import { JobApplication } from './data/mockData'
 import { AvailableJob } from './data/availableJobs'
 import { RolePage } from './components/RolePage'
 import { getUserRole, createUserDoc, type Role } from './utils/userRole'
-import { RecruiterProfilePage } from './recruiter/profile/page'
+import { RecruiterProfilePage } from './recruiter/profile/RecruiterProfilePage'
 import {
   getUserProfile,
   saveUserProfile,
@@ -31,6 +31,7 @@ import {
 type Page = 'home' | 'available' | 'applications' | 'profile' | 'addNewJob' | 'role'
 
 function LandingPage() {
+  const { user } = useUser()
   const { isSignedIn, isLoaded, userId } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('home')
 
@@ -343,18 +344,30 @@ function LandingPage() {
     const uid = firebaseAuth.currentUser?.uid
     if (!uid) return
 
-    // Create the user doc in Firestore with their role
+    // Save role in Firestore (your existing logic)
     await createUserDoc({
       uid,
       role: picked,
       clerkUserId: userId ?? undefined,
     })
 
-    // Save role locally so UI updates right away
+    // ALSO save role in Clerk publicMetadata
+    await fetch('/api/user/role', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: picked }),
+    })
+
+    await user?.reload()
+    // Update local state
     setRole(picked)
 
-    // Send user to the correct page
-    window.location.hash = picked === 'applicant' ? '/applications' : '/addNewJob'
+    // Redirect to proper real route (recommended now)
+    if (picked === 'applicant') {
+      window.location.href = '/applicant/applications'
+    } else {
+      window.location.href = '/recruiter/my-jobs'
+    }
   }
 
   // ---------------------------
@@ -392,9 +405,7 @@ function LandingPage() {
       <SignInButtonBridge />
       {/* Show navbar only after we know the user's role, and not on role screen */}
       {/* FIXME: Navbar currenly has pages dedicated only to applicants */}
-      {isLoaded && isSignedIn && roleLoaded && role && currentPage !== 'role' && (
-        <Navbar currentPage={currentPage} />
-      )}
+      {isSignedIn && role && currentPage !== 'role' && <Navbar />}
 
       {/* Render active page  */}
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>

@@ -7,6 +7,7 @@ import type { Role } from '../../utils/userRole'
 import { useAuth } from '@clerk/nextjs'
 import { db } from '../../lib/firebaseClient'
 import { collection, onSnapshot, doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { Navbar } from '@/app/components/Navbar'
 
 interface JobsPageProps {
   onAddApplication: (job: AvailableJob) => void
@@ -83,6 +84,7 @@ function Jobs({ onAddApplication, role }: JobsPageProps) {
 
   return (
     <div className='min-h-screen bg-background'>
+      <Navbar />
       {/* Main layout container */}
       <main className='container mx-auto px-6 py-8 space-y-8'>
         <section>

@@ -5,6 +5,7 @@
 // - Shows a redirecting overlay and then sends the user to the "Available Jobs" page using hash navigation.
 
 import { useState } from 'react'
+import { Navbar } from '../../components/Navbar'
 
 export default function AddNewJobPage() {
   const [jobName, setJobName] = useState('')
@@ -79,6 +80,7 @@ export default function AddNewJobPage() {
 
   return (
     <main className='min-h-screen bg-gray-50'>
+      <Navbar />
       {/* redirect overlay  */}
       {redirecting && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>

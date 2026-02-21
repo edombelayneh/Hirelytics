@@ -55,7 +55,7 @@ export default function JobDetailsPage() {
   ]
   return (
     <div className='min-h-screen bg-background'>
-      <Navbar currentPage='' />
+      <Navbar />
 
       <main className='mx-auto max-w-6xl px-6 py-6 space-y-6'>
         <div>

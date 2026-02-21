@@ -1,32 +1,88 @@
 'use client'
 
-// Clerk user account dropdown component
-import { UserButton } from '@clerk/nextjs'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { UserButton, useUser } from '@clerk/nextjs'
+import { Home, Briefcase, BarChart3, User, PlusCircle } from 'lucide-react'
 
-// Icons used for navbar navigation items
-import { Home, Briefcase, BarChart3, User } from 'lucide-react'
+type Role = 'applicant' | 'recruiter' | undefined
 
-// FIXME: Navbar currently has pages dedicated only to applicants
-// Recruiter-specific links should be added after Firebase listeners are implemented
+type NavItem = {
+  label: string
+  href: string
+  icon: React.ElementType
+  match: (pathname: string) => boolean
+}
 
-export function Navbar({ currentPage }: { currentPage: string }) {
-  // Configuration for center navigation links
-  // "page" is used to determine which link is active
-  const navItems = [
-    { label: 'Home', hash: '#/', icon: Home, page: 'home' },
-    { label: 'Available Jobs', hash: '#/jobs', icon: Briefcase, page: 'available' },
-    { label: 'My Applications', hash: '#/applications', icon: BarChart3, page: 'applications' },
+export function Navbar() {
+  const pathname = usePathname()
+  const { user } = useUser()
+
+  // 1) prefer Clerk metadata
+  const metaRole = (user?.publicMetadata?.role as Role) ?? undefined
+
+  // 2) fallback infer role from route prefix (helps before metadata shows up)
+  const inferredRole: Role = pathname.startsWith('/recruiter')
+    ? 'recruiter'
+    : pathname.startsWith('/applicant')
+      ? 'applicant'
+      : undefined
+
+  const role = metaRole ?? inferredRole
+
+  const applicantNav: NavItem[] = [
+    { label: 'Home', href: '/', icon: Home, match: (p) => p === '/' },
+    {
+      label: 'Available Jobs',
+      href: '/applicant/jobs',
+      icon: Briefcase,
+      match: (p) => p.startsWith('/applicant/jobs'),
+    },
+    {
+      label: 'My Applications',
+      href: '/applicant/applications',
+      icon: BarChart3,
+      match: (p) => p.startsWith('/applicant/applications'),
+    },
   ]
 
+  const recruiterNav: NavItem[] = [
+    { label: 'Home', href: '/', icon: Home, match: (p) => p === '/' },
+    {
+      label: 'My Jobs',
+      href: '/recruiter/myJobs',
+      icon: Briefcase,
+      match: (p) => p.startsWith('/recruiter/myJobs') || p.startsWith('/recruiter/jobDetails'),
+    },
+    {
+      label: 'Post Job',
+      href: '/recruiter/addNewJob',
+      icon: PlusCircle,
+      match: (p) => p.startsWith('/recruiter/add-new-job'),
+    },
+  ]
+
+  // Never render empty nav — show at least Home until role resolves
+  const navItems: NavItem[] =
+    role === 'recruiter'
+      ? recruiterNav
+      : role === 'applicant'
+        ? applicantNav
+        : [{ label: 'Home', href: '/', icon: Home, match: (p) => p === '/' }]
+
+  const profileHref =
+    role === 'recruiter'
+      ? 'app/recruiter/profile'
+      : role === 'applicant'
+        ? 'app/applicant/profile'
+        : '/' // fallback
+
   return (
-    // Main navbar container
-    // sticky + top-0 keeps navbar fixed at top when scrolling
     <nav className='relative flex items-center justify-center border-b px-6 h-20 bg-background sticky top-0 z-50'>
-      {/* Left - Logo Section */}
-      {/* Positioned absolute so center navigation stays centered */}
+      {/* Left - Logo */}
       <div className='absolute left-6 flex flex-col'>
-        <a
-          href='#/' // Navigates back to home page
+        <Link
+          href='/'
           className='inline-block'
         >
           <img
@@ -34,66 +90,44 @@ export function Navbar({ currentPage }: { currentPage: string }) {
             alt='Hirelytics Logo'
             className='h-10 w-auto'
           />
-        </a>
+        </Link>
       </div>
 
-      {/* Center - Navigation Links */}
-      {/* Iterates over navItems to render each link */}
+      {/* Center - Nav Links */}
       <div className='flex gap-12'>
         {navItems.map((item) => {
           const Icon = item.icon
-
-          // Determines if this link corresponds to the current page
-          const isActive = currentPage === item.page
+          const isActive = item.match(pathname)
 
           return (
-            <a
+            <Link
               key={item.label}
-              href={item.hash} // Hash-based routing
+              href={item.href}
               className={`flex items-center gap-3 text-xl ${
                 isActive
-                  ? 'font-bold text-foreground' // Active link styling
-                  : 'font-medium text-muted-foreground hover:text-foreground' // Default styling
+                  ? 'font-bold text-foreground'
+                  : 'font-medium text-muted-foreground hover:text-foreground'
               }`}
             >
-              {/* Navigation icon */}
               <Icon className='h-6 w-6' />
-
-              {/* Navigation label */}
               {item.label}
-
-              {/* Notification badge (TEMPORARILY DISABLED)
-              Placeholder for showing counts like number of applications
-              {item.label === 'My Applications' && (
-                <span className="ml-1 text-xs bg-primary text-white px-2 py-0.5 rounded-full">
-                  {applicationCount}
-                </span>
-              )} */}
-            </a>
+            </Link>
           )
         })}
       </div>
 
-      {/* Right Side - User Account Button */}
-      {/* Contains Clerk user profile dropdown */}
+      {/* Right - User menu */}
       <div className='absolute right-6 flex items-center gap-3'>
-        {/* Right Side - User Account Button */}
         <UserButton afterSignOutUrl='/'>
           <UserButton.MenuItems>
-            {/* Custom menu item to navigate to profile page */}
             <UserButton.Action
               label='My Profile'
               labelIcon={<User className='h-4 w-4' />}
               onClick={() => {
-                // Updates URL hash to profile route
-                window.location.hash = '#/profile'
+                window.location.href = profileHref
               }}
             />
-
-            {/* Clerk built-in account management option */}
             <UserButton.Action label='manageAccount' />
-
-            {/* Clerk built-in sign out option */}
             <UserButton.Action label='signOut' />
           </UserButton.MenuItems>
         </UserButton>
