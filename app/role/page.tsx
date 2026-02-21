@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 type Role = 'applicant' | 'recruiter'
 
-export function RolePage({
+export default function RolePage({
   onSelectRole,
 }: {
   // Parent (app/page.tsx) will pass this function in
