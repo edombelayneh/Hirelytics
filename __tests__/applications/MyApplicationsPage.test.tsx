@@ -13,7 +13,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 
 // The page component under test
-import MyApplicationsPage from '../../app/applications/page'
+import MyApplicationsPage from '../../app/applicant/applications/page'
 
 // Shared type used by the page and mocked child components
 import { JobApplication } from '../../app/data/mockData'

@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import React from 'react'
-import AddNewJobPage from '../../app/addNewJob/page' // <-- if test is in same folder as page.tsx
+import AddNewJobPage from '../../app/recruiter/addNewJob/page' // <-- if test is in same folder as page.tsx
 
 describe('AddNewJobPage', () => {
   beforeEach(() => {

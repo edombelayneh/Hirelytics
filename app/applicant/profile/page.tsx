@@ -1,17 +1,17 @@
 import { memo, useEffect, useState, useRef } from 'react'
-import { Card } from '../components/ui/card'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { Label } from '../components/ui/label'
-import { Textarea } from '../components/ui/textarea'
-import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar'
+import { Card } from '../../components/ui/card'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
+import { Label } from '../../components/ui/label'
+import { Textarea } from '../../components/ui/textarea'
+import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../components/ui/select'
+} from '../../components/ui/select'
 import {
   User,
   Mail,
@@ -28,8 +28,8 @@ import {
   Calendar,
   CheckCircle2,
 } from 'lucide-react'
-import { UserProfile } from '../data/profileData'
-import { toast } from '../components/ui/sonner'
+import { UserProfile } from '../../data/profileData'
+import { toast } from '../../components/ui/sonner'
 
 interface ProfilePageProps {
   profile: UserProfile
@@ -89,7 +89,7 @@ export const ProfilePage = memo(function ProfilePage({
       // Validate file type
       const allowedExtensions = ['.pdf', '.doc', '.docx']
       const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
-      
+
       if (!allowedExtensions.includes(fileExtension)) {
         toast.error('Invalid file type', {
           description: 'Resume must be in PDF, DOC, or DOCX format',
@@ -485,5 +485,4 @@ export const ProfilePage = memo(function ProfilePage({
       </div>
     </div>
   )
-
 })

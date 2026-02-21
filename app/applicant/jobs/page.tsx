@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { AvailableJobsList } from '../components/AvailableJobsList'
-import { AvailableJob } from '../data/availableJobs'
-import type { Role } from '../utils/userRole'
+import { AvailableJobsList } from '../../components/AvailableJobsList'
+import { AvailableJob } from '../../data/availableJobs'
+import type { Role } from '../../utils/userRole'
 import { useAuth } from '@clerk/nextjs'
-import { db } from '../lib/firebaseClient'
+import { db } from '../../lib/firebaseClient'
 import { collection, onSnapshot, doc, setDoc, serverTimestamp } from 'firebase/firestore'
 
 interface JobsPageProps {

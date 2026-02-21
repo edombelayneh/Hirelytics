@@ -1,11 +1,11 @@
 'use client'
 
 import { memo } from 'react'
-import HeroPanel from '../components/HeroPanel'
-import { SummaryCards } from '../components/SummaryCards'
-import { ApplicationsTable } from '../components/ApplicationsTable'
-import { JobApplication } from '../data/mockData'
-import { db } from '../lib/firebaseClient'
+import HeroPanel from '../../components/HeroPanel'
+import { SummaryCards } from '../../components/SummaryCards'
+import { ApplicationsTable } from '../../components/ApplicationsTable'
+import { JobApplication } from '../../data/mockData'
+import { db } from '../../lib/firebaseClient'
 import {
   doc,
   collection,

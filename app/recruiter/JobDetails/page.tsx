@@ -2,11 +2,11 @@
 
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { Button } from '../components/ui/button'
-import { JobDetailsCard } from '../components/job/JobDetailsCard'
-import { ApplicantsTable } from '../components/job/ApplicantsTable'
-import type { Applicant, Job } from '../types/job'
-import { Navbar } from '../components/Navbar'
+import { Button } from '../../components/ui/button'
+import { JobDetailsCard } from '../../components/job/JobDetailsCard'
+import { ApplicantsTable } from '../../components/job/ApplicantsTable'
+import type { Applicant, Job } from '../../types/job'
+import { Navbar } from '../../components/Navbar'
 
 export default function JobDetailsPage() {
   const params = useParams<{ jobId: string }>()

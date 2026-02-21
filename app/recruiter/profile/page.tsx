@@ -4,12 +4,12 @@
 // TEMP FILE : Recruiter profile page for setting company info
 
 import { useEffect, useState } from 'react'
-import { Card } from '../components/ui/card'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { Label } from '../components/ui/label'
-import { toast } from '../components/ui/sonner'
-import type { RecruiterProfile } from '../utils/userProfiles'
+import { Card } from '../../components/ui/card'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
+import { Label } from '../../components/ui/label'
+import { toast } from '../../components/ui/sonner'
+import type { RecruiterProfile } from '../../utils/userProfiles'
 
 export function RecruiterProfilePage({
   recruiterProfile,

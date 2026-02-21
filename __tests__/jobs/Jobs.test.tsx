@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
-import Jobs from '../../app/jobs/page'
+import Jobs from '../../app/applicant/jobs/page'
 import { AvailableJob } from '../../app/data/availableJobs'
 import type { Role } from '../../app/utils/userRole'
 import { onSnapshot } from 'firebase/firestore'

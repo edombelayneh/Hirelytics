@@ -1,7 +1,7 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import { ProfilePage } from '../../app/profile/page'
+import { ProfilePage } from '../../app/recruiter/profile/page'
 import { toast } from '../../app/components/ui/sonner'
 
 // Mock the toast
