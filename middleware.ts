@@ -1,36 +1,35 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { clerkMiddleware, createRouteMatcher, clerkClient } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 
 const isApplicantRoute = createRouteMatcher(['/applicant(.*)'])
 const isRecruiterRoute = createRouteMatcher(['/recruiter(.*)'])
+const isPublicRoute = createRouteMatcher(['/', '/home', '/role', '/api/(.*)'])
 
-// Optional: allow these public routes without auth
-const isPublicRoute = createRouteMatcher(['/', '/home', '/api/(.*)'])
+type Role = 'applicant' | 'recruiter'
 
 export default clerkMiddleware(async (auth, req) => {
-  // Public pages can be visited by anyone
+  // Allow public routes
   if (isPublicRoute(req)) return NextResponse.next()
 
-  // Protect applicant + recruiter route groups
+  // Require auth for applicant/recruiter routes
   if (isApplicantRoute(req) || isRecruiterRoute(req)) {
     await auth.protect()
   }
 
-  // Role gating (only after we know they’re signed in)
-  const { userId, sessionClaims } = await auth()
+  const { userId } = await auth()
   if (!userId) return NextResponse.next()
 
-  // IMPORTANT:
-  // This reads the role from Clerk publicMetadata included in JWT claims.
-  // Make sure you actually set publicMetadata.role like you’re doing.
-  const role = (sessionClaims?.publicMetadata as any)?.role as 'applicant' | 'recruiter' | undefined
+  // ✅ Read role from the USER (not sessionClaims)
+  const client = await clerkClient()
+  const user = await client.users.getUser(userId)
+  const role = user.publicMetadata?.role as Role | undefined
 
-  // If they have no role yet, force them to role picker (or /home)
+  // No role → force role picker
   if ((isApplicantRoute(req) || isRecruiterRoute(req)) && !role) {
     return NextResponse.redirect(new URL('/role', req.url))
   }
 
-  // Enforce correct role per route group
+  // Wrong role → redirect
   if (isApplicantRoute(req) && role !== 'applicant') {
     return NextResponse.redirect(new URL('/recruiter/myJobs', req.url))
   }
@@ -43,8 +42,5 @@ export default clerkMiddleware(async (auth, req) => {
 })
 
 export const config = {
-  matcher: [
-    // Run middleware on all app routes except Next internals + static files
-    '/((?!_next|.*\\.(?:css|js|json|png|jpg|jpeg|gif|svg|ico|webp|txt|map)$).*)',
-  ],
+  matcher: ['/((?!_next|.*\\.(?:css|js|json|png|jpg|jpeg|gif|svg|ico|webp|txt|map)$).*)'],
 }
