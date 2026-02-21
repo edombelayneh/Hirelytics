@@ -6,13 +6,12 @@
     There is also a button to go back to the My Applications page.
     This is a TEMP FILE: FIXME - replace with real fetching
     */
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/app/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card'
 import type { JobApplication } from '@/app/data/mockData'
-import { Navbar } from '@/app/components/Navbar'
 
 export default function ApplicationDetailsPage() {
   const router = useRouter()
@@ -47,7 +46,6 @@ export default function ApplicationDetailsPage() {
 
   return (
     <div className='min-h-screen bg-background'>
-      <Navbar />
       <div className='container mx-auto px-6 py-8 space-y-6'>
         <div className='flex items-center justify-between'>
           <Button

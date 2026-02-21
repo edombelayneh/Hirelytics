@@ -169,7 +169,6 @@ export const ProfilePage = memo(function ProfilePage({
 
   return (
     <div className='min-h-screen bg-background'>
-      <Navbar />
       <div className='space-y-6 max-w-5xl mx-auto'>
         {/* Header */}
         <div className='flex flex-col gap-2'>

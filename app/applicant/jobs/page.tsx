@@ -3,18 +3,9 @@
 import { useEffect, useState } from 'react'
 import { AvailableJobsList } from '../../components/AvailableJobsList'
 import { AvailableJob } from '../../data/availableJobs'
-import type { Role } from '../../utils/userRole'
 import { useAuth, useUser } from '@clerk/nextjs'
 import { db } from '../../lib/firebaseClient'
 import { collection, onSnapshot, doc, setDoc, serverTimestamp } from 'firebase/firestore'
-import { Navbar } from '@/app/components/Navbar'
-
-// FIXME: UI IS TWEAKING
-
-interface JobsPageProps {
-  onAddApplication: (job: AvailableJob) => void
-  role?: Role | null
-}
 
 function Jobs() {
   // Get Clerk authentication state
@@ -81,8 +72,6 @@ function Jobs() {
 
   return (
     <div className='min-h-screen bg-background'>
-      <Navbar />
-      {/* <div className='space-y-6 max-w-5xl mx-auto'> */}
       {/* Main layout container */}
       <main className='container mx-auto px-6 py-8 space-y-8'>
         <section>
@@ -92,7 +81,6 @@ function Jobs() {
           />
         </section>
       </main>
-      {/* </div> */}
     </div>
   )
 }

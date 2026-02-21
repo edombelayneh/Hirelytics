@@ -17,8 +17,8 @@ import {
 } from 'firebase/firestore'
 import { useAuth } from '@clerk/nextjs'
 import { useEffect, useState } from 'react'
-import { Navbar } from '../../components/Navbar'
-import { mockJobApplications } from '../../data/mockData'
+
+// FIXME: UI IS TWEAKING
 
 const MyApplicationsPage = memo(function MyApplicationsPage() {
   // Get authenticated user and loading state from Clerk
@@ -77,30 +77,27 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
   }
 
   return (
-    <div className='min-h-screen bg-background'>
-      <Navbar />
-      <div className='space-y-8'>
-        {/* Dashboard overview section */}
-        <section>
-          <h2 className='text-xl font-semibold mb-4'>Dashboard Overview</h2>
-          <HeroPanel applications={liveApplications} />
-        </section>
+    <div className='space-y-8'>
+      {/* Dashboard overview section */}
+      <section>
+        <h2 className='text-xl font-semibold mb-4'>Dashboard Overview</h2>
+        <HeroPanel applications={liveApplications} />
+      </section>
 
-        {/* Summary metrics section */}
-        <section>
-          <h2 className='text-xl font-semibold mb-4'>Key Metrics</h2>
-          <SummaryCards applications={liveApplications} />
-        </section>
+      {/* Summary metrics section */}
+      <section>
+        <h2 className='text-xl font-semibold mb-4'>Key Metrics</h2>
+        <SummaryCards applications={liveApplications} />
+      </section>
 
-        {/* Applications table section */}
-        <section>
-          <ApplicationsTable
-            applications={liveApplications}
-            onStatusChange={handleStatusChange}
-            onNotesChange={handleNotesChange}
-          />
-        </section>
-      </div>
+      {/* Applications table section */}
+      <section>
+        <ApplicationsTable
+          applications={liveApplications}
+          onStatusChange={handleStatusChange}
+          onNotesChange={handleNotesChange}
+        />
+      </section>
     </div>
   )
 })
