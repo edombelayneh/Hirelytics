@@ -4,6 +4,7 @@
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../lib/firebaseClient'
 import type { RecruiterProfile } from './userProfiles'
+import type { AvailableJob } from '../data/availableJobs'
 
 export interface RecruiterInfo {
   uid: string
@@ -72,6 +73,26 @@ export function getAllRecruiterUids(): string[] {
     return []
   }
   return recruiterCache.map((r) => r.uid)
+}
+
+/**
+ * Assign recruiters to jobs in a stable, deterministic way
+ * Ensures every mock job has a recruiter UID attached
+ */
+export function assignRecruitersToJobs(
+  jobs: AvailableJob[],
+  recruiterUids: string[]
+): AvailableJob[] {
+  if (recruiterUids.length === 0) {
+    return jobs
+  }
+
+  const sortedUids = [...recruiterUids].sort()
+
+  return jobs.map((job, index) => ({
+    ...job,
+    recruiterId: sortedUids[index % sortedUids.length],
+  }))
 }
 
 /**

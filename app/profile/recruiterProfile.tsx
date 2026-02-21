@@ -10,13 +10,21 @@ import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
 import { toast } from '../components/ui/sonner'
 import type { RecruiterProfile } from '../utils/userProfiles'
+import { availableJobs, type AvailableJob } from '../data/availableJobs'
+import {
+  assignRecruitersToJobs,
+  fetchAllRecruiters,
+  getAllRecruiterUids,
+} from '../utils/recruiterCache'
 
 export function RecruiterProfilePage({
   recruiterProfile,
   onSave,
+  recruiterUid,
 }: {
   recruiterProfile: RecruiterProfile
   onSave: (data: RecruiterProfile) => Promise<void>
+  recruiterUid: string | null
 }) {
   // Start form with data from parent - saved data
   const [form, setForm] = useState<RecruiterProfile>(recruiterProfile)
@@ -25,6 +33,27 @@ export function RecruiterProfilePage({
   useEffect(() => {
     setForm(recruiterProfile)
   }, [recruiterProfile])
+
+  // Store mock jobs assigned to this recruiter
+  const [assignedJobs, setAssignedJobs] = useState<AvailableJob[]>([])
+
+  // Fetch recruiters and assign mock jobs to the current recruiter UID
+  useEffect(() => {
+    const loadAssignedJobs = async () => {
+      if (!recruiterUid) {
+        setAssignedJobs([])
+        return
+      }
+
+      await fetchAllRecruiters()
+      const recruiterUids = getAllRecruiterUids()
+      const jobsWithRecruiters = assignRecruitersToJobs(availableJobs, recruiterUids)
+
+      setAssignedJobs(jobsWithRecruiters.filter((job) => job.recruiterId === recruiterUid))
+    }
+
+    loadAssignedJobs()
+  }, [recruiterUid])
 
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -102,6 +131,31 @@ export function RecruiterProfilePage({
             {isSaving ? 'Saving...' : 'Save'}
           </Button>
         </div>
+      </Card>
+
+      <Card className='p-6 space-y-4'>
+        <div>
+          <h2 className='text-lg font-semibold'>Your Mock Jobs</h2>
+          <p className='text-sm text-muted-foreground'>Jobs tied to your recruiter UID.</p>
+        </div>
+
+        {assignedJobs.length === 0 ? (
+          <p className='text-sm text-muted-foreground'>No mock jobs assigned yet.</p>
+        ) : (
+          <ul className='space-y-2'>
+            {assignedJobs.map((job) => (
+              <li
+                key={job.id}
+                className='rounded border p-3'
+              >
+                <div className='font-medium'>{job.title}</div>
+                <div className='text-sm text-muted-foreground'>
+                  {job.company} • {job.location}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
     </div>
   )

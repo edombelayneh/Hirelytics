@@ -396,7 +396,10 @@ function LandingPage() {
       {/* Show navbar only after we know the user's role, and not on role screen */}
       {/* FIXME: Navbar currenly has pages dedicated only to applicants */}
       {isLoaded && isSignedIn && roleLoaded && role && currentPage !== 'role' && (
-        <Navbar currentPage={currentPage} />
+        <Navbar
+          currentPage={currentPage}
+          role={role}
+        />
       )}
 
       {/* Render active page  */}
@@ -408,7 +411,6 @@ function LandingPage() {
         {currentPage === 'available' && (
           <AvailableJobsPage
             onAddApplication={handleAddApplication}
-            appliedJobIds={appliedJobIds}
             role={role}
           />
         )}
@@ -438,6 +440,7 @@ function LandingPage() {
           <RecruiterProfilePage
             recruiterProfile={recruiterProfile}
             onSave={handleSaveRecruiterProfile}
+            recruiterUid={firebaseAuth.currentUser?.uid ?? null}
           />
         )}
 

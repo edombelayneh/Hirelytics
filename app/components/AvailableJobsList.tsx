@@ -8,7 +8,11 @@ import { Search, Filter } from 'lucide-react'
 import { AvailableJob, availableJobs } from '../data/availableJobs'
 import type { Role } from '../utils/userRole'
 // Import functions to fetch real recruiter UIDs from Firebase
-import { fetchAllRecruiters, getAllRecruiterUids } from '../utils/recruiterCache'
+import {
+  assignRecruitersToJobs,
+  fetchAllRecruiters,
+  getAllRecruiterUids,
+} from '../utils/recruiterCache'
 
 interface AvailableJobsListProps {
   onApply: (job: AvailableJob) => void
@@ -36,13 +40,8 @@ export const AvailableJobsList = memo(function AvailableJobsList({
       const recruiterUids = getAllRecruiterUids()
 
       if (recruiterUids.length > 0) {
-        // Cycle through recruiter UIDs and assign each one to a job
-        // Example: if 2 recruiters exist, job 1 gets recruiter 1, job 2 gets recruiter 2, job 3 gets recruiter 1 again, etc.
-        const jobsWithRecruiters = availableJobs.map((job, index) => ({
-          ...job,
-          // Replace placeholder recruiter UID with real one from Firebase
-          recruiterId: recruiterUids[index % recruiterUids.length],
-        }))
+        // Attach recruiter UIDs to every job using a stable assignment
+        const jobsWithRecruiters = assignRecruitersToJobs(availableJobs, recruiterUids)
         // Update state with jobs that now have real recruiter UIDs
         setJobs(jobsWithRecruiters)
       }
