@@ -4,22 +4,26 @@ import { useEffect, useState } from 'react'
 import { AvailableJobsList } from '../../components/AvailableJobsList'
 import { AvailableJob } from '../../data/availableJobs'
 import type { Role } from '../../utils/userRole'
-import { useAuth } from '@clerk/nextjs'
+import { useAuth, useUser } from '@clerk/nextjs'
 import { db } from '../../lib/firebaseClient'
 import { collection, onSnapshot, doc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { Navbar } from '@/app/components/Navbar'
+
+// FIXME: UI IS TWEAKING
 
 interface JobsPageProps {
   onAddApplication: (job: AvailableJob) => void
   role?: Role | null
 }
 
-function Jobs({ onAddApplication, role }: JobsPageProps) {
+function Jobs() {
   // Get Clerk authentication state
   const { userId, isLoaded } = useAuth()
 
   // Stores job IDs the user has already applied to
   const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
+  const { user } = useUser()
+  const role = user?.publicMetadata?.role
 
   useEffect(() => {
     // Wait until Clerk finishes loading and user exists
@@ -47,16 +51,9 @@ function Jobs({ onAddApplication, role }: JobsPageProps) {
   }, [isLoaded, userId])
 
   const handleApply = async (job: AvailableJob) => {
-    // Prevent duplicate applications in the UI
     if (appliedJobIds.has(job.id)) return
-
-    // Ensure Clerk is fully loaded and user is authenticated
     if (!isLoaded || !userId) return
 
-    // Notify parent only after authentication is confirmed
-    onAddApplication(job)
-
-    // Use job.id as document ID to prevent duplicates per user
     const ref = doc(db, 'users', userId, 'applications', String(job.id))
 
     // Save application record to Firestore
@@ -85,16 +82,17 @@ function Jobs({ onAddApplication, role }: JobsPageProps) {
   return (
     <div className='min-h-screen bg-background'>
       <Navbar />
+      {/* <div className='space-y-6 max-w-5xl mx-auto'> */}
       {/* Main layout container */}
       <main className='container mx-auto px-6 py-8 space-y-8'>
         <section>
           <AvailableJobsList
             onApply={handleApply}
             appliedJobIds={appliedJobIds} // Controls disabled Apply buttons
-            role={role}
           />
         </section>
       </main>
+      {/* </div> */}
     </div>
   )
 }

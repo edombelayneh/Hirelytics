@@ -71,11 +71,7 @@ export function Navbar() {
         : [{ label: 'Home', href: '/', icon: Home, match: (p) => p === '/' }]
 
   const profileHref =
-    role === 'recruiter'
-      ? 'app/recruiter/profile'
-      : role === 'applicant'
-        ? 'app/applicant/profile'
-        : '/' // fallback
+    role === 'recruiter' ? '/recruiter/profile' : role === 'applicant' ? '/applicant/profile' : '/' // fallback
 
   return (
     <nav className='relative flex items-center justify-center border-b px-6 h-20 bg-background sticky top-0 z-50'>
