@@ -32,14 +32,21 @@ import { UserProfile } from '../data/profileData'
 import { toast } from '../components/ui/sonner'
 import { useUser } from '@clerk/nextjs'
 
+// interface ProfilePageProps {
+//   profile: UserProfile
+//   onUpdateProfile: (profile: UserProfile) => Promise<void> // async for firebase - basically waits for firebase write to finish
+// }
+
 interface ProfilePageProps {
   profile: UserProfile
-  onUpdateProfile: (profile: UserProfile) => Promise<void> // async for firebase - basically waits for firebase write to finish
+  onUpdateProfile: (profile: UserProfile) => Promise<void>
+  isOnboardingRequired: boolean
 }
 
 export const ProfilePage = memo(function ProfilePage({
   profile,
   onUpdateProfile,
+  isOnboardingRequired,
 }: ProfilePageProps) {
   const [formData, setFormData] = useState<UserProfile>(profile)
   const [isEditing, setIsEditing] = useState(false)
@@ -195,6 +202,13 @@ export const ProfilePage = memo(function ProfilePage({
     const last = formData.lastName.charAt(0).toUpperCase()
     return `${first}${last}` || 'U'
   }
+
+  const requiredFilled =
+    Boolean(formData.firstName?.trim()) &&
+    Boolean(formData.lastName?.trim()) &&
+    Boolean(formData.email?.trim())
+
+  const canSave = requiredFilled && !isSaving && (isEditing || isOnboardingRequired)
 
   return (
     <div className='space-y-6 max-w-5xl mx-auto'>
@@ -498,10 +512,10 @@ export const ProfilePage = memo(function ProfilePage({
         <Button
           size='lg'
           onClick={handleSave}
-          disabled={!isEditing || isSaving} // disable while saving
+          disabled={!canSave} // disable while saving
           className='gap-2'
         >
-          {isEditing ? (
+          {canSave ? (
             <>
               <Save className='h-4 w-4' />
               Save Changes

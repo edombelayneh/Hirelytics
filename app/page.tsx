@@ -481,10 +481,17 @@ function LandingPage() {
             }
           />
         )}
+        {/* {currentPage === 'profile' && role === 'applicant' && (
+          <ProfilePage
+            profile={profile}
+            onUpdateProfile={handleUpdateProfile}
+          />
+        )} */}
         {currentPage === 'profile' && role === 'applicant' && (
           <ProfilePage
             profile={profile}
             onUpdateProfile={handleUpdateProfile}
+            isOnboardingRequired={!applicantProfileCompleted}
           />
         )}
 
