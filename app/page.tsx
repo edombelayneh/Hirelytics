@@ -18,7 +18,7 @@ import { firebaseAuth } from './lib/firebaseClient'
 import { JobApplication } from './data/mockData'
 import { AvailableJob } from './data/availableJobs'
 import { RolePage } from './components/RolePage'
-import { getOnboardingStatus, getUserRole, createUserDoc, type Role } from './utils/userRole'
+import { getOnboardingStatus, createUserDoc, type Role } from './utils/userRole'
 import { RecruiterProfilePage } from './profile/recruiterProfile'
 import {
   defaultRecruiterProfile,
@@ -35,21 +35,38 @@ function LandingPage() {
   const { isSignedIn, isLoaded, userId } = useAuth()
   const [currentPage, setCurrentPage] = useState<Page>('home')
 
-  const [showProfileBanner, setShowProfileBanner] = useState(false) //redirect banner
+  // redirect banner
+  const [showProfileBanner, setShowProfileBanner] = useState(false)
 
   const [applications, setApplications] = useState<JobApplication[]>([])
   const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
   const [profile, setProfile] = useState<UserProfile>(defaultProfile)
 
-  const [firebaseReady, setFirebaseReady] = useState(false) // tells us when Firebase is signed in (after linkClerkToFirebase works)
-  const [role, setRole] = useState<Role | null>(null) // stores the user role from Firestore
-  const [roleLoaded, setRoleLoaded] = useState(false) // tells us when we finished checking Firestore for the role
+  // Firebase + Role state
+  const [firebaseReady, setFirebaseReady] = useState(false)
+  const [role, setRole] = useState<Role | null>(null)
+  const [roleLoaded, setRoleLoaded] = useState(false)
 
+  // Onboarding state
   const [applicantProfileCompleted, setApplicantProfileCompleted] = useState(false)
   const [recruiterProfileCompleted, setRecruiterProfileCompleted] = useState(false)
 
-  // state of recruiter profile
+  // Recruiter profile state
   const [recruiterProfile, setRecruiterProfile] = useState<RecruiterProfile | null>(null)
+
+  // ---------------------------
+  // Helpers: what "complete" means
+  // (Adjust these required fields if your required list changes.)
+  // ---------------------------
+  const isNonEmpty = (v: unknown) => typeof v === 'string' && v.trim().length > 0
+
+  const isApplicantProfileComplete = (p: UserProfile) => {
+    return isNonEmpty(p.firstName) && isNonEmpty(p.lastName) && isNonEmpty(p.email)
+  }
+
+  const isRecruiterProfileComplete = (p: RecruiterProfile) => {
+    return isNonEmpty(p.companyName) && isNonEmpty(p.recruiterEmail)
+  }
 
   // ---------------------------
   // NAVIGATION + AUTH PROTECTION
@@ -71,19 +88,22 @@ function LandingPage() {
               ? 'addNewJob'
               : hash === '/profile'
                 ? 'profile'
-                : 'home'
+                : hash === '/role'
+                  ? 'role'
+                  : 'home'
 
       const isProtected =
         next === 'available' ||
         next === 'applications' ||
         next === 'profile' ||
-        next === 'addNewJob'
+        next === 'addNewJob' ||
+        next === 'role'
 
       if (isProtected && !isSignedIn) {
         setCurrentPage('home')
         toast('Please sign in to continue', { description: 'This area is for members only.' })
         const btn = document.getElementById('__sign_in_bridge__') as HTMLButtonElement | null
-        btn?.click() // Opens Clerk sign-in modal
+        btn?.click()
       } else {
         setCurrentPage(next)
       }
@@ -96,46 +116,39 @@ function LandingPage() {
 
   // ---------------------------
   // CLERK ↔ FIREBASE LINKING
-  // When user signs in with Clerk, also sign them into Firebase using a custom token
-  // When user signs out, sign them out of Firebase
   // ---------------------------
   useEffect(() => {
-    if (!isLoaded) return // Wait for Clerk to load
+    if (!isLoaded) return
 
     if (isSignedIn) {
-      // When Clerk signs in, also sign into Firebase
       linkClerkToFirebase()
         .then(() => {
           console.log('Clerk linked to Firebase')
-          setFirebaseReady(true) // Firebase is ready now
+          setFirebaseReady(true)
         })
         .catch((err: unknown) => {
           console.error('Firebase link error', err)
-          setFirebaseReady(false) // If linking failed, Firebase is not ready
+          setFirebaseReady(false)
         })
     } else {
-      // When Clerk signs out, also sign out of Firebase
       fbSignOut(firebaseAuth).catch(() => {})
 
       // Reset state so next login is clean
-      setFirebaseReady(false) // Firebase is not ready
+      setFirebaseReady(false)
       setRole(null)
       setRoleLoaded(false)
       setProfile(defaultProfile)
       setRecruiterProfile(null)
       setApplicantProfileCompleted(false)
       setRecruiterProfileCompleted(false)
+      setShowProfileBanner(false)
     }
   }, [isSignedIn, isLoaded])
 
   // ---------------------------
   // USER ROLE HANDLING
-  // After Firebase is ready, check Firestore for users/{uid}
-  // If no doc exists -> send them to role picker
-  // If doc exists -> route them to the correct default page (only if they are on home/role for now)
   // ---------------------------
   useEffect(() => {
-    // Only run when everything is ready
     if (!isLoaded) return
     if (!isSignedIn) return
     if (!firebaseReady) return
@@ -145,7 +158,6 @@ function LandingPage() {
 
       const uid = firebaseAuth.currentUser?.uid
 
-      // If Firebase user is missing stop
       if (!uid) {
         setRole(null)
         setApplicantProfileCompleted(false)
@@ -154,7 +166,7 @@ function LandingPage() {
         return
       }
 
-      // get role and onboarding status from firebase
+      // Get role and onboarding status from Firestore
       const status = await getOnboardingStatus(uid)
       const foundRole = status.role
 
@@ -171,7 +183,7 @@ function LandingPage() {
         return
       }
 
-      // If user DOES have a role, and they are on home or role page send them to the dashboard page for that role
+      // If user DOES have a role, and they are on home or role page, send them to the default page
       const currentHash = window.location.hash.slice(1)
       const onHome = currentHash === '' || currentHash === '/' || currentHash === '/home'
       const onRolePage = currentHash === '/role'
@@ -191,9 +203,9 @@ function LandingPage() {
   // ---------------------------
   // LOAD PROFILE FROM FIRESTORE
   // After role is loaded, fetch the profile data for the user based on their role
+  // Also: auto-mark onboarding complete if required fields are already present
   // ---------------------------
   useEffect(() => {
-    // Only load profile once we are signed in and Firebase is ready
     if (!isLoaded) return
     if (!isSignedIn) return
     if (!firebaseReady) return
@@ -203,20 +215,32 @@ function LandingPage() {
       const uid = firebaseAuth.currentUser?.uid
       if (!uid) return
 
-      // If applicant, load applicant profile
       if (role === 'applicant') {
         const saved = await getUserProfile(uid)
-        if (saved) setProfile(saved)
+        const nextProfile = saved ?? defaultProfile
+        setProfile(nextProfile)
+
+        // Auto-unlock if required fields exist
+        if (isApplicantProfileComplete(nextProfile)) {
+          setApplicantProfileCompleted(true)
+          setShowProfileBanner(false)
+        }
       }
 
-      // If recruiter, load recruiter profile
       if (role === 'recruiter') {
         const saved = await getRecruiterProfile(uid)
-        setRecruiterProfile(saved ?? defaultRecruiterProfile)
+        const nextRecruiter = saved ?? defaultRecruiterProfile
+        setRecruiterProfile(nextRecruiter)
+
+        if (isRecruiterProfileComplete(nextRecruiter)) {
+          setRecruiterProfileCompleted(true)
+          setShowProfileBanner(false)
+        }
       }
     }
 
     loadProfile().catch((err) => console.error('Load profile error:', err))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, isSignedIn, firebaseReady, roleLoaded, role])
 
   // ---------------------------
@@ -229,7 +253,6 @@ function LandingPage() {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1)
 
-      // Convert URL hash to internal page name
       const next: Page =
         hash === '/applications'
           ? 'applications'
@@ -243,7 +266,6 @@ function LandingPage() {
                   ? 'role'
                   : 'home'
 
-      // Pages that require sign-in
       const isProtected =
         next === 'available' ||
         next === 'applications' ||
@@ -257,14 +279,12 @@ function LandingPage() {
         toast('Please sign in to continue', {
           description: 'This area is for members only.',
         })
-
-        // Open Clerk sign-in modal
         const btn = document.getElementById('__sign_in_bridge__') as HTMLButtonElement | null
         btn?.click()
         return
       }
 
-      // If signed in but we are still checking Firestore role avoid navigating into protected pages
+      // If signed in but still checking Firestore role, avoid navigating into protected pages
       if (isSignedIn && isProtected && !roleLoaded) {
         setCurrentPage('home')
         return
@@ -277,9 +297,10 @@ function LandingPage() {
       }
 
       // If onboarding is NOT complete, force them to /profile
+      // NOTE: We are NOT disabling the Save button. We are just blocking navigation
+      // until a valid save occurs (which sets *_ProfileCompleted true).
       if (isSignedIn && roleLoaded && role) {
         const needsApplicantProfile = role === 'applicant' && !applicantProfileCompleted
-
         const needsRecruiterProfile = role === 'recruiter' && !recruiterProfileCompleted
 
         if ((needsApplicantProfile || needsRecruiterProfile) && next !== 'profile') {
@@ -289,8 +310,7 @@ function LandingPage() {
         }
       }
 
-      // If role exists, block the wrong pages -- applicant vs recruiter pages
-      // FIXME: here make sure we create more recruiter based pages later on
+      // Role-based route blocking
       if (isSignedIn && roleLoaded && role) {
         const applicantOnly = next === 'available' || next === 'applications'
         const recruiterOnly = next === 'addNewJob'
@@ -314,7 +334,6 @@ function LandingPage() {
         }
       }
 
-      // If all checks pass, allow navigation
       setCurrentPage(next)
     }
 
@@ -330,12 +349,10 @@ function LandingPage() {
     const uid = firebaseAuth.currentUser?.uid
     if (!uid) return
 
-    // Save profile in Firestore
     await saveUserProfile(uid, updatedProfile)
-
-    // Update local state so UI also updates
     setProfile(updatedProfile)
     setApplicantProfileCompleted(true)
+    setShowProfileBanner(false)
   }
 
   // ----------------
@@ -345,39 +362,32 @@ function LandingPage() {
     const uid = firebaseAuth.currentUser?.uid
     if (!uid) return
 
-    // Save recruiter profile in Firestore
     await saveRecruiterProfile(uid, updated)
-
-    // Update local state so UI updates too
     setRecruiterProfile(updated)
     setRecruiterProfileCompleted(true)
+    setShowProfileBanner(false)
   }
 
   // ---------------------------
   // ROLE PICKER SAVE HANDLER
-  // This runs when the user clicks "Apply to jobs" or "Post jobs"
   // ---------------------------
   const handleSelectRole = async (picked: Role) => {
     const uid = firebaseAuth.currentUser?.uid
     if (!uid) return
 
-    // Create the user doc in Firestore with their role
     await createUserDoc({
       uid,
       role: picked,
       clerkUserId: userId ?? undefined,
     })
 
-    // Save role locally so UI updates right away
     setRole(picked)
 
-    // Immediately mark profile as incomplete (locks UI)
+    // Mark onboarding incomplete until they save a valid profile
     setApplicantProfileCompleted(false)
     setRecruiterProfileCompleted(false)
 
     setShowProfileBanner(true)
-
-    // Send them to profile page first
     window.location.hash = '/profile'
   }
 
@@ -405,8 +415,6 @@ function LandingPage() {
     setApplications((prev) => [newApp, ...prev])
     setAppliedJobIds((prev) => new Set([...prev, job.id]))
     toast.success(`Successfully applied to ${job.title} at ${job.company}`)
-
-    // Navigate to applications page
     window.location.hash = '/applications'
   }
 
@@ -414,19 +422,13 @@ function LandingPage() {
     <div className='min-h-screen bg-background'>
       <Toaster />
       <SignInButtonBridge />
-      {currentPage !== 'role' &&
-        isSignedIn &&
-        roleLoaded &&
-        role &&
-        !(
-          currentPage === 'profile' &&
-          showProfileBanner &&
-          ((role === 'applicant' && !applicantProfileCompleted) ||
-            (role === 'recruiter' && !recruiterProfileCompleted))
-        ) && <Navbar currentPage={currentPage} />}
-      {/* Show navbar only after we know the user's role, not on role screen, and not when profile banner is showing */}
-      {/* FIXME: Navbar currenly has pages dedicated only to applicants */}
-      {/* This is where the red banner is shown after being redirected to /profile for first time user */}
+
+      {/* Navbar: always show once signed in + role is known (not on role picker). */}
+      {currentPage !== 'role' && isSignedIn && roleLoaded && role && (
+        <Navbar currentPage={currentPage} />
+      )}
+
+      {/* Red banner shown when redirected to /profile for onboarding */}
       {currentPage === 'profile' &&
         isSignedIn &&
         roleLoaded &&
@@ -437,7 +439,7 @@ function LandingPage() {
           <div className='w-full bg-red-600 text-white'>
             <div className='container mx-auto px-6 py-3 flex items-center justify-between'>
               <div>
-                <div className='font-semibold'>Tell us about yourself</div>
+                <div className='font-semibold'>Please confirm account information</div>
                 <div className='text-sm opacity-90'>
                   Please complete the required fields before continuing.
                 </div>
@@ -453,7 +455,7 @@ function LandingPage() {
           </div>
         )}
 
-      {/* Render active page  */}
+      {/* Render active page */}
       <main className={currentPage !== 'home' ? 'container mx-auto px-6 py-8' : ''}>
         {currentPage === 'home' && <HomePage />}
 
@@ -466,6 +468,7 @@ function LandingPage() {
             role={role}
           />
         )}
+
         {currentPage === 'applications' && (
           <MyApplicationsPage
             applications={applications}
@@ -481,12 +484,7 @@ function LandingPage() {
             }
           />
         )}
-        {/* {currentPage === 'profile' && role === 'applicant' && (
-          <ProfilePage
-            profile={profile}
-            onUpdateProfile={handleUpdateProfile}
-          />
-        )} */}
+
         {currentPage === 'profile' && role === 'applicant' && (
           <ProfilePage
             profile={profile}
