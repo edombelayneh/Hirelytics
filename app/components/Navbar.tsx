@@ -4,24 +4,26 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton, useUser } from '@clerk/nextjs'
 import { Home, Briefcase, BarChart3, User, PlusCircle } from 'lucide-react'
-
+// Supported user roles
 type Role = 'applicant' | 'recruiter' | undefined
-
+// Nav item structure
 type NavItem = {
   label: string
   href: string
   icon: React.ElementType
-  match: (pathname: string) => boolean
+  match: (pathname: string) => boolean // Determines active state
 }
 
 export function Navbar() {
+  // Current route
   const pathname = usePathname()
+  // Clerk user
   const { user } = useUser()
 
-  // 1) prefer Clerk metadata
+  // Prefer role from Clerk metadata
   const metaRole = (user?.publicMetadata?.role as Role) ?? undefined
 
-  // 2) fallback infer role from route prefix (helps before metadata shows up)
+  // Fallback: infer role from URL
   const inferredRole: Role = pathname.startsWith('/recruiter')
     ? 'recruiter'
     : pathname.startsWith('/applicant')
@@ -29,7 +31,7 @@ export function Navbar() {
       : undefined
 
   const role = metaRole ?? inferredRole
-
+  // Applicant navigation items
   const applicantNav: NavItem[] = [
     { label: 'Home', href: '/home', icon: Home, match: (p) => p === '/home' },
     {
@@ -45,7 +47,7 @@ export function Navbar() {
       match: (p) => p.startsWith('/applicant/applications'),
     },
   ]
-
+  // Recruiter navigation items
   const recruiterNav: NavItem[] = [
     { label: 'Home', href: '/home', icon: Home, match: (p) => p === '/home' },
     {
@@ -69,7 +71,7 @@ export function Navbar() {
       : role === 'applicant'
         ? applicantNav
         : [{ label: 'Home', href: '/', icon: Home, match: (p) => p === '/' }]
-
+  // Profile route depends on role
   const profileHref =
     role === 'recruiter' ? '/recruiter/profile' : role === 'applicant' ? '/applicant/profile' : '/' // fallback
 
@@ -93,7 +95,7 @@ export function Navbar() {
       <div className='flex gap-12'>
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = item.match(pathname)
+          const isActive = item.match(pathname) // Highlight active route
 
           return (
             <Link
@@ -116,6 +118,7 @@ export function Navbar() {
       <div className='absolute right-6 flex items-center gap-3'>
         <UserButton afterSignOutUrl='/'>
           <UserButton.MenuItems>
+            {/* Profile redirect */}
             <UserButton.Action
               label='My Profile'
               labelIcon={<User className='h-4 w-4' />}

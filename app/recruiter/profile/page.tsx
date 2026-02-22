@@ -8,16 +8,18 @@ import {
   saveRecruiterProfile,
   type RecruiterProfile,
 } from '../../utils/userProfiles'
+// Empty/default recruiter profile state
 
 const defaultRecruiterProfile: RecruiterProfile = {
   companyName: '',
   companyWebsite: '',
   recruiterTitle: '',
 }
-
+// Route wrapper: fetches + saves recruiter profile
 export default function RecruiterProfileRoute() {
+  // Local profile state
   const [profile, setProfile] = useState<RecruiterProfile>(defaultRecruiterProfile)
-
+  // Load saved profile on mount
   useEffect(() => {
     const load = async () => {
       const uid = firebaseAuth.currentUser?.uid
@@ -26,16 +28,16 @@ export default function RecruiterProfileRoute() {
       if (saved) setProfile(saved)
     }
 
-    load().catch(console.error)
+    load().catch(console.error) // Log load errors
   }, [])
-
+  // Persist profile changes
   const handleSave = async (updated: RecruiterProfile) => {
     const uid = firebaseAuth.currentUser?.uid
     if (!uid) return
     await saveRecruiterProfile(uid, updated)
     setProfile(updated)
   }
-
+  // Render UI component with data + save handler
   return (
     <RecruiterProfilePage
       recruiterProfile={profile}

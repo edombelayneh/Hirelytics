@@ -5,8 +5,9 @@
 // - Shows a redirecting overlay and then sends the user to the "Available Jobs" page using hash navigation.
 
 import { useState } from 'react'
-
+// Page for recruiters to create a new job
 export default function AddNewJobPage() {
+  // Form field state
   const [jobName, setJobName] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [recruiterEmail, setRecruiterEmail] = useState('')
@@ -27,6 +28,7 @@ export default function AddNewJobPage() {
     ''
   )
   const [applicationDeadline, setApplicationDeadline] = useState('')
+  // UI state
 
   const [message, setMessage] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -36,7 +38,7 @@ export default function AddNewJobPage() {
   // This prevents the form from default submission.
   // Show a short success message and redirect overlay.
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault() // Prevent page reload
     setMessage(null)
 
     // Basic validation for required fields.
@@ -46,7 +48,7 @@ export default function AddNewJobPage() {
     }
 
     setSubmitting(true)
-
+    // Create job object (currently just logged)
     const jobData = {
       jobName,
       companyName,
@@ -67,7 +69,7 @@ export default function AddNewJobPage() {
     }
 
     console.log('New job submitted: ', jobData)
-
+    // Show success + redirect overlay
     setMessage('Job submitted. Redirecting to Available Jobs...')
     setRedirecting(true)
 
@@ -79,7 +81,7 @@ export default function AddNewJobPage() {
 
   return (
     <main className='min-h-screen bg-gray-50'>
-      {/* redirect overlay  */}
+      {/* Overlay shown during redirect */}
       {redirecting && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
           <div className='bg-white rounded-lg px-6 py-4 shadow-lg text-center'>
@@ -97,7 +99,7 @@ export default function AddNewJobPage() {
 
         {/* Validation / status message. */}
         {message && <div className='rounded border p-3 text-sm mb-4'>{message}</div>}
-
+        {/* Job form */}
         <form
           onSubmit={handleSubmit}
           className='space-y-5'

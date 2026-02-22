@@ -16,7 +16,7 @@ vi.mock('@clerk/nextjs', () => ({
 }))
 
 /* ---------------------------------------------
-   MOCK: protectedAction  (FIXED PATH)
+   MOCK: protectedAction
 --------------------------------------------- */
 const protectedActionMock = vi.hoisted(() => ({
   protectedAction: vi.fn(),
@@ -35,7 +35,7 @@ vi.mock('framer-motion', () => {
 })
 
 /* ---------------------------------------------
-   MOCK: UI components (FIXED PATHS)
+   MOCK: UI components 
 --------------------------------------------- */
 vi.mock('../../app/components/ui/button', () => ({
   Button: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
@@ -74,21 +74,27 @@ vi.mock('lucide-react', () => ({
 describe('HomePage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // default state: user is signed out
     clerk.useAuth.mockReturnValue({ isSignedIn: false })
-
+    // default protectedAction behavior:
+    // only run onAuthed() if the user is signed in
     protectedActionMock.protectedAction.mockImplementation(
       ({ isSignedIn, onAuthed }: { isSignedIn: boolean; onAuthed: () => void }) => {
         if (isSignedIn) onAuthed()
       }
     )
-
+    // reset the hash so each test starts clean
     window.location.hash = ''
   })
 
+  // Clean up the DOM after every test so state/DOM from one test
+  // can’t leak into the next test and cause flaky assertions.
   afterEach(() => {
     cleanup()
   })
 
+  // Verifies the top “hero” section renders the main marketing headline
+  // and the two primary call-to-action buttons users see first.
   it('renders the hero section with the main headline and primary buttons', () => {
     render(<HomePage />)
 
@@ -96,7 +102,8 @@ describe('HomePage', () => {
     expect(screen.getByText('Browse Available Jobs')).toBeTruthy()
     expect(screen.getByText('View My Applications')).toBeTruthy()
   })
-
+  // Confirms the stats row renders all key values and their labels.
+  // This protects against accidental copy changes or missing UI blocks.
   it('renders the stats row with all values and labels', () => {
     render(<HomePage />)
 
@@ -110,7 +117,8 @@ describe('HomePage', () => {
     expect(screen.getByText('Updates')).toBeTruthy()
     expect(screen.getByText('Dashboard')).toBeTruthy()
   })
-
+  // Ensures the “Features” section renders and all expected feature cards/titles exist.
+  // Also checks there’s at least one card rendered (sanity check for the grid).
   it('renders the features section and all feature titles', () => {
     render(<HomePage />)
 
@@ -125,7 +133,8 @@ describe('HomePage', () => {
 
     expect(screen.getAllByTestId('card').length).toBeGreaterThan(0)
   })
-
+  // Verifies the “How It Works” section shows all steps.
+  // This protects the onboarding flow messaging and step titles from being removed.
   it('renders the How It Works section with all three steps', () => {
     render(<HomePage />)
 
@@ -134,7 +143,8 @@ describe('HomePage', () => {
     expect(screen.getByText('Review & Update')).toBeTruthy()
     expect(screen.getByText('AI Feedback')).toBeTruthy()
   })
-
+  // Confirms the bottom call-to-action section renders the headline
+  // and the two CTA buttons that route users into the app.
   it('renders the CTA section and both CTA buttons', () => {
     render(<HomePage />)
 
@@ -142,7 +152,8 @@ describe('HomePage', () => {
     expect(screen.getByText('Get Started Now')).toBeTruthy()
     expect(screen.getByText('View Dashboard')).toBeTruthy()
   })
-
+  // Verifies footer branding is present and that nav links point to the intended routes.
+  // This catches accidental changes to hrefs (hash routing + anchor links).
   it('renders the footer and links point to the correct routes', () => {
     render(<HomePage />)
 
@@ -156,7 +167,8 @@ describe('HomePage', () => {
     expect(jobsLink.getAttribute('href')).toBe('#/jobs')
     expect(appsLink.getAttribute('href')).toBe('#/applications')
   })
-
+  // Signed-out behavior: clicking hero buttons should trigger the protectedAction gate
+  // (e.g., sign-in prompt) and should NOT navigate/change the URL hash.
   it('when signed OUT, clicking hero buttons calls protectedAction and does not change the hash', () => {
     clerk.useAuth.mockReturnValue({ isSignedIn: false })
 
@@ -171,6 +183,8 @@ describe('HomePage', () => {
     expect(window.location.hash).toBe('')
   })
 
+  // Signed-in behavior: clicking hero buttons should navigate by updating the hash.
+  // This confirms routing logic is wired correctly when auth is valid.
   it('when signed IN, hero buttons update the hash correctly', () => {
     clerk.useAuth.mockReturnValue({ isSignedIn: true })
 
@@ -182,7 +196,8 @@ describe('HomePage', () => {
     fireEvent.click(screen.getByText('View My Applications'))
     expect(window.location.hash).toBe('#/applications')
   })
-
+  // Signed-in behavior for CTA buttons too (not just hero buttons).
+  // Ensures “Get Started Now” and “View Dashboard” route to the right pages.
   it('when signed IN, CTA buttons also route correctly', () => {
     clerk.useAuth.mockReturnValue({ isSignedIn: true })
 
@@ -194,7 +209,9 @@ describe('HomePage', () => {
     fireEvent.click(screen.getByText('View Dashboard'))
     expect(window.location.hash).toBe('#/applications')
   })
-
+  // Ensures we pass the correct auth state into protectedAction.
+  // This checks the integration contract: protectedAction receives isSignedIn
+  // and a callback that should run when the user is authenticated.
   it('passes the correct auth state into protectedAction', () => {
     clerk.useAuth.mockReturnValue({ isSignedIn: false })
     render(<HomePage />)

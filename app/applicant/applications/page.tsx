@@ -59,7 +59,7 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
   // Handle status updates from the table
   const handleStatusChange = async (id: string, status: JobApplication['status']) => {
     if (!isLoaded || !userId) return
-
+    // Update status in Firestore
     await updateDoc(doc(db, 'users', userId, 'applications', id), {
       status,
       updatedAt: serverTimestamp(),
@@ -69,7 +69,7 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
   // Handle notes updates from the table
   const handleNotesChange = async (id: string, notes: string) => {
     if (!isLoaded || !userId) return
-
+    // Update notes in Firestore
     await updateDoc(doc(db, 'users', userId, 'applications', id), {
       notes,
       updatedAt: serverTimestamp(),
