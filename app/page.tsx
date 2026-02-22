@@ -4,13 +4,8 @@ import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth, useUser } from '@clerk/nextjs'
 import HomePage from './home/page'
-import AvailableJobsPage from './applicant/jobs/page'
-import MyApplicationsPage from './applicant/applications/page'
-import AddNewJobPage from './recruiter/addNewJob/page'
 import type { UserProfile } from './data/profileData'
 import { defaultProfile } from './data/profileData'
-import { ProfilePage } from './applicant/profile/ProfilePage'
-import { Navbar } from './components/Navbar'
 import { Toaster, toast } from './components/ui/sonner'
 import { SignInButtonBridge } from './utils/protectedAction'
 import { linkClerkToFirebase } from './utils/linkClerkToFirebase'
@@ -18,9 +13,7 @@ import { signOut as fbSignOut } from 'firebase/auth'
 import { firebaseAuth } from './lib/firebaseClient'
 import { JobApplication } from './data/mockData'
 import { AvailableJob } from './data/availableJobs'
-import RolePage from './role/page'
 import { getUserRole, createUserDoc, type Role } from './utils/userRole'
-import { RecruiterProfilePage } from './recruiter/profile/RecruiterProfilePage'
 import {
   getUserProfile,
   saveUserProfile,
@@ -28,13 +21,13 @@ import {
   saveRecruiterProfile,
   type RecruiterProfile,
 } from './utils/userProfiles'
+import { RolePageUI } from './components/RolePage'
 
 type Page = 'home' | 'available' | 'applications' | 'profile' | 'addNewJob' | 'role'
 
 function LandingPage() {
   const { user } = useUser()
   const { isSignedIn, isLoaded, userId } = useAuth()
-  const [currentPage, setCurrentPage] = useState<Page>('home')
 
   const [applications, setApplications] = useState<JobApplication[]>([])
   const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
@@ -88,8 +81,6 @@ function LandingPage() {
       router.replace('/')
       return
     }
-
-    setCurrentPage(next)
   }, [pathname, isSignedIn, isLoaded, router])
 
   // ---------------------------
@@ -261,7 +252,6 @@ function LandingPage() {
 
     // If signed out, block protected pages
     if (isProtected && !isSignedIn) {
-      setCurrentPage('home')
       toast('Please sign in to continue', {
         description: 'This area is for members only.',
       })
@@ -277,7 +267,6 @@ function LandingPage() {
 
     // If signed in but role not loaded yet, don't allow protected pages
     if (isSignedIn && isProtected && !roleLoaded) {
-      setCurrentPage('home')
       return
     }
 
@@ -314,7 +303,6 @@ function LandingPage() {
     }
 
     // allow navigation
-    setCurrentPage(next)
   }, [pathname, isSignedIn, isLoaded, roleLoaded, role, router])
 
   // ----------------
@@ -427,7 +415,7 @@ function LandingPage() {
       {isSignedIn && !roleLoaded && <main className='container mx-auto px-6 py-8'>Loading...</main>}
 
       {/* Signed in, role loaded, no role: show role picker */}
-      {isSignedIn && roleLoaded && !role && <RolePage onSelectRole={handleSelectRole} />}
+      {isSignedIn && roleLoaded && !role && <RolePageUI onSelectRole={handleSelectRole} />}
 
       {/* Signed in, role exists: we redirect in useEffect; optionally render a loading shell */}
       {isSignedIn && roleLoaded && role && (
