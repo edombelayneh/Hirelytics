@@ -70,30 +70,40 @@ vi.mock('../../../app/lib/firebaseClient', () => ({
 }))
 
 // Firestore spies we want to assert against
+type DocPath = { __docPath: unknown[] }
+type CollectionPath = { __collection: unknown[] }
+type SnapshotDoc<T> = { id: string; data: () => T }
+type Snapshot<T> = { docs: Array<SnapshotDoc<T>> }
+type Unsubscribe = () => void
+
 const updateDocMock = vi.fn()
-const docMock = vi.fn((...parts: any[]) => ({ __docPath: parts }))
 const serverTimestampMock = vi.fn(() => 'SERVER_TS')
+
+// keep it strongly typed without any
+const docMock = vi.fn((...parts: unknown[]): DocPath => ({ __docPath: parts }))
 
 vi.mock('firebase/firestore', () => ({
   // query builders (not important for behavior assertions here)
-  query: vi.fn((x) => x),
-  collection: vi.fn((...args) => ({ __collection: args })),
+  query: vi.fn((x: unknown) => x),
+  collection: vi.fn((...args: unknown[]): CollectionPath => ({ __collection: args })),
   orderBy: vi.fn(),
 
   // real-time subscription: IMPORTANT — call callback with docs
-  onSnapshot: vi.fn((_q, callback) => {
-    callback({
-      docs: mockApplications.map((a) => ({
-        id: a.id,
-        data: () => a,
-      })),
-    })
-    return vi.fn() // unsubscribe
-  }),
+  onSnapshot: vi.fn(
+    (_q: unknown, callback: (snap: Snapshot<JobApplication>) => void): Unsubscribe => {
+      callback({
+        docs: mockApplications.map((a) => ({
+          id: a.id,
+          data: () => a,
+        })),
+      })
+      return vi.fn() as Unsubscribe
+    }
+  ),
 
   // writes
-  doc: (...args: any[]) => docMock(...args),
-  updateDoc: (...args: any[]) => updateDocMock(...args),
+  doc: (...args: unknown[]) => docMock(...args),
+  updateDoc: (...args: unknown[]) => updateDocMock(...args),
   serverTimestamp: () => serverTimestampMock(),
 }))
 

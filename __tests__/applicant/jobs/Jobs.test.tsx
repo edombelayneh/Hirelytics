@@ -26,8 +26,15 @@ vi.mock('../../../app/lib/firebaseClient', () => ({
 }))
 
 // Firestore spies
-const collectionMock = vi.fn((...args: any[]) => ({ __collection: args }))
-const docMock = vi.fn((...args: any[]) => ({ __docPath: args }))
+type DocPath = { __docPath: unknown[] }
+type CollectionPath = { __collection: unknown[] }
+type Unsubscribe = () => void
+
+type SnapshotDoc = { id: string }
+type Snapshot = { docs: SnapshotDoc[] }
+
+const collectionMock = vi.fn((...args: unknown[]): CollectionPath => ({ __collection: args }))
+const docMock = vi.fn((...args: unknown[]): DocPath => ({ __docPath: args }))
 const setDocMock = vi.fn()
 const serverTimestampMock = vi.fn(() => 'SERVER_TS')
 
@@ -35,16 +42,16 @@ const serverTimestampMock = vi.fn(() => 'SERVER_TS')
 let snapshotDocIds: string[] = []
 
 vi.mock('firebase/firestore', () => ({
-  collection: (...args: any[]) => collectionMock(...args),
-  doc: (...args: any[]) => docMock(...args),
-  setDoc: (...args: any[]) => setDocMock(...args),
+  collection: (...args: unknown[]) => collectionMock(...args),
+  doc: (...args: unknown[]) => docMock(...args),
+  setDoc: (...args: unknown[]) => setDocMock(...args),
   serverTimestamp: () => serverTimestampMock(),
 
-  onSnapshot: vi.fn((_ref: any, callback: any) => {
+  onSnapshot: vi.fn((_ref: unknown, callback: (snap: Snapshot) => void): Unsubscribe => {
     callback({
       docs: snapshotDocIds.map((id) => ({ id })),
     })
-    return vi.fn()
+    return vi.fn() as Unsubscribe
   }),
 }))
 
