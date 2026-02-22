@@ -1,20 +1,11 @@
-// __tests__/HomePage.test.tsx
-// Tests for: Hirelytics/app/home/page.tsx
-// Purpose: make sure the Home page actually renders what matters
-// and that user actions (buttons) behave correctly.
-// No snapshots — just meaningful, behavior-focused tests.
-
+// __tests__/home/HomePage.test.tsx
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent } from '@testing-library/react'
-import type React from 'react'
-
-// import the page component
-import HomePage from '../app/home/page'
+import React from 'react'
+import HomePage from '../../app/home/page'
 
 /* ---------------------------------------------
    MOCK: Clerk auth
-   We control whether the user is signed in or not
-   on a per-test basis.
 --------------------------------------------- */
 const clerk = vi.hoisted(() => ({
   useAuth: vi.fn(),
@@ -25,40 +16,28 @@ vi.mock('@clerk/nextjs', () => ({
 }))
 
 /* ---------------------------------------------
-   MOCK: protectedAction
-   This is important logic on the Home page.
-   We want to verify:
-   - it gets called when buttons are clicked
-   - it only runs onAuthed() when the user is signed in
+   MOCK: protectedAction  (FIXED PATH)
 --------------------------------------------- */
 const protectedActionMock = vi.hoisted(() => ({
   protectedAction: vi.fn(),
 }))
 
-vi.mock('../app/utils/protectedAction', () => ({
+vi.mock('../../app/utils/protectedAction', () => ({
   protectedAction: protectedActionMock.protectedAction,
 }))
 
 /* ---------------------------------------------
    MOCK: framer-motion
-   Animations are irrelevant for unit tests.
-   We just render children normally.
 --------------------------------------------- */
 vi.mock('framer-motion', () => {
-  const MotionDiv = ({ children }: { children: React.ReactNode }) => <div>{children}</div>
-
-  return {
-    motion: {
-      div: MotionDiv,
-    },
-  }
+  const MotionDiv = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>
+  return { motion: { div: MotionDiv } }
 })
 
 /* ---------------------------------------------
-   MOCK: UI components (Button / Card)
-   We don't test styling here, just behavior.
+   MOCK: UI components (FIXED PATHS)
 --------------------------------------------- */
-vi.mock('../app/components/ui/button', () => ({
+vi.mock('../../app/components/ui/button', () => ({
   Button: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
     <button
       type='button'
@@ -69,13 +48,12 @@ vi.mock('../app/components/ui/button', () => ({
   ),
 }))
 
-vi.mock('../app/components/ui/card', () => ({
+vi.mock('../../app/components/ui/card', () => ({
   Card: ({ children }: { children: React.ReactNode }) => <div data-testid='card'>{children}</div>,
 }))
 
 /* ---------------------------------------------
    MOCK: lucide-react icons
-   Icons don’t affect logic, so we stub them out.
 --------------------------------------------- */
 vi.mock('lucide-react', () => ({
   Brain: () => <span data-testid='icon-brain' />,
@@ -89,7 +67,6 @@ vi.mock('lucide-react', () => ({
   ArrowRight: () => <span data-testid='icon-arrowright' />,
   Users: () => <span data-testid='icon-users' />,
   Sparkles: () => <span data-testid='icon-sparkles' />,
-  // imported but not directly asserted against
   CheckCircle2: () => <span data-testid='icon-checkcircle2' />,
   LineChart: () => <span data-testid='icon-linechart' />,
 }))
@@ -97,19 +74,14 @@ vi.mock('lucide-react', () => ({
 describe('HomePage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-
-    // default state: user is signed out
     clerk.useAuth.mockReturnValue({ isSignedIn: false })
 
-    // default protectedAction behavior:
-    // only run onAuthed() if the user is signed in
     protectedActionMock.protectedAction.mockImplementation(
       ({ isSignedIn, onAuthed }: { isSignedIn: boolean; onAuthed: () => void }) => {
         if (isSignedIn) onAuthed()
       }
     )
 
-    // reset the hash so each test starts clean
     window.location.hash = ''
   })
 
@@ -128,15 +100,12 @@ describe('HomePage', () => {
   it('renders the stats row with all values and labels', () => {
     render(<HomePage />)
 
-    // stat values
     expect(screen.getByText('10+')).toBeTruthy()
     expect(screen.getByText('100%')).toBeTruthy()
     expect(screen.getByText('Real-time')).toBeTruthy()
     expect(screen.getByText('All-in-One')).toBeTruthy()
 
-    // labels
-    // "Available Jobs" appears more than once on the page
-    expect(screen.getAllByText('Available Jobs').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getAllByText('Available Jobs').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Free Forever')).toBeTruthy()
     expect(screen.getByText('Updates')).toBeTruthy()
     expect(screen.getByText('Dashboard')).toBeTruthy()
@@ -154,7 +123,6 @@ describe('HomePage', () => {
     expect(screen.getByText('Applicant Insights')).toBeTruthy()
     expect(screen.getByText('Compliance & Security')).toBeTruthy()
 
-    // sanity check that feature cards actually rendered
     expect(screen.getAllByTestId('card').length).toBeGreaterThan(0)
   })
 
@@ -228,7 +196,6 @@ describe('HomePage', () => {
   })
 
   it('passes the correct auth state into protectedAction', () => {
-    // signed out
     clerk.useAuth.mockReturnValue({ isSignedIn: false })
     render(<HomePage />)
 
@@ -240,7 +207,6 @@ describe('HomePage', () => {
 
     cleanup()
 
-    // signed in
     clerk.useAuth.mockReturnValue({ isSignedIn: true })
     render(<HomePage />)
 

@@ -1,67 +1,67 @@
+// __tests__/recruiter/profile/RecruiterProfileRoute.test.tsx
+import React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, cleanup, fireEvent } from '@testing-library/react'
-import ApplicantProfileRoute from '../../../app/applicant/profile/page'
-import type { UserProfile } from '../../../app/data/profileData'
+import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react'
+import type { RecruiterProfile } from '../../../app/utils/userProfiles'
 
 /* -------------------------------------------------------------------------- */
-/*                               MOCKS                                        */
+/*                               GLOBAL MOCK STATE                            */
 /* -------------------------------------------------------------------------- */
 
-const getUserProfileMock = vi.fn()
-const saveUserProfileMock = vi.fn()
-
-vi.mock('../../../app/utils/userProfiles', () => ({
-  getUserProfile: (...args: any[]) => getUserProfileMock(...args),
-  saveUserProfile: (...args: any[]) => saveUserProfileMock(...args),
-}))
-
-// Route reads firebaseAuth.currentUser?.uid
-vi.mock('../../../app/lib/firebaseClient', () => ({
-  firebaseAuth: {
-    currentUser: { uid: 'uid-123' },
-  },
-}))
-
-// defaultProfile comes from data/profileData (we can use real or mock; mocking keeps it predictable)
-const defaultProfileMock: UserProfile = {
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  location: '',
-  currentTitle: '',
-  yearsOfExperience: '',
-  availability: 'Immediately',
-  linkedinUrl: '',
-  portfolioUrl: '',
-  githubUrl: '',
-  bio: '',
-  profilePicture: '',
-  resumeFile: '',
-  resumeFileName: '',
+declare global {
+  // eslint-disable-next-line no-var
+  var __mockCurrentUser: { uid: string } | null
 }
 
-vi.mock('../../../app/data/profileData', () => ({
-  defaultProfile: defaultProfileMock,
-}))
+globalThis.__mockCurrentUser = { uid: 'uid-123' }
 
-// Mock the child ProfilePage so we can inspect props easily
-vi.mock('../../../app/applicant/profile/ProfilePage', () => ({
-  ProfilePage: ({
-    profile,
-    onUpdateProfile,
+/* -------------------------------------------------------------------------- */
+/*                                   MOCKS                                    */
+/* -------------------------------------------------------------------------- */
+
+const getRecruiterProfileMock = vi.fn(
+  async (_uid: string): Promise<RecruiterProfile | null> => null
+)
+const saveRecruiterProfileMock = vi.fn(
+  async (_uid: string, _profile: RecruiterProfile): Promise<void> => {}
+)
+
+vi.mock('../../../app/utils/userProfiles', () => {
+  return {
+    getRecruiterProfile: (uid: string) => getRecruiterProfileMock(uid),
+    saveRecruiterProfile: (uid: string, profile: RecruiterProfile) =>
+      saveRecruiterProfileMock(uid, profile),
+  }
+})
+
+vi.mock('../../../app/lib/firebaseClient', () => {
+  return {
+    firebaseAuth: {
+      get currentUser() {
+        return globalThis.__mockCurrentUser
+      },
+    },
+  }
+})
+
+// Mock child page so we can inspect props and trigger save
+vi.mock('../../../app/recruiter/profile/RecruiterProfilePage', () => ({
+  RecruiterProfilePage: ({
+    recruiterProfile,
+    onSave,
   }: {
-    profile: UserProfile
-    onUpdateProfile: (p: UserProfile) => Promise<void>
+    recruiterProfile: RecruiterProfile
+    onSave: (p: RecruiterProfile) => Promise<void>
   }) => (
-    <div data-testid='profile-page-mock'>
-      <div data-testid='firstName'>{profile.firstName}</div>
+    <div data-testid='recruiter-profile-page-mock'>
+      <div data-testid='companyName'>{recruiterProfile.companyName}</div>
       <button
+        type='button'
         data-testid='save-trigger'
         onClick={() =>
-          onUpdateProfile({
-            ...profile,
-            firstName: 'Updated',
+          onSave({
+            ...recruiterProfile,
+            companyName: 'UpdatedCo',
           })
         }
       >
@@ -72,78 +72,88 @@ vi.mock('../../../app/applicant/profile/ProfilePage', () => ({
 }))
 
 /* -------------------------------------------------------------------------- */
-/*                               TESTS                                        */
+/*                            IMPORT AFTER MOCKS                              */
 /* -------------------------------------------------------------------------- */
 
-describe('ApplicantProfileRoute (page.tsx)', () => {
+import RecruiterProfileRoute from '../../../app/recruiter/profile/page'
+
+/* -------------------------------------------------------------------------- */
+/*                                   TESTS                                    */
+/* -------------------------------------------------------------------------- */
+
+describe('RecruiterProfileRoute (page.tsx)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    globalThis.__mockCurrentUser = { uid: 'uid-123' }
   })
 
   afterEach(() => {
     cleanup()
   })
 
-  it('renders with defaultProfile initially (before load resolves)', async () => {
-    // getUserProfile resolves later; render should still work
-    getUserProfileMock.mockResolvedValueOnce(null)
+  it('renders with default profile initially and kicks off load', async () => {
+    getRecruiterProfileMock.mockResolvedValueOnce(null)
 
-    render(<ApplicantProfileRoute />)
+    render(<RecruiterProfileRoute />)
 
-    expect(screen.getByTestId('profile-page-mock')).toBeTruthy()
-    expect(screen.getByTestId('firstName').textContent).toBe('') // default
+    expect(screen.getByTestId('recruiter-profile-page-mock')).toBeTruthy()
+    expect(screen.getByTestId('companyName').textContent).toBe('') // default
+
+    await waitFor(() => {
+      expect(getRecruiterProfileMock).toHaveBeenCalledWith('uid-123')
+    })
   })
 
-  it('loads saved profile and passes it down to ProfilePage', async () => {
-    getUserProfileMock.mockResolvedValueOnce({
-      ...defaultProfileMock,
-      firstName: 'Jane',
+  it('loads saved recruiter profile and passes it to RecruiterProfilePage', async () => {
+    getRecruiterProfileMock.mockResolvedValueOnce({
+      companyName: 'Hirelytics',
+      companyWebsite: 'https://hirelytics.com',
+      recruiterTitle: 'Talent Acquisition',
     })
 
-    render(<ApplicantProfileRoute />)
+    render(<RecruiterProfileRoute />)
 
-    // wait a tick for useEffect -> load() -> setProfile()
-    await new Promise((r) => setTimeout(r, 0))
-
-    expect(getUserProfileMock).toHaveBeenCalledWith('uid-123')
-    expect(screen.getByTestId('firstName').textContent).toBe('Jane')
+    await waitFor(() => {
+      expect(getRecruiterProfileMock).toHaveBeenCalledWith('uid-123')
+      expect(screen.getByTestId('companyName').textContent).toBe('Hirelytics')
+    })
   })
 
-  it('calls saveUserProfile and updates local state when child triggers onUpdateProfile', async () => {
-    getUserProfileMock.mockResolvedValueOnce({
-      ...defaultProfileMock,
-      firstName: 'Jane',
+  it('calls saveRecruiterProfile and updates local state when child triggers onSave', async () => {
+    getRecruiterProfileMock.mockResolvedValueOnce({
+      companyName: 'Hirelytics',
+      companyWebsite: '',
+      recruiterTitle: '',
     })
-    saveUserProfileMock.mockResolvedValueOnce(undefined)
+    saveRecruiterProfileMock.mockResolvedValueOnce(undefined)
 
-    render(<ApplicantProfileRoute />)
-    await new Promise((r) => setTimeout(r, 0))
+    render(<RecruiterProfileRoute />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('companyName').textContent).toBe('Hirelytics')
+    })
 
     fireEvent.click(screen.getByTestId('save-trigger'))
-    await new Promise((r) => setTimeout(r, 0))
 
-    expect(saveUserProfileMock).toHaveBeenCalledTimes(1)
-    expect(saveUserProfileMock).toHaveBeenCalledWith(
-      'uid-123',
-      expect.objectContaining({ firstName: 'Updated' })
-    )
-
-    // after save, route sets local state to updated profile (so child gets new props)
-    expect(screen.getByTestId('firstName').textContent).toBe('Updated')
+    await waitFor(() => {
+      expect(saveRecruiterProfileMock).toHaveBeenCalledTimes(1)
+      expect(saveRecruiterProfileMock).toHaveBeenCalledWith(
+        'uid-123',
+        expect.objectContaining({ companyName: 'UpdatedCo' }) as RecruiterProfile
+      )
+      expect(screen.getByTestId('companyName').textContent).toBe('UpdatedCo')
+    })
   })
 
   it('does nothing if firebaseAuth.currentUser is missing', async () => {
-    // override the firebaseClient mock for this test
-    vi.doMock('../../../app/lib/firebaseClient', () => ({
-      firebaseAuth: { currentUser: null },
-    }))
+    globalThis.__mockCurrentUser = null
 
-    // re-import after doMock so it uses the new mock
-    const { default: RouteWithNoUser } = await import('../../../app/applicant/profile/page')
+    render(<RecruiterProfileRoute />)
 
-    render(<RouteWithNoUser />)
-    await new Promise((r) => setTimeout(r, 0))
+    await Promise.resolve()
 
-    expect(getUserProfileMock).not.toHaveBeenCalled()
+    expect(getRecruiterProfileMock).not.toHaveBeenCalled()
+    expect(saveRecruiterProfileMock).not.toHaveBeenCalled()
+    expect(screen.getByTestId('recruiter-profile-page-mock')).toBeTruthy()
   })
 })

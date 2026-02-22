@@ -1,11 +1,11 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
 import { ProfilePage } from '../../../app/applicant/profile/ProfilePage'
 import { toast } from '../../../app/components/ui/sonner'
 
 // Mock the toast
-vi.mock('../../app/components/ui/sonner', () => ({
+vi.mock('../../../app/components/ui/sonner', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
@@ -280,15 +280,15 @@ describe('ProfilePage', () => {
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
     // Wait for async operations to complete
-    await new Promise((resolve) => setTimeout(resolve, 0))
-
-    // Should show success toast with correct message
-    expect(toast.success).toHaveBeenCalledWith(
-      'Profile updated successfully',
-      expect.objectContaining({
-        description: 'Your changes have been saved',
-      })
-    )
+    await waitFor(() => {
+      // Should show success toast with correct message
+      expect(toast.success).toHaveBeenCalledWith(
+        'Profile updated successfully',
+        expect.objectContaining({
+          description: 'Your changes have been saved',
+        })
+      )
+    })
   })
 
   // Resume Upload Tests
