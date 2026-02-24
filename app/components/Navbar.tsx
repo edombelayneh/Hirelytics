@@ -1,99 +1,145 @@
 'use client'
 
-// Clerk user account dropdown component
-import { UserButton } from '@clerk/nextjs'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { UserButton, useUser } from '@clerk/nextjs'
+import { Home, Briefcase, BarChart3, User, PlusCircle } from 'lucide-react'
+// Supported user roles
+type Role = 'applicant' | 'recruiter' | undefined
+// Nav item structure
+type NavItem = {
+  label: string
+  href: string
+  icon: React.ElementType
+  match: (pathname: string) => boolean // Determines active state
+}
 
-// Icons used for navbar navigation items
-import { Home, Briefcase, BarChart3, User } from 'lucide-react'
+export function Navbar() {
+  // Current route
+  const pathname = usePathname()
+  // Current Clerk user object (may be undefined while loading)
+  const { user } = useUser()
 
-// FIXME: Navbar currently has pages dedicated only to applicants
-// Recruiter-specific links should be added after Firebase listeners are implemented
+  // Prefer role from Clerk metadata
+  const metaRole = (user?.publicMetadata?.role as Role) ?? undefined
 
-export function Navbar({ currentPage }: { currentPage: string }) {
-  // Configuration for center navigation links
-  // "page" is used to determine which link is active
-  const navItems = [
-    { label: 'Home', hash: '#/', icon: Home, page: 'home' },
-    { label: 'Available Jobs', hash: '#/jobs', icon: Briefcase, page: 'available' },
-    { label: 'My Applications', hash: '#/applications', icon: BarChart3, page: 'applications' },
+  // Fallback: infer role from URL
+  const inferredRole: Role = pathname.startsWith('/recruiter')
+    ? 'recruiter'
+    : pathname.startsWith('/applicant')
+      ? 'applicant'
+      : undefined
+
+  // Final role: metadata wins, otherwise use inferred role
+  const role = metaRole ?? inferredRole
+  // Applicant navigation items
+  const applicantNav: NavItem[] = [
+    // Home route (app-level home)
+    { label: 'Home', href: '/home', icon: Home, match: (p) => p === '/home' },
+    // Applicant job browsing route
+    {
+      label: 'Available Jobs',
+      href: '/applicant/jobs',
+      icon: Briefcase,
+      match: (p) => p.startsWith('/applicant/jobs'),
+    },
+    // Applicant applications table route
+    {
+      label: 'My Applications',
+      href: '/applicant/applications',
+      icon: BarChart3,
+      match: (p) => p.startsWith('/applicant/applications'),
+    },
+  ]
+  // Recruiter navigation items
+  const recruiterNav: NavItem[] = [
+    // Home route (shared)
+    { label: 'Home', href: '/home', icon: Home, match: (p) => p === '/home' },
+    // Recruiters can still view available jobs (as implemented) FIXME - later sprint task
+    {
+      label: 'Available Jobs',
+      href: '/applicant/jobs',
+      icon: Briefcase,
+      match: (p) => p.startsWith('/applicant/jobs'),
+    },
+    // Recruiter job management routes
+    {
+      label: 'My Jobs',
+      href: '/recruiter/myJobs',
+      icon: Briefcase,
+      match: (p) => p.startsWith('/recruiter/myJobs') || p.startsWith('/recruiter/jobDetails'),
+    },
   ]
 
+  // Never render empty nav — show at least Home until role resolves
+  const navItems: NavItem[] =
+    role === 'recruiter'
+      ? recruiterNav
+      : role === 'applicant'
+        ? applicantNav
+        : [{ label: 'Home', href: '/', icon: Home, match: (p) => p === '/' }]
+  // Profile route depends on role
+  // If unknown, fallback to "/"
+  const profileHref =
+    role === 'recruiter' ? '/recruiter/profile' : role === 'applicant' ? '/applicant/profile' : '/' // fallback
+
   return (
-    // Main navbar container
-    // sticky + top-0 keeps navbar fixed at top when scrolling
     <nav className='relative flex items-center justify-center border-b px-6 h-20 bg-background sticky top-0 z-50'>
-      {/* Left - Logo Section */}
-      {/* Positioned absolute so center navigation stays centered */}
+      {/* Left - Logo */}
       <div className='absolute left-6 flex flex-col'>
-        <a
-          href='#/' // Navigates back to home page
+        {/* Logo link always returns to landing page */}
+        <Link
+          href='/'
           className='inline-block'
         >
           <img
-            src='../Hirelytics_Logo.png'
+            src='/Hirelytics_Logo.png'
             alt='Hirelytics Logo'
             className='h-10 w-auto'
           />
-        </a>
+        </Link>
       </div>
 
-      {/* Center - Navigation Links */}
-      {/* Iterates over navItems to render each link */}
+      {/* Center - Nav Links */}
       <div className='flex gap-12'>
         {navItems.map((item) => {
+          // Icon component for this nav item
           const Icon = item.icon
-
-          // Determines if this link corresponds to the current page
-          const isActive = currentPage === item.page
+          const isActive = item.match(pathname) // Highlight active route
 
           return (
-            <a
-              key={item.label}
-              href={item.hash} // Hash-based routing
+            <Link
+              key={item.label} // Stable key for list rendering
+              href={item.href} // Destination route
               className={`flex items-center gap-3 text-xl ${
+                // Active styling vs inactive styling
                 isActive
-                  ? 'font-bold text-foreground' // Active link styling
-                  : 'font-medium text-muted-foreground hover:text-foreground' // Default styling
+                  ? 'font-bold text-foreground'
+                  : 'font-medium text-muted-foreground hover:text-foreground'
               }`}
             >
-              {/* Navigation icon */}
               <Icon className='h-6 w-6' />
-
-              {/* Navigation label */}
               {item.label}
-
-              {/* Notification badge (TEMPORARILY DISABLED)
-              Placeholder for showing counts like number of applications
-              {item.label === 'My Applications' && (
-                <span className="ml-1 text-xs bg-primary text-white px-2 py-0.5 rounded-full">
-                  {applicationCount}
-                </span>
-              )} */}
-            </a>
+            </Link>
           )
         })}
       </div>
 
-      {/* Right Side - User Account Button */}
-      {/* Contains Clerk user profile dropdown */}
+      {/* Right - User menu */}
       <div className='absolute right-6 flex items-center gap-3'>
-        {/* Right Side - User Account Button */}
         <UserButton afterSignOutUrl='/'>
           <UserButton.MenuItems>
-            {/* Custom menu item to navigate to profile page */}
+            {/* Profile redirect */}
             <UserButton.Action
               label='My Profile'
               labelIcon={<User className='h-4 w-4' />}
               onClick={() => {
-                // Updates URL hash to profile route
-                window.location.hash = '#/profile'
+                // Use full page navigation to role-based profile route
+                window.location.href = profileHref
               }}
             />
-
-            {/* Clerk built-in account management option */}
+            {/* Built-in Clerk actions */}
             <UserButton.Action label='manageAccount' />
-
-            {/* Clerk built-in sign out option */}
             <UserButton.Action label='signOut' />
           </UserButton.MenuItems>
         </UserButton>
