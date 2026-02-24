@@ -13,6 +13,7 @@ function Jobs() {
 
   // Stores job IDs the user has already applied to
   const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
+  // Access user metadata (e.g., role-based logic if needed)
   const { user } = useUser()
   const role = user?.publicMetadata?.role
 
@@ -42,9 +43,11 @@ function Jobs() {
   }, [isLoaded, userId])
 
   const handleApply = async (job: AvailableJob) => {
+    // Prevent duplicate applications
     if (appliedJobIds.has(job.id)) return
+    // Ensure authenticated user exists before writing to Firestore
     if (!isLoaded || !userId) return
-
+    // Create document reference using job ID as the document key
     const ref = doc(db, 'users', userId, 'applications', String(job.id))
 
     // Save application record to Firestore

@@ -24,7 +24,8 @@ const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: pushMock }),
 }))
-
+// Mock your Select component with a native <select> for easier testing
+// This keeps behavior testable without relying on portal/popover UI internals
 vi.mock('./ui/select', () => {
   function Select({
     value,
@@ -45,7 +46,7 @@ vi.mock('./ui/select', () => {
       </select>
     )
   }
-
+  // SelectItem becomes <option> so dropdown options work in DOM tests
   function SelectItem({ value, children }: { value: string; children: React.ReactNode }) {
     return <option value={value}>{children}</option>
   }
@@ -64,6 +65,7 @@ vi.mock('./ui/select', () => {
 /* -------------------------------------------------------------------------- */
 
 describe('ApplicationsTable', () => {
+  // Sample dataset used across tests to validate rendering + filters
   const mockApplications: JobApplication[] = [
     {
       id: '1',
@@ -108,19 +110,22 @@ describe('ApplicationsTable', () => {
       outcome: 'Unsuccessful',
     },
   ]
-
+  // Callback spies used to assert row-level edits trigger parent handlers
   const mockOnStatusChange = vi.fn()
   const mockOnNotesChange = vi.fn()
 
   beforeEach(() => {
+    // Reset spies between tests so counts don’t leak across cases
     vi.clearAllMocks()
   })
 
   afterEach(() => {
+    // Ensure DOM is cleaned up between tests
     cleanup()
   })
 
   it('renders title and description', () => {
+    // Basic smoke test: confirms top-level text is present
     render(<ApplicationsTable applications={mockApplications} />)
 
     expect(screen.getByText('Job Applications')).toBeTruthy()
@@ -128,11 +133,12 @@ describe('ApplicationsTable', () => {
   })
 
   it('renders all table headers', () => {
+    // Verifies table structure is correct and headers don’t regress
     const { container } = render(<ApplicationsTable applications={mockApplications} />)
 
     const thead = container.querySelector('thead')
     expect(thead).toBeTruthy()
-
+    // Scope queries to the <thead> so we only check header labels
     const headerScope = within(thead as HTMLElement)
 
     ;[
@@ -150,6 +156,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('renders all application rows', () => {
+    // Confirms each row’s company name is displayed
     render(<ApplicationsTable applications={mockApplications} />)
 
     expect(screen.getByText('TechCorp')).toBeTruthy()
@@ -158,11 +165,13 @@ describe('ApplicationsTable', () => {
   })
 
   it('shows application count correctly', () => {
+    // Checks the “Showing X of Y” label matches the provided dataset
     render(<ApplicationsTable applications={mockApplications} />)
     expect(screen.getByText('Showing 3 of 3 applications')).toBeTruthy()
   })
 
   it('filters by search term (company)', () => {
+    // Simulates typing into search and confirms list shrinks accordingly
     render(<ApplicationsTable applications={mockApplications} />)
 
     const searchInput = screen.getByPlaceholderText('Search companies, positions, or locations...')
@@ -175,6 +184,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('search is case-insensitive', () => {
+    // Ensures search normalizes casing
     render(<ApplicationsTable applications={mockApplications} />)
 
     const searchInput = screen.getByPlaceholderText('Search companies, positions, or locations...')
@@ -184,6 +194,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('clears search when input is emptied', () => {
+    // Confirms clearing the input restores the full list
     render(<ApplicationsTable applications={mockApplications} />)
 
     const searchInput = screen.getByPlaceholderText('Search companies, positions, or locations...')
@@ -195,6 +206,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('filters by status via the status filter dropdown', () => {
+    // Uses the mocked <select> filter to show only matching statuses
     render(<ApplicationsTable applications={mockApplications} />)
 
     // With our Select mock: first combobox is the filter, then one per row.
@@ -211,6 +223,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('shows empty state when no applications match', () => {
+    // Validates user-friendly empty state and correct count when filters return nothing
     render(<ApplicationsTable applications={mockApplications} />)
 
     const searchInput = screen.getByPlaceholderText('Search companies, positions, or locations...')
@@ -221,6 +234,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('calls onNotesChange when notes are edited', () => {
+    // Ensures notes edits trigger the parent callback with id + new value
     render(
       <ApplicationsTable
         applications={mockApplications}
@@ -236,6 +250,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('does not crash when callbacks are not provided', () => {
+    // Confirms component guards optional callbacks (no runtime errors)
     render(<ApplicationsTable applications={mockApplications} />)
 
     const notesInputs = screen.getAllByPlaceholderText('Add notes...')
@@ -245,6 +260,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('calls onStatusChange when a row status is changed', () => {
+    // Ensures status edits trigger the parent callback with id + new status
     render(
       <ApplicationsTable
         applications={mockApplications}
@@ -263,6 +279,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('navigates to application details when action button is clicked', () => {
+    // Verifies clicking the row action triggers a route push to details page
     render(<ApplicationsTable applications={mockApplications} />)
 
     // There is one "Actions" button per row; click the first row's.
@@ -274,6 +291,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('renders correctly with empty applications array', () => {
+    // Handles empty dataset gracefully (still shows header + empty state)
     render(<ApplicationsTable applications={[]} />)
 
     expect(screen.getByText('Job Applications')).toBeTruthy()
@@ -282,6 +300,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('renders correctly with a single application', () => {
+    // Confirms counts and row rendering work for minimal data
     render(<ApplicationsTable applications={[mockApplications[0]]} />)
 
     expect(screen.getByText('TechCorp')).toBeTruthy()
@@ -289,6 +308,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('shows job sources and outcomes in their cells', () => {
+    // Confirms key fields render in table cells (source + outcome columns)
     render(<ApplicationsTable applications={mockApplications} />)
 
     // Job sources

@@ -78,10 +78,9 @@ type Unsubscribe = () => void
 
 const updateDocMock = vi.fn()
 const serverTimestampMock = vi.fn(() => 'SERVER_TS')
-
-// keep it strongly typed without any
 const docMock = vi.fn((...parts: unknown[]): DocPath => ({ __docPath: parts }))
 
+// Mock the entire Firestore module to control behavior of query builders, real-time subscriptions, and writes
 vi.mock('firebase/firestore', () => ({
   // query builders (not important for behavior assertions here)
   query: vi.fn((x: unknown) => x),
@@ -118,12 +117,14 @@ vi.mock('../../../app/components/HeroPanel', () => ({
   ),
 }))
 
+// SummaryCards and ApplicationsTable are important to mock because they trigger the callbacks we want to test
 vi.mock('../../../app/components/SummaryCards', () => ({
   SummaryCards: ({ applications }: { applications: JobApplication[] }) => (
     <div data-testid='summary-cards'>SummaryCards: {applications.length} applications</div>
   ),
 }))
 
+// ApplicationsTable needs to trigger onStatusChange and onNotesChange so we can assert that the correct Firestore updates happen in response
 vi.mock('../../../app/components/ApplicationsTable', () => ({
   ApplicationsTable: ({
     applications,
@@ -148,14 +149,17 @@ vi.mock('../../../app/components/ApplicationsTable', () => ({
 
 describe('MyApplicationsPage', () => {
   beforeEach(() => {
+    // Clear mocks before each test to reset call counts and arguments
     vi.clearAllMocks()
   })
 
   afterEach(() => {
+    // Cleanup the DOM after each test to prevent test interference
     cleanup()
   })
 
   it('renders the page with all main sections', () => {
+    // Just check that the main headings render
     render(<MyApplicationsPage />)
 
     expect(screen.getByText('Dashboard Overview')).toBeTruthy()
@@ -163,6 +167,7 @@ describe('MyApplicationsPage', () => {
   })
 
   it('renders HeroPanel, SummaryCards, and ApplicationsTable with the live applications count', () => {
+    // This indirectly tests that onSnapshot is working and updating state, since the count comes from the mock data we provided
     render(<MyApplicationsPage />)
 
     expect(screen.getByTestId('hero-panel').textContent).toContain('3 applications')
@@ -171,8 +176,9 @@ describe('MyApplicationsPage', () => {
   })
 
   it('updates status via updateDoc when ApplicationsTable triggers onStatusChange', async () => {
+    // We want to assert that the correct document reference is constructed and the correct update is sent to Firestore
     render(<MyApplicationsPage />)
-
+    // Simulate user clicking the button that triggers onStatusChange in the mocked ApplicationsTable
     fireEvent.click(screen.getByRole('button', { name: /change status/i }))
 
     // doc(db, 'users', userId, 'applications', id)
@@ -183,7 +189,7 @@ describe('MyApplicationsPage', () => {
       'applications',
       '1'
     )
-
+    // updateDoc(docRef, { status, updatedAt: serverTimestamp() })
     expect(updateDocMock).toHaveBeenCalledWith(
       expect.any(Object),
       expect.objectContaining({
@@ -194,10 +200,12 @@ describe('MyApplicationsPage', () => {
   })
 
   it('updates notes via updateDoc when ApplicationsTable triggers onNotesChange', async () => {
+    // Similar to the previous test but for notes instead of status
     render(<MyApplicationsPage />)
-
+    // Simulate user clicking the button that triggers onNotesChange in the mocked ApplicationsTable
     fireEvent.click(screen.getByRole('button', { name: /change notes/i }))
 
+    // Assert that doc was called with the correct path
     expect(docMock).toHaveBeenCalledWith(
       expect.any(Object),
       'users',
@@ -205,7 +213,7 @@ describe('MyApplicationsPage', () => {
       'applications',
       '1'
     )
-
+    // Assert that updateDoc was called with the correct fields to update
     expect(updateDocMock).toHaveBeenCalledWith(
       expect.any(Object),
       expect.objectContaining({
@@ -216,6 +224,7 @@ describe('MyApplicationsPage', () => {
   })
 
   it('renders both section headings as h2', () => {
+    // This checks that the headings are present and have the correct semantic level, which is important for accessibility
     render(<MyApplicationsPage />)
 
     const headings = screen.getAllByRole('heading', { level: 2 })

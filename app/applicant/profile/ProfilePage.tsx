@@ -34,18 +34,20 @@ import { toast } from '../../components/ui/sonner'
 import { Navbar } from '../../components/Navbar'
 
 interface ProfilePageProps {
+  // Current saved profile data from parent (Firestore-loaded
   profile: UserProfile
   onUpdateProfile: (profile: UserProfile) => Promise<void> // async for firebase - basically waits for firebase write to finish
 }
-
+// Memoized to avoid re-rendering unless props/state actually change
 export const ProfilePage = memo(function ProfilePage({
   profile,
   onUpdateProfile,
 }: ProfilePageProps) {
-  const [formData, setFormData] = useState<UserProfile>(profile)
-  const [isEditing, setIsEditing] = useState(false)
+  const [formData, setFormData] = useState<UserProfile>(profile) // Local form state (editable copy of the profile)
+  const [isEditing, setIsEditing] = useState(false) // Tracks whether the user has unsaved edits
   const [isSaving, setIsSaving] = useState(false) // disables save while writing
 
+  // Hidden file input refs (triggered by buttons)
   const profilePicInputRef = useRef<HTMLInputElement>(null)
   const resumeInputRef = useRef<HTMLInputElement>(null)
 
@@ -68,13 +70,14 @@ export const ProfilePage = memo(function ProfilePage({
   const handleProfilePictureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      // Basic size guardrail (prevents huge base64 payloads)
       if (file.size > 5 * 1024 * 1024) {
         toast.error('File too large', {
           description: 'Profile picture must be less than 5MB',
         })
         return
       }
-
+      // Read file into a data URL for quick preview + saving
       const reader = new FileReader()
       reader.onloadend = () => {
         setFormData((prev) => ({ ...prev, profilePicture: reader.result as string }))
@@ -84,11 +87,13 @@ export const ProfilePage = memo(function ProfilePage({
       reader.readAsDataURL(file)
     }
   }
-
+  // -------------
+  //  Handles resume upload
+  // -------------
   const handleResumeUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      // Validate file type
+      // Restrict resume formats to common document types
       const allowedExtensions = ['.pdf', '.doc', '.docx']
       const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
 
@@ -98,14 +103,14 @@ export const ProfilePage = memo(function ProfilePage({
         })
         return
       }
-
+      // Size guardrail for resume uploads
       if (file.size > 10 * 1024 * 1024) {
         toast.error('File too large', {
           description: 'Resume must be less than 10MB',
         })
         return
       }
-
+      // Read file into a data URL so it can be persisted with the profile
       const reader = new FileReader()
       reader.onloadend = () => {
         setFormData((prev) => ({
@@ -124,15 +129,14 @@ export const ProfilePage = memo(function ProfilePage({
   // handle save form for applicant profile
   // -------------
   const handleSave = async () => {
-    // Validate required fields
+    // Required fields check (prevents incomplete profiles)
     if (!formData.firstName || !formData.lastName || !formData.email) {
       toast.error('Missing required fields', {
         description: 'Please fill in your name and email',
       })
       return
     }
-
-    // Validate email format
+    // Basic email format validation (quick UX feedback)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email)) {
       toast.error('Invalid email format', {
@@ -140,27 +144,29 @@ export const ProfilePage = memo(function ProfilePage({
       })
       return
     }
-
+    // Switch UI into “saving” mode to prevent repeat submits
     setIsSaving(true)
 
     try {
       // Save to Firebase (async) and wait on firebase until that finishes
       await onUpdateProfile(formData)
-
+      // Mark as clean after successful save
       setIsEditing(false)
       toast.success('Profile updated successfully', {
         description: 'Your changes have been saved',
       })
     } catch (err) {
+      // Log for debugging + show user-friendly message
       console.error('Save profile error:', err)
       toast.error('Save failed', {
         description: 'Please try again.',
       })
     } finally {
+      // Always release the save lock
       setIsSaving(false)
     }
   }
-
+  // Derives initials for the avatar fallback state
   const getInitials = () => {
     const first = formData.firstName.charAt(0).toUpperCase()
     const last = formData.lastName.charAt(0).toUpperCase()
@@ -192,6 +198,7 @@ export const ProfilePage = memo(function ProfilePage({
                   />
                   <AvatarFallback className='text-2xl'>{getInitials()}</AvatarFallback>
                 </Avatar>
+                {/* Button triggers hidden file input */}
                 <Button
                   size='sm'
                   variant='secondary'
@@ -200,6 +207,7 @@ export const ProfilePage = memo(function ProfilePage({
                 >
                   <Camera className='h-4 w-4' />
                 </Button>
+                {/* Hidden file input for image upload */}
                 <input
                   ref={profilePicInputRef}
                   type='file'
@@ -208,10 +216,11 @@ export const ProfilePage = memo(function ProfilePage({
                   onChange={handleProfilePictureUpload}
                 />
               </div>
+
               <p className='text-xs text-muted-foreground text-center'>PNG, JPG up to 5MB</p>
             </div>
 
-            {/* Resume Upload */}
+            {/* Resume upload UI with “upload” vs “replace” states */}
             <div className='flex-1 space-y-4'>
               <div>
                 <Label>Resume</Label>
@@ -219,7 +228,7 @@ export const ProfilePage = memo(function ProfilePage({
                   Upload your latest resume to streamline job applications
                 </p>
               </div>
-
+              {/* If a resume exists, show filename + replace option */}
               {formData.resumeFileName ? (
                 <div className='flex items-center gap-3 p-4 border rounded-lg bg-muted/50'>
                   <FileText className='h-8 w-8 text-primary' />
@@ -237,6 +246,7 @@ export const ProfilePage = memo(function ProfilePage({
                   </Button>
                 </div>
               ) : (
+                // Otherwise show the large “upload” call-to-action
                 <Button
                   variant='outline'
                   className='w-full h-24 border-dashed'
@@ -249,6 +259,7 @@ export const ProfilePage = memo(function ProfilePage({
                   </div>
                 </Button>
               )}
+              {/* Hidden file input for resume upload */}
               <input
                 ref={resumeInputRef}
                 type='file'
@@ -264,6 +275,7 @@ export const ProfilePage = memo(function ProfilePage({
         <Card className='p-6'>
           <h2 className='mb-6'>Basic Information</h2>
           <div className='grid md:grid-cols-2 gap-6'>
+            {/* First name */}
             <div className='space-y-2'>
               <Label htmlFor='firstName'>
                 First Name <span className='text-destructive'>*</span>
@@ -279,7 +291,7 @@ export const ProfilePage = memo(function ProfilePage({
                 />
               </div>
             </div>
-
+            {/* Last name */}
             <div className='space-y-2'>
               <Label htmlFor='lastName'>
                 Last Name <span className='text-destructive'>*</span>
@@ -295,7 +307,7 @@ export const ProfilePage = memo(function ProfilePage({
                 />
               </div>
             </div>
-
+            {/* Email */}
             <div className='space-y-2'>
               <Label htmlFor='email'>
                 Email Address <span className='text-destructive'>*</span>
@@ -312,7 +324,7 @@ export const ProfilePage = memo(function ProfilePage({
                 />
               </div>
             </div>
-
+            {/* Phone */}
             <div className='space-y-2'>
               <Label htmlFor='phone'>Phone Number</Label>
               <div className='relative'>
@@ -327,7 +339,7 @@ export const ProfilePage = memo(function ProfilePage({
                 />
               </div>
             </div>
-
+            {/* Location */}
             <div className='space-y-2 md:col-span-2'>
               <Label htmlFor='location'>Location</Label>
               <div className='relative'>
@@ -348,6 +360,7 @@ export const ProfilePage = memo(function ProfilePage({
         <Card className='p-6'>
           <h2 className='mb-6'>Professional Information</h2>
           <div className='grid md:grid-cols-2 gap-6'>
+            {/* Current title */}
             <div className='space-y-2'>
               <Label htmlFor='currentTitle'>Current Job Title</Label>
               <div className='relative'>
@@ -361,7 +374,7 @@ export const ProfilePage = memo(function ProfilePage({
                 />
               </div>
             </div>
-
+            {/* Years of experience */}
             <div className='space-y-2'>
               <Label htmlFor='yearsOfExperience'>Years of Experience</Label>
               <div className='relative'>
@@ -375,7 +388,7 @@ export const ProfilePage = memo(function ProfilePage({
                 />
               </div>
             </div>
-
+            {/* Availability dropdown */}
             <div className='space-y-2 md:col-span-2'>
               <Label htmlFor='availability'>Availability</Label>
               <Select
@@ -401,6 +414,7 @@ export const ProfilePage = memo(function ProfilePage({
         <Card className='p-6'>
           <h2 className='mb-6'>Professional Links</h2>
           <div className='space-y-4'>
+            {/* LinkedIn */}
             <div className='space-y-2'>
               <Label htmlFor='linkedinUrl'>LinkedIn Profile</Label>
               <div className='relative'>
@@ -415,7 +429,7 @@ export const ProfilePage = memo(function ProfilePage({
                 />
               </div>
             </div>
-
+            {/* Portfolio */}
             <div className='space-y-2'>
               <Label htmlFor='portfolioUrl'>Portfolio Website</Label>
               <div className='relative'>
@@ -430,7 +444,7 @@ export const ProfilePage = memo(function ProfilePage({
                 />
               </div>
             </div>
-
+            {/* GitHub */}
             <div className='space-y-2'>
               <Label htmlFor='githubUrl'>GitHub Profile</Label>
               <div className='relative'>

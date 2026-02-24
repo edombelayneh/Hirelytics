@@ -12,27 +12,31 @@ import {
 import type { Applicant } from '../../types/job'
 
 type ApplicantsTableProps = {
+  // List of applicants to display
   applicants: Applicant[]
   title?: string
 
-  // Example: (id) => `/recruiter/applicants/${id}`
+  // Optional profile route builder
+  // Defaults to recruiter applicant details page
   profileHref?: (applicantId: string) => string
 }
 
+// Utility: extract clean label from URL
 function safeLabelFromUrl(url?: string) {
-  if (!url) return ''
+  if (!url) return '' // No URL provided
   try {
+    // Attempt to parse as valid URL
     const u = new URL(url)
-    return u.hostname.replace(/^www\./, '')
+    return u.hostname.replace(/^www\./, '') // Remove "www." prefix for cleaner display
   } catch {
-    return url
+    return url // If parsing fails, return original string
   }
 }
 
 export function ApplicantsTable({
   applicants,
-  title = 'Applicants',
-  profileHref = (id) => `/recruiter/applicants/${id}`, // default route
+  title = 'Applicants', // Default title
+  profileHref = (id) => `/recruiter/applicants/${id}`, // Default route builder
 }: ApplicantsTableProps) {
   return (
     <div className='space-y-3'>

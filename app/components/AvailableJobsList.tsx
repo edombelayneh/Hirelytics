@@ -9,28 +9,36 @@ import { AvailableJob, availableJobs } from '../data/availableJobs'
 import type { Role } from '../utils/userRole'
 
 interface AvailableJobsListProps {
+  // Called when a user clicks Apply on a job
   onApply: (job: AvailableJob) => void
+  // Set of job IDs already applied to (controls disabled state)
   appliedJobIds: Set<number>
+  // Optional role used for conditional UI (e.g., recruiter-only actions)
   role?: Role | null
 }
 
+// Memoized to prevent unnecessary re-renders when props don’t change
 export const AvailableJobsList = memo(function AvailableJobsList({
   onApply,
   appliedJobIds,
   role,
 }: AvailableJobsListProps) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [typeFilter, setTypeFilter] = useState<string>('all')
-  const [locationFilter, setLocationFilter] = useState<string>('all')
+  const [searchTerm, setSearchTerm] = useState('') // Search input state
+  const [typeFilter, setTypeFilter] = useState<string>('all') // Job type filter (Full-time, Part-time, etc.)
+  const [locationFilter, setLocationFilter] = useState<string>('all') // Location filter (Remote vs On-site)
 
+  // Derived list: filters jobs based on search + type + location
   const filteredJobs = availableJobs.filter((job) => {
+    // Search matches title, company, location, or description
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.description.toLowerCase().includes(searchTerm.toLowerCase())
 
+    // Type filter match
     const matchesType = typeFilter === 'all' || job.type === typeFilter
+    // Location filter logic (special handling for “remote”)
     const matchesLocation =
       locationFilter === 'all' ||
       (locationFilter === 'remote' ? job.location === 'Remote' : job.location !== 'Remote')
@@ -38,10 +46,12 @@ export const AvailableJobsList = memo(function AvailableJobsList({
     return matchesSearch && matchesType && matchesLocation
   })
 
+  // Extract unique job types dynamically for dropdown options
   const uniqueTypes = Array.from(new Set(availableJobs.map((job) => job.type)))
 
   return (
     <div className='space-y-6'>
+      {/* Header section: title + job count + optional recruiter action */}
       <div className='flex items-center justify-between mb-4'>
         <div>
           <h2 className='text-2xl font-bold mb-1'>Available Jobs</h2>
@@ -49,7 +59,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
             Browse and apply to {availableJobs.length} open positions
           </p>
         </div>
-
+        {/* Recruiter-only: Add Job button */}
         {role === 'recruiter' && (
           <a
             href='#/addNewJob'
@@ -73,8 +83,10 @@ export const AvailableJobsList = memo(function AvailableJobsList({
           />
         </div>
 
+        {/* Dropdown filters */}
         <div className='flex items-center gap-2'>
           <Filter className='h-4 w-4 text-muted-foreground' />
+          {/* Job type dropdown */}
           <Select
             value={typeFilter}
             onValueChange={setTypeFilter}
@@ -94,7 +106,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
               ))}
             </SelectContent>
           </Select>
-
+          {/* Location dropdown */}
           <Select
             value={locationFilter}
             onValueChange={setLocationFilter}
@@ -127,7 +139,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
           />
         ))}
       </div>
-
+      {/* Empty state */}
       {filteredJobs.length === 0 && (
         <div className='text-center py-12'>
           <p className='text-muted-foreground'>No jobs found matching your criteria</p>

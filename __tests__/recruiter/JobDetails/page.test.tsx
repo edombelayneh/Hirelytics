@@ -44,6 +44,7 @@ type Job = {
   description: string
 }
 
+// Mock ApplicantsTable to inspect props + verify computed profileHref
 vi.mock('../../../app/components/job/JobDetailsCard', () => ({
   JobDetailsCard: ({ job }: { job: Job }) => (
     <div data-testid='job-details-card'>
@@ -65,6 +66,7 @@ type Applicant = {
   portfolioUrl: string
 }
 
+// Mock ApplicantsTable to inspect props + verify computed profileHref
 vi.mock('../../../app/components/job/ApplicantsTable', () => ({
   ApplicantsTable: ({
     applicants,
@@ -89,24 +91,30 @@ vi.mock('../../../app/components/job/ApplicantsTable', () => ({
 
 describe('JobDetailsPage', () => {
   beforeEach(() => {
+    // Reset mocks before each test to ensure isolation
     vi.clearAllMocks()
-    useParamsMock.mockReturnValue({ jobId: 'job-123' })
+    useParamsMock.mockReturnValue({ jobId: 'job-123' }) // Default route param for all tests, can override in specific tests if needed
   })
 
   afterEach(() => {
+    // Cleanup the DOM after each test to prevent test interference
     cleanup()
   })
 
   it('renders the return link to recruiter myJobs', () => {
+    // Just check that the link is there with the correct href - we can trust Next's Link component to handle the actual navigation
     render(<JobDetailsPage />)
 
+    // Check that the link with the expected text is rendered and has the correct href
     const link = screen.getByRole('link', { name: /return to my jobs/i })
     expect(link.getAttribute('href')).toBe('/recruiter/myJobs')
   })
 
   it('passes the route jobId into JobDetailsCard job prop', () => {
+    // Check that the JobDetailsCard receives the job prop with the expected id based on the route param
     render(<JobDetailsPage />)
 
+    // We can check the id, title, and company to confirm the correct job data is being passed based on the route param
     expect(screen.getByTestId('job-details-card')).toBeTruthy()
     expect(screen.getByTestId('job-id').textContent).toBe('job-123')
     expect(screen.getByTestId('job-title').textContent).toBe('Software Engineer Intern')
@@ -114,8 +122,10 @@ describe('JobDetailsPage', () => {
   })
 
   it('renders ApplicantsTable with seeded applicants and correct profileHref builder', () => {
+    // Check that the ApplicantsTable receives the applicants array and that the profileHref function generates the expected URLs
     render(<JobDetailsPage />)
 
+    // Check that the applicants data is rendered correctly
     expect(screen.getByTestId('applicants-table')).toBeTruthy()
     expect(screen.getByTestId('applicant-count').textContent).toBe('3')
     expect(screen.getByTestId('first-applicant-name').textContent).toContain('Edom Belayneh')

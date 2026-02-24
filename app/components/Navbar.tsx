@@ -17,7 +17,7 @@ type NavItem = {
 export function Navbar() {
   // Current route
   const pathname = usePathname()
-  // Clerk user
+  // Current Clerk user object (may be undefined while loading)
   const { user } = useUser()
 
   // Prefer role from Clerk metadata
@@ -30,16 +30,20 @@ export function Navbar() {
       ? 'applicant'
       : undefined
 
+  // Final role: metadata wins, otherwise use inferred role
   const role = metaRole ?? inferredRole
   // Applicant navigation items
   const applicantNav: NavItem[] = [
+    // Home route (app-level home)
     { label: 'Home', href: '/home', icon: Home, match: (p) => p === '/home' },
+    // Applicant job browsing route
     {
       label: 'Available Jobs',
       href: '/applicant/jobs',
       icon: Briefcase,
       match: (p) => p.startsWith('/applicant/jobs'),
     },
+    // Applicant applications table route
     {
       label: 'My Applications',
       href: '/applicant/applications',
@@ -49,13 +53,16 @@ export function Navbar() {
   ]
   // Recruiter navigation items
   const recruiterNav: NavItem[] = [
+    // Home route (shared)
     { label: 'Home', href: '/home', icon: Home, match: (p) => p === '/home' },
+    // Recruiters can still view available jobs (as implemented) FIXME - later sprint task
     {
       label: 'Available Jobs',
       href: '/applicant/jobs',
       icon: Briefcase,
       match: (p) => p.startsWith('/applicant/jobs'),
     },
+    // Recruiter job management routes
     {
       label: 'My Jobs',
       href: '/recruiter/myJobs',
@@ -72,6 +79,7 @@ export function Navbar() {
         ? applicantNav
         : [{ label: 'Home', href: '/', icon: Home, match: (p) => p === '/' }]
   // Profile route depends on role
+  // If unknown, fallback to "/"
   const profileHref =
     role === 'recruiter' ? '/recruiter/profile' : role === 'applicant' ? '/applicant/profile' : '/' // fallback
 
@@ -79,6 +87,7 @@ export function Navbar() {
     <nav className='relative flex items-center justify-center border-b px-6 h-20 bg-background sticky top-0 z-50'>
       {/* Left - Logo */}
       <div className='absolute left-6 flex flex-col'>
+        {/* Logo link always returns to landing page */}
         <Link
           href='/'
           className='inline-block'
@@ -94,14 +103,16 @@ export function Navbar() {
       {/* Center - Nav Links */}
       <div className='flex gap-12'>
         {navItems.map((item) => {
+          // Icon component for this nav item
           const Icon = item.icon
           const isActive = item.match(pathname) // Highlight active route
 
           return (
             <Link
-              key={item.label}
-              href={item.href}
+              key={item.label} // Stable key for list rendering
+              href={item.href} // Destination route
               className={`flex items-center gap-3 text-xl ${
+                // Active styling vs inactive styling
                 isActive
                   ? 'font-bold text-foreground'
                   : 'font-medium text-muted-foreground hover:text-foreground'
@@ -123,9 +134,11 @@ export function Navbar() {
               label='My Profile'
               labelIcon={<User className='h-4 w-4' />}
               onClick={() => {
+                // Use full page navigation to role-based profile route
                 window.location.href = profileHref
               }}
             />
+            {/* Built-in Clerk actions */}
             <UserButton.Action label='manageAccount' />
             <UserButton.Action label='signOut' />
           </UserButton.MenuItems>

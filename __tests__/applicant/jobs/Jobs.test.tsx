@@ -41,6 +41,7 @@ const serverTimestampMock = vi.fn(() => 'SERVER_TS')
 // Default: no applied jobs
 let snapshotDocIds: string[] = []
 
+// Mock the entire Firestore module
 vi.mock('firebase/firestore', () => ({
   collection: (...args: unknown[]) => collectionMock(...args),
   doc: (...args: unknown[]) => docMock(...args),
@@ -101,29 +102,35 @@ vi.mock('../../../app/components/AvailableJobsList', () => ({
 
 describe('Jobs Page', () => {
   beforeEach(() => {
+    // Reset mocks and snapshot data before each test to ensure isolation
     vi.clearAllMocks()
     snapshotDocIds = []
   })
 
   afterEach(() => {
+    // Cleanup the DOM after each test to prevent test interference
     cleanup()
   })
 
   it('renders the Jobs page', () => {
+    // Just check that the main component renders without crashing
     render(<Jobs />)
     expect(screen.getByTestId('available-jobs-list')).toBeTruthy()
   })
 
   it('passes appliedJobIds from Firestore snapshot to AvailableJobsList', () => {
-    snapshotDocIds = ['1', '2', '3'] // gets converted to Set<number> {1,2,3}
+    // This tests the real-time listener logic
+    snapshotDocIds = ['1', '2', '3'] // Simulate 3 applied jobs in Firestore
     render(<Jobs />)
 
     expect(screen.getByTestId('applied-jobs-count').textContent).toBe('3')
   })
 
   it('calls setDoc when Apply is triggered', async () => {
+    // This tests the handleApply logic, including the Firestore write
     render(<Jobs />)
 
+    // Simulate user clicking the Apply button in the mocked AvailableJobsList
     fireEvent.click(screen.getByTestId('apply-button'))
 
     // doc(db, 'users', userId, 'applications', String(job.id))
@@ -150,20 +157,23 @@ describe('Jobs Page', () => {
         createdAt: 'SERVER_TS',
         updatedAt: 'SERVER_TS',
       }),
-      { merge: true }
+      { merge: true } // Prevent overwriting existing data
     )
   })
 
   it('does not call setDoc if job already applied (id exists in appliedJobIds)', () => {
+    // This tests that the handleApply function correctly prevents duplicate applications
     snapshotDocIds = ['1'] // applied already
     render(<Jobs />)
 
+    // Simulate user clicking the Apply button in the mocked AvailableJobsList
     fireEvent.click(screen.getByTestId('apply-button'))
 
     expect(setDocMock).not.toHaveBeenCalled()
   })
 
   it('renders main content container', () => {
+    // This checks that the main layout container is present and has the correct styling classes
     render(<Jobs />)
 
     const main = screen.getByRole('main')
@@ -176,6 +186,7 @@ describe('Jobs Page', () => {
   })
 
   it('renders with correct background styling', () => {
+    // This checks that the outermost div has the correct background styling classes
     const { container } = render(<Jobs />)
     const mainDiv = container.querySelector('.min-h-screen.bg-background')
     expect(mainDiv).toBeTruthy()

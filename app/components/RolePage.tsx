@@ -2,8 +2,11 @@
 
 import { useState } from 'react'
 
+// Allowed roles in the system
 export type Role = 'applicant' | 'recruiter'
 
+// UI-only component for choosing a role
+// Parent is responsible for actually persisting the role
 export function RolePageUI({
   onSelectRole,
 }: {
@@ -14,8 +17,10 @@ export function RolePageUI({
   const [savingRole, setSavingRole] = useState<Role | null>(null)
   // Handles role selection and manages loading state
   const handlePick = async (role: Role) => {
+    // Set loading state immediately (disables both buttons)
     setSavingRole(role)
     try {
+      // Call parent handler
       await onSelectRole(role)
     } finally {
       setSavingRole(null) // Reset loading state regardless of success/failure

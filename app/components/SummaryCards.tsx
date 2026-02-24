@@ -6,13 +6,17 @@ import { Badge } from './ui/badge'
 import { Briefcase, Calendar, TrendingUp, Target, Users, CheckCircle } from 'lucide-react'
 import { getDashboardStatsFromList, JobApplication } from '../data/mockData'
 
+// Props: receives full list of applications
 interface SummaryCardsProps {
   applications: JobApplication[]
 }
 
+// Memoized component for performance (dashboard re-renders often)
 export const SummaryCards = memo(function SummaryCards({ applications }: SummaryCardsProps) {
+  // Derive aggregate stats from raw applications
   const stats = getDashboardStatsFromList(applications)
-
+  // Define card metadata in a config array
+  // Each object becomes one card in the grid
   const cards = [
     {
       title: 'Total Applications',
@@ -59,10 +63,15 @@ export const SummaryCards = memo(function SummaryCards({ applications }: Summary
   ]
 
   return (
+    // Responsive grid layout
+    // Expands from 1 column → up to 6 on large screens
     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4'>
+      {/* Render one card per config item */}
       {cards.map((card, index) => {
+        // Extract icon component for this card
         const Icon = card.icon
         return (
+          // Individual summary card
           <Card key={index}>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
               <CardTitle className='text-sm font-medium'>{card.title}</CardTitle>

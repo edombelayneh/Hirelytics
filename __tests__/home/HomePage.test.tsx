@@ -4,39 +4,33 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import React from 'react'
 import HomePage from '../../app/home/page'
 
-/* ---------------------------------------------
-   MOCK: Clerk auth
---------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+/*                               GLOBAL MOCKS                                 */
+/* -------------------------------------------------------------------------- */
+
+// Mock the entire Clerk module to control useAuth behavior in tests
 const clerk = vi.hoisted(() => ({
   useAuth: vi.fn(),
 }))
-
 vi.mock('@clerk/nextjs', () => ({
   useAuth: clerk.useAuth,
 }))
 
-/* ---------------------------------------------
-   MOCK: protectedAction
---------------------------------------------- */
+// Mock the entire protectedAction module to control its behavior in tests
 const protectedActionMock = vi.hoisted(() => ({
   protectedAction: vi.fn(),
 }))
-
 vi.mock('../../app/utils/protectedAction', () => ({
   protectedAction: protectedActionMock.protectedAction,
 }))
 
-/* ---------------------------------------------
-   MOCK: framer-motion
---------------------------------------------- */
+// Mock the entire framer-motion module to prevent animation issues in tests
 vi.mock('framer-motion', () => {
   const MotionDiv = ({ children }: { children?: React.ReactNode }) => <div>{children}</div>
   return { motion: { div: MotionDiv } }
 })
 
-/* ---------------------------------------------
-   MOCK: UI components 
---------------------------------------------- */
+// Mock the entire lucide-react module to prevent icon rendering issues in tests
 vi.mock('../../app/components/ui/button', () => ({
   Button: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
     <button
@@ -48,13 +42,12 @@ vi.mock('../../app/components/ui/button', () => ({
   ),
 }))
 
+// Mock the entire card component to prevent styling issues in tests
 vi.mock('../../app/components/ui/card', () => ({
   Card: ({ children }: { children: React.ReactNode }) => <div data-testid='card'>{children}</div>,
 }))
 
-/* ---------------------------------------------
-   MOCK: lucide-react icons
---------------------------------------------- */
+// Mock the entire sonner module to control toast behavior in tests
 vi.mock('lucide-react', () => ({
   Brain: () => <span data-testid='icon-brain' />,
   Clock: () => <span data-testid='icon-clock' />,
@@ -70,6 +63,10 @@ vi.mock('lucide-react', () => ({
   CheckCircle2: () => <span data-testid='icon-checkcircle2' />,
   LineChart: () => <span data-testid='icon-linechart' />,
 }))
+
+// ------------------------------------------------------------------ */
+//                         TESTS
+/* ------------------------------------------------------------------ */
 
 describe('HomePage', () => {
   beforeEach(() => {
@@ -173,11 +170,11 @@ describe('HomePage', () => {
     clerk.useAuth.mockReturnValue({ isSignedIn: false })
 
     render(<HomePage />)
-
+    // Simulate clicking the hero buttons and check that protectedAction is called and the hash does NOT change
     fireEvent.click(screen.getByText('Browse Available Jobs'))
     expect(protectedActionMock.protectedAction).toHaveBeenCalledTimes(1)
     expect(window.location.hash).toBe('')
-
+    // Reset mocks and hash before next click
     fireEvent.click(screen.getByText('View My Applications'))
     expect(protectedActionMock.protectedAction).toHaveBeenCalledTimes(2)
     expect(window.location.hash).toBe('')
@@ -189,10 +186,10 @@ describe('HomePage', () => {
     clerk.useAuth.mockReturnValue({ isSignedIn: true })
 
     render(<HomePage />)
-
+    // Simulate clicking the hero buttons and check that the hash updates to the expected routes
     fireEvent.click(screen.getByText('Browse Available Jobs'))
     expect(window.location.hash).toBe('#/jobs')
-
+    // Reset hash before next click
     fireEvent.click(screen.getByText('View My Applications'))
     expect(window.location.hash).toBe('#/applications')
   })
@@ -202,10 +199,10 @@ describe('HomePage', () => {
     clerk.useAuth.mockReturnValue({ isSignedIn: true })
 
     render(<HomePage />)
-
+    // Simulate clicking the CTA buttons at the bottom of the page
     fireEvent.click(screen.getByText('Get Started Now'))
     expect(window.location.hash).toBe('#/jobs')
-
+    // Reset hash before next click
     fireEvent.click(screen.getByText('View Dashboard'))
     expect(window.location.hash).toBe('#/applications')
   })
@@ -216,6 +213,7 @@ describe('HomePage', () => {
     clerk.useAuth.mockReturnValue({ isSignedIn: false })
     render(<HomePage />)
 
+    // Simulate user clicking the Browse Available Jobs button when signed out
     fireEvent.click(screen.getByText('Browse Available Jobs'))
     expect(protectedActionMock.protectedAction).toHaveBeenCalledWith({
       isSignedIn: false,
@@ -223,10 +221,11 @@ describe('HomePage', () => {
     })
 
     cleanup()
-
+    // Simulate user signing in by changing the mock return value and clicking the button again
     clerk.useAuth.mockReturnValue({ isSignedIn: true })
     render(<HomePage />)
 
+    // Simulate user clicking the button again when signed in
     fireEvent.click(screen.getByText('Browse Available Jobs'))
     expect(protectedActionMock.protectedAction).toHaveBeenCalledWith({
       isSignedIn: true,

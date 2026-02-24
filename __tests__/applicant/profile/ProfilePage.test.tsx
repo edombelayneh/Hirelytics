@@ -4,6 +4,9 @@ import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/re
 import { ProfilePage } from '../../../app/applicant/profile/ProfilePage'
 import { toast } from '../../../app/components/ui/sonner'
 
+/* -------------------------------------------------------------------------- */
+/*                                   MOCKS                                    */
+/* -------------------------------------------------------------------------- */
 // Mock the toast
 vi.mock('../../../app/components/ui/sonner', () => ({
   toast: {
@@ -18,6 +21,7 @@ interface MockFileReader {
   onloadend: (() => void) | null
 }
 
+// Mock the entire userProfiles module
 global.FileReader = vi.fn(function (this: MockFileReader) {
   this.readAsDataURL = vi.fn()
   this.onloadend = null
@@ -42,18 +46,26 @@ const mockProfile = {
   resumeFileName: '',
 }
 
+// Mock the ProfilePage child component to control its behavior and isolate testing to ApplicantProfileRoute
 const mockOnUpdateProfile = vi.fn()
+
+// -------------------------------------------------------------------------- */
+/*                               TESTS                                        */
+/* -------------------------------------------------------------------------- */
 
 describe('ProfilePage', () => {
   beforeEach(() => {
+    // Reset mocks before each test
     vi.clearAllMocks()
   })
 
   afterEach(() => {
+    // Clean up the DOM after each test to prevent test interference and ensure isolation
     cleanup()
   })
 
   it('renders profile data correctly', () => {
+    // This tests that the ProfilePage component correctly renders the profile data passed down from the parent
     render(
       <ProfilePage
         profile={mockProfile}
@@ -69,6 +81,7 @@ describe('ProfilePage', () => {
   })
 
   it('enables Save button when a field is edited', () => {
+    // This tests that the component correctly detects changes to the form fields and enables the Save button
     render(
       <ProfilePage
         profile={mockProfile}
@@ -87,6 +100,7 @@ describe('ProfilePage', () => {
   })
 
   it('calls onUpdateProfile when Save button is clicked', () => {
+    // This tests that when the Save button is clicked, the onUpdateProfile callback is called with the updated profile data
     render(
       <ProfilePage
         profile={mockProfile}
@@ -110,6 +124,7 @@ describe('ProfilePage', () => {
   })
 
   it('prevents saving with empty firstName', () => {
+    // This tests that the form validation logic correctly prevents saving when the first name is empty
     render(
       <ProfilePage
         profile={mockProfile}
@@ -136,6 +151,7 @@ describe('ProfilePage', () => {
   })
 
   it('prevents saving with empty lastName', () => {
+    // This tests that the form validation logic correctly prevents saving when the last name is empty
     render(
       <ProfilePage
         profile={mockProfile}
@@ -162,6 +178,7 @@ describe('ProfilePage', () => {
   })
 
   it('prevents saving with empty email', () => {
+    // This tests that the form validation logic correctly prevents saving when the email is empty
     render(
       <ProfilePage
         profile={mockProfile}
@@ -188,6 +205,7 @@ describe('ProfilePage', () => {
   })
 
   it('prevents saving with invalid email format (missing @)', () => {
+    // This tests that the form validation logic correctly prevents saving when the email format is invalid (missing @ symbol)
     render(
       <ProfilePage
         profile={mockProfile}
@@ -214,6 +232,7 @@ describe('ProfilePage', () => {
   })
 
   it('prevents saving with invalid email format (missing domain)', () => {
+    // This tests that the form validation logic correctly prevents saving when the email format is invalid (missing domain extension)
     render(
       <ProfilePage
         profile={mockProfile}
@@ -240,6 +259,7 @@ describe('ProfilePage', () => {
   })
 
   it('allows saving with valid email format', () => {
+    // This tests that the form validation logic allows saving when the email format is valid
     render(
       <ProfilePage
         profile={mockProfile}
@@ -290,9 +310,11 @@ describe('ProfilePage', () => {
       )
     })
   })
-
-  // Resume Upload Tests
+  // --------------------------------------------------------------------------
+  // File upload tests
+  // --------------------------------------------------------------------------
   it('accepts .pdf resume files', () => {
+    // This tests that the file input for the resume accepts PDF files
     render(
       <ProfilePage
         profile={mockProfile}
@@ -300,12 +322,14 @@ describe('ProfilePage', () => {
       />
     )
 
+    // Create a mock PDF file
     const file = new File(['resume content'], 'resume.pdf', { type: 'application/pdf' })
     const resumeInputs = document.querySelectorAll('input[type="file"]')
     const resumeInput = Array.from(resumeInputs).find((input) =>
       (input as HTMLInputElement).accept.includes('.pdf')
     ) as HTMLInputElement
 
+    // Simulate user selecting the file
     fireEvent.change(resumeInput, { target: { files: [file] } })
 
     // Just verify the input accepts the file without errors - the component will handle the rest
@@ -313,6 +337,7 @@ describe('ProfilePage', () => {
   })
 
   it('accepts .doc resume files', () => {
+    // This tests that the file input for the resume accepts DOC files
     render(
       <ProfilePage
         profile={mockProfile}
@@ -320,18 +345,22 @@ describe('ProfilePage', () => {
       />
     )
 
+    // Create a mock DOC file
     const file = new File(['resume content'], 'resume.doc', { type: 'application/msword' })
     const resumeInputs = document.querySelectorAll('input[type="file"]')
     const resumeInput = Array.from(resumeInputs).find((input) =>
       (input as HTMLInputElement).accept.includes('.pdf')
     ) as HTMLInputElement
 
+    // Simulate user selecting the file
     fireEvent.change(resumeInput, { target: { files: [file] } })
 
+    // Just verify the input accepts the file without error
     expect(resumeInput).toBeTruthy()
   })
 
   it('accepts .docx resume files', () => {
+    // This tests that the file input for the resume accepts DOCX files
     render(
       <ProfilePage
         profile={mockProfile}
@@ -339,6 +368,7 @@ describe('ProfilePage', () => {
       />
     )
 
+    // Create a mock DOCX file
     const file = new File(['resume content'], 'resume.docx', {
       type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     })
@@ -346,13 +376,15 @@ describe('ProfilePage', () => {
     const resumeInput = Array.from(resumeInputs).find((input) =>
       (input as HTMLInputElement).accept.includes('.pdf')
     ) as HTMLInputElement
-
+    // Simulate user selecting the file
     fireEvent.change(resumeInput, { target: { files: [file] } })
 
+    // Just verify the input accepts the file without error
     expect(resumeInput).toBeTruthy()
   })
-  // Invalid file type tests
+
   it('rejects .txt resume files', () => {
+    // This tests that the file input for the resume correctly rejects TXT files and shows an error toast
     render(
       <ProfilePage
         profile={mockProfile}
@@ -360,12 +392,14 @@ describe('ProfilePage', () => {
       />
     )
 
+    // Create a mock TXT file
     const file = new File(['resume content'], 'resume.txt', { type: 'text/plain' })
     const resumeInputs = document.querySelectorAll('input[type="file"]')
     const resumeInput = Array.from(resumeInputs).find((input) =>
       (input as HTMLInputElement).accept.includes('.pdf')
     ) as HTMLInputElement
 
+    // Simulate user selecting the file
     fireEvent.change(resumeInput, { target: { files: [file] } })
 
     // Error invalid file type toast
@@ -378,6 +412,7 @@ describe('ProfilePage', () => {
   })
 
   it('rejects .jpg resume files', () => {
+    // This tests that the file input for the resume correctly rejects JPG files and shows an error toast
     render(
       <ProfilePage
         profile={mockProfile}
@@ -385,14 +420,17 @@ describe('ProfilePage', () => {
       />
     )
 
+    // Create a mock JPG file
     const file = new File(['resume content'], 'resume.jpg', { type: 'image/jpeg' })
     const resumeInputs = document.querySelectorAll('input[type="file"]')
     const resumeInput = Array.from(resumeInputs).find((input) =>
       (input as HTMLInputElement).accept.includes('.pdf')
     ) as HTMLInputElement
 
+    // Simulate user selecting the files
     fireEvent.change(resumeInput, { target: { files: [file] } })
 
+    // Error invalid file type toast
     expect(toast.error).toHaveBeenCalledWith(
       'Invalid file type',
       expect.objectContaining({
@@ -402,6 +440,7 @@ describe('ProfilePage', () => {
   })
 
   it('rejects resume files over 10MB', () => {
+    // This tests that the file input for the resume correctly rejects files over 10MB and shows an error toast
     render(
       <ProfilePage
         profile={mockProfile}
@@ -417,8 +456,11 @@ describe('ProfilePage', () => {
     const resumeInput = Array.from(resumeInputs).find((input) =>
       (input as HTMLInputElement).accept.includes('.pdf')
     ) as HTMLInputElement
+
+    // Simulate user selecting the file
     fireEvent.change(resumeInput, { target: { files: [file] } })
 
+    // Error file too large toast
     expect(toast.error).toHaveBeenCalledWith(
       'File too large',
       expect.objectContaining({
@@ -428,6 +470,7 @@ describe('ProfilePage', () => {
   })
 
   it('rejects profile pictures over 5MB', () => {
+    // This tests that the file input for the profile picture correctly rejects files over 5MB and shows an error toast
     render(
       <ProfilePage
         profile={mockProfile}
@@ -443,8 +486,11 @@ describe('ProfilePage', () => {
     const profilePicInput = Array.from(profilePicInputs).find(
       (input) => !(input as HTMLInputElement).accept.includes('.pdf')
     ) as HTMLInputElement
+
+    // Simulate user selecting the file
     fireEvent.change(profilePicInput, { target: { files: [file] } })
 
+    // Error file too large toast
     expect(toast.error).toHaveBeenCalledWith(
       'File too large',
       expect.objectContaining({

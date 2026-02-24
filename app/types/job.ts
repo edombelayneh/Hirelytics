@@ -1,3 +1,8 @@
+// --------------------------------------------------
+// Job type
+// Represents a job posting in the system
+// Used for recruiter job lists + job detail pages
+// --------------------------------------------------
 export type Job = {
   id: string
   title: string
@@ -8,6 +13,11 @@ export type Job = {
   description?: string
 }
 
+// --------------------------------------------------
+// Applicant type
+// Represents a candidate applying to a job
+// Used in recruiter views + applicant tables
+// --------------------------------------------------
 export type Applicant = {
   id: string
   firstName: string
