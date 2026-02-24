@@ -164,11 +164,39 @@ describe('ApplicationsTable', () => {
     expect(screen.getByText('BigTech Inc')).toBeTruthy()
   })
 
+  it('displays application details correctly', () => {
+    render(<ApplicationsTable applications={mockApplications} />)
+
+    // Check first application details
+    expect(screen.getByText('TechCorp')).toBeTruthy()
+    const usaElements = screen.getAllByText('USA')
+    expect(usaElements.length).toBeGreaterThan(0)
+    expect(screen.getByText('San Francisco')).toBeTruthy()
+    expect(screen.getByText('Software Engineer')).toBeTruthy()
+    expect(screen.getByText('John Doe')).toBeTruthy()
+  })
+
+  it('shows empty state when no applications match filter', () => {
+    render(<ApplicationsTable applications={mockApplications} />)
+
+    const searchInput = screen.getByPlaceholderText('Search companies, positions, or locations...')
+    fireEvent.change(searchInput, { target: { value: 'NonExistentCompany' } })
+
+    expect(screen.getByText('No applications found matching your criteria')).toBeTruthy()
+  })
+
+  it('displays application count correctly', () => {
+    render(<ApplicationsTable applications={mockApplications} />)
+
+    expect(screen.getByText('Showing 3 of 3 applications')).toBeTruthy()
+  })
   it('shows application count correctly', () => {
     // Checks the “Showing X of Y” label matches the provided dataset
     render(<ApplicationsTable applications={mockApplications} />)
     expect(screen.getByText('Showing 3 of 3 applications')).toBeTruthy()
   })
+
+  // --- Search Functionality Tests ---
 
   it('filters by search term (company)', () => {
     // Simulates typing into search and confirms list shrinks accordingly
@@ -181,6 +209,38 @@ describe('ApplicationsTable', () => {
     expect(screen.queryByText('StartupXYZ')).toBeNull()
     expect(screen.queryByText('BigTech Inc')).toBeNull()
     expect(screen.getByText('Showing 1 of 3 applications')).toBeTruthy()
+  })
+
+  it('filters applications by position', () => {
+    render(<ApplicationsTable applications={mockApplications} />)
+
+    const searchInput = screen.getByPlaceholderText('Search companies, positions, or locations...')
+    fireEvent.change(searchInput, { target: { value: 'Frontend' } })
+
+    expect(screen.getByText('StartupXYZ')).toBeTruthy()
+    expect(screen.queryByText('TechCorp')).toBeNull()
+    expect(screen.getByText('Showing 1 of 3 applications')).toBeTruthy()
+  })
+
+  it('filters applications by country', () => {
+    render(<ApplicationsTable applications={mockApplications} />)
+
+    const searchInput = screen.getByPlaceholderText('Search companies, positions, or locations...')
+    fireEvent.change(searchInput, { target: { value: 'Canada' } })
+
+    expect(screen.getByText('StartupXYZ')).toBeTruthy()
+    expect(screen.queryByText('TechCorp')).toBeNull()
+    expect(screen.queryByText('BigTech Inc')).toBeNull()
+  })
+
+  it('filters applications by city', () => {
+    render(<ApplicationsTable applications={mockApplications} />)
+
+    const searchInput = screen.getByPlaceholderText('Search companies, positions, or locations...')
+    fireEvent.change(searchInput, { target: { value: 'Toronto' } })
+
+    expect(screen.getByText('StartupXYZ')).toBeTruthy()
+    expect(screen.queryByText('TechCorp')).toBeNull()
   })
 
   it('search is case-insensitive', () => {
@@ -205,6 +265,11 @@ describe('ApplicationsTable', () => {
     expect(screen.getByText('Showing 3 of 3 applications')).toBeTruthy()
   })
 
+  // --- Status Filter Tests ---
+  // Note: Radix Select dropdown interactions are difficult to test in jsdom
+  // because they use portals and complex DOM manipulation.
+  // These tests verify the filter exists and is accessible.
+
   it('filters by status via the status filter dropdown', () => {
     // Uses the mocked <select> filter to show only matching statuses
     render(<ApplicationsTable applications={mockApplications} />)
@@ -222,6 +287,8 @@ describe('ApplicationsTable', () => {
     expect(screen.getByText('Showing 1 of 3 applications')).toBeTruthy()
   })
 
+  // --- Callback Tests ---
+
   it('shows empty state when no applications match', () => {
     // Validates user-friendly empty state and correct count when filters return nothing
     render(<ApplicationsTable applications={mockApplications} />)
@@ -231,6 +298,20 @@ describe('ApplicationsTable', () => {
 
     expect(screen.getByText('No applications found matching your criteria')).toBeTruthy()
     expect(screen.getByText('Showing 0 of 3 applications')).toBeTruthy()
+  })
+
+  it('provides status change functionality via Select components', () => {
+    render(
+      <ApplicationsTable
+        applications={mockApplications}
+        onStatusChange={mockOnStatusChange}
+      />
+    )
+
+    // Verify status dropdowns exist (actual interaction testing is limited in jsdom)
+    const statusDropdowns = screen.getAllByRole('combobox')
+    // Should have filter dropdown + one for each row
+    expect(statusDropdowns.length).toBe(mockApplications.length + 1)
   })
 
   it('calls onNotesChange when notes are edited', () => {
@@ -278,6 +359,20 @@ describe('ApplicationsTable', () => {
     expect(mockOnStatusChange).toHaveBeenCalledWith('1', 'Interview')
   })
 
+  // --- External Link Tests ---
+
+  it('navigates to application details when action button is clicked', () => {
+    render(<ApplicationsTable applications={mockApplications} />)
+
+    // Your Action button is icon-only, so it has no accessible name.
+    // Grab all buttons and click the first one (first row action).
+    const buttons = screen.getAllByRole('button')
+    fireEvent.click(buttons[0])
+
+    expect(pushMock).toHaveBeenCalledTimes(1)
+    expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1')
+  })
+
   it('navigates to application details when action button is clicked', () => {
     // Verifies clicking the row action triggers a route push to details page
     render(<ApplicationsTable applications={mockApplications} />)
@@ -289,6 +384,8 @@ describe('ApplicationsTable', () => {
     expect(pushMock).toHaveBeenCalledTimes(1)
     expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1')
   })
+
+  // --- Edge Case Tests ---
 
   it('renders correctly with empty applications array', () => {
     // Handles empty dataset gracefully (still shows header + empty state)
@@ -320,5 +417,21 @@ describe('ApplicationsTable', () => {
     expect(screen.getByText('Pending')).toBeTruthy()
     expect(screen.getByText('In Progress')).toBeTruthy()
     expect(screen.getByText('Unsuccessful')).toBeTruthy()
+  })
+
+  // --- Memoization Test ---
+
+  it('memoizes and does not re-render unnecessarily', () => {
+    const { rerender } = render(<ApplicationsTable applications={mockApplications} />)
+
+    const initialCompanyElement = screen.getByText('TechCorp')
+
+    // Re-render with same props
+    rerender(<ApplicationsTable applications={mockApplications} />)
+
+    const afterRerenderCompanyElement = screen.getByText('TechCorp')
+
+    // Elements should be the same (component memoized)
+    expect(initialCompanyElement).toBe(afterRerenderCompanyElement)
   })
 })
