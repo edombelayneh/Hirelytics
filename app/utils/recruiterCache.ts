@@ -1,7 +1,7 @@
 // Manages fetching and caching recruiter data from Firebase
 // Avoids repeated Firestore queries by storing recruiters in memory
 
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '../lib/firebaseClient'
 import type { RecruiterProfile } from './userProfiles'
 import type { AvailableJob } from '../data/availableJobs'
@@ -17,7 +17,7 @@ let cacheFetched = false
 
 /**
  * Fetch all recruiters from Firebase and cache them
- * Queries the users collection for documents with recruiterProfile field
+ * Uses server-side query filtering to only fetch recruiter users
  * Returns a list of recruiter UIDs and their company info
  */
 export async function fetchAllRecruiters(): Promise<RecruiterInfo[]> {
@@ -28,18 +28,16 @@ export async function fetchAllRecruiters(): Promise<RecruiterInfo[]> {
 
   try {
     const usersRef = collection(db, 'users')
-    const querySnapshot = await getDocs(usersRef)
+    const recruitersQuery = query(usersRef, where('role', '==', 'recruiter'))
+    const querySnapshot = await getDocs(recruitersQuery)
 
     const recruiters: RecruiterInfo[] = []
     querySnapshot.forEach((doc) => {
       const data = doc.data()
-      // Check if this user has a recruiter profile
-      if (data.recruiterProfile) {
-        recruiters.push({
-          uid: doc.id,
-          profile: data.recruiterProfile,
-        })
-      }
+      recruiters.push({
+        uid: doc.id,
+        profile: data.recruiterProfile,
+      })
     })
 
     recruiterCache = recruiters
