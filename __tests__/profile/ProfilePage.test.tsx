@@ -91,12 +91,10 @@ describe('ProfilePage', () => {
     expect(screen.getByDisplayValue('jane.doe@example.com')).toBeTruthy()
   })
 
-  it('shows disabled "Saved" button initially (not editing, onboarding not required)', () => {
+  it('shows Save Changes button initially', () => {
     renderPage()
-
-    // When canSave is false, label is "Saved"
-    const btn = screen.getByRole('button', { name: /saved/i }) as HTMLButtonElement
-    expect(btn.disabled).toBe(true)
+    const btn = screen.getByRole('button', { name: /save changes/i }) as HTMLButtonElement
+    expect(btn.disabled).toBe(false)
   })
 
   it('enables Save button when a field is edited', () => {
@@ -129,72 +127,105 @@ describe('ProfilePage', () => {
     )
   })
 
-  it('disables Save when firstName is empty (cannot attempt save)', () => {
+  it('blocks save when firstName is empty (shows validation + toast)', async () => {
     renderPage()
 
     fireEvent.change(screen.getByLabelText(/first name/i), {
       target: { value: '' },
     })
 
-    // With missing required field, canSave becomes false -> label "Saved" + disabled
-    const btn = screen.getByRole('button', { name: /saved/i }) as HTMLButtonElement
-    expect(btn.disabled).toBe(true)
+    const saveBtn = screen.getByRole('button', { name: /save changes/i })
+    fireEvent.click(saveBtn)
 
-    // Handler is never called, so no toast expected
-    expect(toast.error).not.toHaveBeenCalled()
     expect(mockOnUpdateProfile).not.toHaveBeenCalled()
+
+    expect(toast.error).toHaveBeenCalledWith(
+      'Missing required fields',
+      expect.objectContaining({
+        description: 'Fix the highlighted fields and try again.',
+      })
+    )
+
+    expect(await screen.findByText('First name is required.')).toBeTruthy()
   })
 
-  it('disables Save when lastName is empty (cannot attempt save)', () => {
+  it('blocks save when lastName is empty (shows validation + toast)', async () => {
     renderPage()
 
     fireEvent.change(screen.getByLabelText(/last name/i), {
       target: { value: '' },
     })
 
-    const btn = screen.getByRole('button', { name: /saved/i }) as HTMLButtonElement
-    expect(btn.disabled).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
-    expect(toast.error).not.toHaveBeenCalled()
     expect(mockOnUpdateProfile).not.toHaveBeenCalled()
+
+    expect(toast.error).toHaveBeenCalledWith(
+      'Missing required fields',
+      expect.objectContaining({
+        description: 'Fix the highlighted fields and try again.',
+      })
+    )
+
+    expect(await screen.findByText('Last name is required.')).toBeTruthy()
   })
 
-  it('disables Save when email is empty (cannot attempt save)', () => {
+  it('does not save when email is empty (user cleared it) (shows validation + toast)', async () => {
     renderPage()
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: '' },
     })
 
-    const btn = screen.getByRole('button', { name: /saved/i }) as HTMLButtonElement
-    expect(btn.disabled).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
-    expect(toast.error).not.toHaveBeenCalled()
     expect(mockOnUpdateProfile).not.toHaveBeenCalled()
+
+    expect(toast.error).toHaveBeenCalledWith(
+      'Missing required fields',
+      expect.objectContaining({
+        description: 'Fix the highlighted fields and try again.',
+      })
+    )
+
+    expect(await screen.findByText('Email is required.')).toBeTruthy()
   })
 
   it('prevents saving with invalid email format (missing @)', async () => {
-    renderPage()
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+        isOnboardingRequired={false}
+      />
+    )
 
-    // keep requiredFilled true, but make email invalid
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'invalidemail.com' },
     })
 
-    // email is non-empty => requiredFilled true; edited => canSave true
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
+    expect(mockOnUpdateProfile).not.toHaveBeenCalled()
+
     expect(toast.error).toHaveBeenCalledWith(
-      'Invalid email format',
+      'Missing required fields',
       expect.objectContaining({
-        description: 'Please enter a valid email address',
+        description: 'Fix the highlighted fields and try again.',
       })
     )
-    expect(mockOnUpdateProfile).not.toHaveBeenCalled()
+
+    expect(await screen.findByText('Enter a valid email address.')).toBeTruthy()
   })
 
   it('prevents saving with invalid email format (missing domain)', async () => {
-    renderPage()
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+        isOnboardingRequired={false}
+      />
+    )
 
     fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'invalid@domain' },
@@ -202,13 +233,17 @@ describe('ProfilePage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
+    expect(mockOnUpdateProfile).not.toHaveBeenCalled()
+
     expect(toast.error).toHaveBeenCalledWith(
-      'Invalid email format',
+      'Missing required fields',
       expect.objectContaining({
-        description: 'Please enter a valid email address',
+        description: 'Fix the highlighted fields and try again.',
       })
     )
-    expect(mockOnUpdateProfile).not.toHaveBeenCalled()
+
+    // Field-level validation message from validate()
+    expect(await screen.findByText('Enter a valid email address.')).toBeTruthy()
   })
 
   it('shows success toast when profile is updated', async () => {
