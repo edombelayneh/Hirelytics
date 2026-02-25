@@ -55,6 +55,11 @@ export const ProfilePage = memo(function ProfilePage({
   const profilePicInputRef = useRef<HTMLInputElement>(null)
   const resumeInputRef = useRef<HTMLInputElement>(null)
 
+  // Validation errors state
+  const [errors, setErrors] = useState<Partial<Record<'firstName' | 'lastName' | 'email', string>>>(
+    {}
+  )
+
   const { user, isLoaded } = useUser()
 
   // When parent loads profile from Firestore, update the form fields
@@ -96,6 +101,10 @@ export const ProfilePage = memo(function ProfilePage({
   const handleInputChange = (field: keyof UserProfile, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     setIsEditing(true)
+
+    if (field === 'firstName' || field === 'lastName' || field === 'email') {
+      setErrors((prev) => ({ ...prev, [field]: undefined }))
+    }
   }
 
   // -------------
@@ -160,38 +169,26 @@ export const ProfilePage = memo(function ProfilePage({
   // handle save form for applicant profile
   // -------------
   const handleSave = async () => {
-    // Validate required fields
-    if (!formData.firstName || !formData.lastName || !formData.email) {
-      toast.error('Missing required fields', {
-        description: 'Please fill in your name and email',
-      })
-      return
-    }
+    const nextErrors = validate()
+    setErrors(nextErrors)
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(formData.email)) {
-      toast.error('Invalid email format', {
-        description: 'Please enter a valid email address',
+    if (Object.keys(nextErrors).length > 0) {
+      toast.error('Missing required fields', {
+        description: 'Fix the highlighted fields and try again.',
       })
       return
     }
 
     setIsSaving(true)
-
     try {
-      // Save to Firebase (async) and wait on firebase until that finishes
       await onUpdateProfile(formData)
-
       setIsEditing(false)
       toast.success('Profile updated successfully', {
         description: 'Your changes have been saved',
       })
     } catch (err) {
       console.error('Save profile error:', err)
-      toast.error('Save failed', {
-        description: 'Please try again.',
-      })
+      toast.error('Save failed', { description: 'Please try again.' })
     } finally {
       setIsSaving(false)
     }
@@ -203,12 +200,19 @@ export const ProfilePage = memo(function ProfilePage({
     return `${first}${last}` || 'U'
   }
 
-  const requiredFilled =
-    Boolean(formData.firstName?.trim()) &&
-    Boolean(formData.lastName?.trim()) &&
-    Boolean(formData.email?.trim())
+  const validate = () => {
+    const next: Partial<Record<'firstName' | 'lastName' | 'email', string>> = {}
 
-  const canSave = requiredFilled && !isSaving && (isEditing || isOnboardingRequired)
+    if (!formData.firstName?.trim()) next.firstName = 'First name is required.'
+    if (!formData.lastName?.trim()) next.lastName = 'Last name is required.'
+    if (!formData.email?.trim()) next.email = 'Email is required.'
+    else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formData.email)) next.email = 'Enter a valid email address.'
+    }
+
+    return next
+  }
 
   return (
     <div className='space-y-6 max-w-5xl mx-auto'>
@@ -317,8 +321,9 @@ export const ProfilePage = memo(function ProfilePage({
                 placeholder='John'
                 value={formData.firstName}
                 onChange={(e) => handleInputChange('firstName', e.target.value)}
-                className='pl-9'
+                className={`pl-9 ${errors.firstName ? 'border border-red-500 focus-visible:ring-red-500' : ''}`}
               />
+              {errors.firstName && <p className='text-sm text-red-600 mt-1'>{errors.firstName}</p>}
             </div>
           </div>
 
@@ -330,11 +335,12 @@ export const ProfilePage = memo(function ProfilePage({
               <User className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='lastName'
-                placeholder='Doe'
+                placeholder='John'
                 value={formData.lastName}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
-                className='pl-9'
+                className={`pl-9 ${errors.lastName ? 'border border-red-500 focus-visible:ring-red-500' : ''}`}
               />
+              {errors.lastName && <p className='text-sm text-red-600 mt-1'>{errors.lastName}</p>}
             </div>
           </div>
 
@@ -350,8 +356,9 @@ export const ProfilePage = memo(function ProfilePage({
                 placeholder='john.doe@example.com'
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className='pl-9'
+                className={`pl-9 ${errors.email ? 'border border-red-500 focus-visible:ring-red-500' : ''}`}
               />
+              {errors.email && <p className='text-sm text-red-600 mt-1'>{errors.email}</p>}
             </div>
           </div>
 
@@ -508,26 +515,15 @@ export const ProfilePage = memo(function ProfilePage({
       </Card>
 
       {/* Save Button */}
-      <div className='flex justify-end gap-3 pb-8'>
-        <Button
-          size='lg'
-          onClick={handleSave}
-          disabled={!canSave} // disable while saving
-          className='gap-2'
-        >
-          {canSave ? (
-            <>
-              <Save className='h-4 w-4' />
-              Save Changes
-            </>
-          ) : (
-            <>
-              <CheckCircle2 className='h-4 w-4' />
-              Saved
-            </>
-          )}
-        </Button>
-      </div>
+      <Button
+        size='lg'
+        onClick={handleSave}
+        disabled={isSaving}
+        className='gap-2'
+      >
+        <Save className='h-4 w-4' />
+        {isSaving ? 'Saving...' : 'Save Changes'}
+      </Button>
     </div>
   )
 })

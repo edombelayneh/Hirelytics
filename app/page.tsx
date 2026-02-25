@@ -296,20 +296,6 @@ function LandingPage() {
         return
       }
 
-      // If onboarding is NOT complete, force them to /profile
-      // NOTE: We are NOT disabling the Save button. We are just blocking navigation
-      // until a valid save occurs (which sets *_ProfileCompleted true).
-      if (isSignedIn && roleLoaded && role) {
-        const needsApplicantProfile = role === 'applicant' && !applicantProfileCompleted
-        const needsRecruiterProfile = role === 'recruiter' && !recruiterProfileCompleted
-
-        if ((needsApplicantProfile || needsRecruiterProfile) && next !== 'profile') {
-          setShowProfileBanner(true)
-          window.location.hash = '/profile'
-          return
-        }
-      }
-
       // Role-based route blocking
       if (isSignedIn && roleLoaded && role) {
         const applicantOnly = next === 'available' || next === 'applications'
@@ -351,8 +337,8 @@ function LandingPage() {
 
     await saveUserProfile(uid, updatedProfile)
     setProfile(updatedProfile)
-    setApplicantProfileCompleted(true)
-    setShowProfileBanner(false)
+
+    setApplicantProfileCompleted(isApplicantProfileComplete(updatedProfile))
   }
 
   // ----------------
@@ -364,10 +350,9 @@ function LandingPage() {
 
     await saveRecruiterProfile(uid, updated)
     setRecruiterProfile(updated)
-    setRecruiterProfileCompleted(true)
-    setShowProfileBanner(false)
-  }
 
+    setRecruiterProfileCompleted(isRecruiterProfileComplete(updated))
+  }
   // ---------------------------
   // ROLE PICKER SAVE HANDLER
   // ---------------------------
@@ -440,9 +425,6 @@ function LandingPage() {
             <div className='container mx-auto px-6 py-3 flex items-center justify-between'>
               <div>
                 <div className='font-semibold'>Please confirm account information</div>
-                <div className='text-sm opacity-90'>
-                  Please complete the required fields before continuing.
-                </div>
               </div>
 
               <button
@@ -464,7 +446,7 @@ function LandingPage() {
         {currentPage === 'available' && (
           <AvailableJobsPage
             onAddApplication={handleAddApplication}
-            appliedJobIds={appliedJobIds}
+            // appliedJobIds={appliedJobIds}
             role={role}
           />
         )}
