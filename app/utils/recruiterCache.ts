@@ -47,8 +47,8 @@ export async function fetchAllRecruiters(): Promise<RecruiterInfo[]> {
     return recruiters
   } catch (error) {
     console.error('Error fetching recruiters from Firebase:', error)
-    cacheFetched = true
-    recruiterCache = []
+    // Do not mark cache as fetched or overwrite it on error,
+    // so subsequent calls can retry fetching from Firestore.
     return []
   }
 }
