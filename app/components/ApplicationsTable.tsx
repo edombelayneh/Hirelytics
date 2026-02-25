@@ -11,6 +11,7 @@ import { ExternalLink, Search, Filter } from 'lucide-react'
 import { JobApplication } from '../data/mockData'
 import { formatDate } from '../utils/dateFormatter'
 import { getStatusColor, getOutcomeColor } from '../utils/badgeColors'
+import { useRouter } from 'next/navigation'
 
 const STATUS_STYLES: Record<string, string> ={
   Applied: '!bg-yellow-200',
@@ -21,26 +22,34 @@ const STATUS_STYLES: Record<string, string> ={
 }
 
 interface ApplicationsTableProps {
+  // Full list of applications to render
   applications: JobApplication[]
+
+  // Optional callbacks for inline edits (parent controls persistence)
   onStatusChange?: (id: string, status: JobApplication['status']) => void
   onNotesChange?: (id: string, notes: string) => void
 }
 
+// Memoized to avoid re-rendering when props don’t change
 export const ApplicationsTable = memo(function ApplicationsTable({
   applications,
   onStatusChange,
   onNotesChange,
 }: ApplicationsTableProps) {
+  // UI filter state
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-
+  // Router used for row-level navigation
+  const router = useRouter()
+  // Derived list: applies search + status filters to the full dataset
   const filteredApplications = applications.filter((app) => {
+    // Matches search across key fields users expect (company, role, and location)
     const matchesSearch =
       app.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.city.toLowerCase().includes(searchTerm.toLowerCase())
-
+    // Matches status when a specific filter is selected
     const matchesStatus = statusFilter === 'all' || app.status === statusFilter
 
     return matchesSearch && matchesStatus
@@ -49,21 +58,13 @@ export const ApplicationsTable = memo(function ApplicationsTable({
   return (
     <Card>
       <CardHeader>
-        <div className='flex items-center justify-between'>
-          <div>
-            <CardTitle>Job Applications</CardTitle>
-            <CardDescription>Track and manage all your job applications in one place</CardDescription>
-          </div>
-          <button
-            className='rounded bg-black text-white px-4 py-1'
-            onClick={() => {
-              window.location.hash = '/addExternalJob'
-            }}
-          >
-            Add External Job
-          </button>
-        </div>
+        {/* Title + helper text */}
+        <CardTitle>Job Applications</CardTitle>
+        <CardDescription>Track and manage all your job applications in one place</CardDescription>
+
+        {/* Filters */}
         <div className='flex flex-col sm:flex-row gap-4'>
+          {/* Text search input */}
           <div className='relative flex-1'>
             <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4' />
             <Input
@@ -73,6 +74,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
               className='pl-10'
             />
           </div>
+          {/* Status filter dropdown */}
           <div className='flex items-center gap-2'>
             <Filter className='h-4 w-4 text-muted-foreground' />
             <Select
@@ -96,6 +98,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
       </CardHeader>
 
       <CardContent>
+        {/* Table container with border + rounded corners */}
         <div className='rounded-md border'>
           <Table>
             <TableHeader>
@@ -113,6 +116,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
               </TableRow>
             </TableHeader>
             <TableBody>
+              {/* Main rows: render filtered applications */}
               {filteredApplications.map((app) => (
                 <TableRow key={app.id}>
                   <TableCell className='font-medium'>{app.company}</TableCell>
@@ -164,13 +168,14 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                     <Button
                       variant='ghost'
                       size='sm'
-                      onClick={() => window.open(app.jobLink, '_blank')}
+                      onClick={() => router.push(`/applicant/applications/${app.id}`)}
                     >
                       <ExternalLink className='h-4 w-4' />
                     </Button>
                   </TableCell>
                 </TableRow>
               ))}
+              {/* Empty state when filters return no matches */}
               {filteredApplications.length === 0 && (
                 <TableRow>
                   <TableCell
@@ -184,7 +189,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
             </TableBody>
           </Table>
         </div>
-
+        {/* Footer summary: shows how many results are currently visible */}
         <div className='flex items-center justify-between mt-4'>
           <div className='text-sm text-muted-foreground'>
             Showing {filteredApplications.length} of {applications.length} applications

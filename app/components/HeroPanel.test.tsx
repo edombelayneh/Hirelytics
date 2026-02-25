@@ -22,7 +22,7 @@ const helpers = vi.hoisted(() => ({
   getApplicationsByMonthFromList: vi.fn(),
   getStatusDistributionFromList: vi.fn(),
 }))
-
+// Replace real helper implementations with controllable mocks
 vi.mock('../../app/data/mockData', () => ({
   getDashboardStatsFromList: helpers.getDashboardStatsFromList,
   getApplicationsByMonthFromList: helpers.getApplicationsByMonthFromList,
@@ -124,6 +124,7 @@ vi.mock('../../app/components/ui/progress', () => ({
    TESTS
 -------------------------------------------------- */
 describe('HeroPanel', () => {
+  // Minimal dataset passed into the component
   const mockApplications: JobApplication[] = [
     {
       id: '1',
@@ -140,7 +141,7 @@ describe('HeroPanel', () => {
       outcome: 'Pending',
     },
   ]
-
+  // Standard mock outputs returned by helper functions
   const standardStats = {
     responseRate: 75,
     successRate: 25,
@@ -160,6 +161,7 @@ describe('HeroPanel', () => {
   ]
 
   beforeEach(() => {
+    // Reset mocks and define default helper behavior for consistent test results
     vi.clearAllMocks()
     // Default helper outputs for most tests
     helpers.getDashboardStatsFromList.mockReturnValue(standardStats)
@@ -168,10 +170,12 @@ describe('HeroPanel', () => {
   })
 
   afterEach(() => {
+    // Reset DOM after each test
     cleanup()
   })
 
   it('renders the main section titles', () => {
+    // Ensures high-level dashboard sections are visible
     render(<HeroPanel applications={mockApplications} />)
 
     expect(screen.getByText('Job Search Overview')).toBeTruthy()
@@ -180,6 +184,7 @@ describe('HeroPanel', () => {
   })
 
   it('calls the helper functions with the applications prop', () => {
+    // Verifies HeroPanel delegates data computation to helper utilities
     render(<HeroPanel applications={mockApplications} />)
 
     expect(helpers.getDashboardStatsFromList).toHaveBeenCalledWith(mockApplications)
@@ -188,6 +193,7 @@ describe('HeroPanel', () => {
   })
 
   it('shows the correct rate values and counts', () => {
+    // Ensures stats are rendered correctly from helper output
     render(<HeroPanel applications={mockApplications} />)
 
     expect(screen.getByText('75%')).toBeTruthy()
@@ -197,6 +203,7 @@ describe('HeroPanel', () => {
   })
 
   it('sets progress bars to the same percentage values', () => {
+    // Confirms visual progress components reflect the same stat values
     render(<HeroPanel applications={mockApplications} />)
 
     const bars = screen.getAllByTestId('progress')
@@ -205,6 +212,7 @@ describe('HeroPanel', () => {
   })
 
   it('renders the chart containers', () => {
+    // Ensures chart sections mount without crashing
     render(<HeroPanel applications={mockApplications} />)
 
     expect(screen.getAllByTestId('responsive-container').length).toBe(2)
@@ -213,6 +221,7 @@ describe('HeroPanel', () => {
   })
 
   it('does not crash with empty applications', () => {
+    // Simulates empty dataset scenario
     helpers.getDashboardStatsFromList.mockReturnValue({
       responseRate: 0,
       successRate: 0,
@@ -223,7 +232,7 @@ describe('HeroPanel', () => {
     helpers.getStatusDistributionFromList.mockReturnValue([])
 
     render(<HeroPanel applications={[]} />)
-
+    // Zero stats render safely without errors
     expect(screen.getAllByText('0%').length).toBe(2)
 
     const bars = screen.getAllByTestId('progress')
@@ -232,6 +241,7 @@ describe('HeroPanel', () => {
   })
 
   it('handles extreme values correctly', () => {
+    // Simulates very high values to ensure no overflow or crashes
     helpers.getDashboardStatsFromList.mockReturnValue({
       responseRate: 100,
       successRate: 100,

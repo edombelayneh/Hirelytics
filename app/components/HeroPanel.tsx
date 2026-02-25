@@ -22,6 +22,7 @@ import {
 import { CHART_COLORS, chartStyles } from '../utils/chartConfig'
 
 interface HeroPanelProps {
+  // Full applications list passed from parent
   applications: JobApplication[]
 }
 const STATUS_COLORS: Record<string, string> = {
@@ -32,12 +33,14 @@ const STATUS_COLORS: Record<string, string> = {
   Withdrawn: '#A855F7', //purple
 }
 
+// Memoized to avoid unnecessary recalculations when props don’t change
 const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
-  const stats = getDashboardStatsFromList(applications)
-  const monthlyData = getApplicationsByMonthFromList(applications)
-  const statusData = getStatusDistributionFromList(applications)
+  const stats = getDashboardStatsFromList(applications) // Compute summary stats (response rate, success rate, etc.)
+  const monthlyData = getApplicationsByMonthFromList(applications) // Compute monthly timeline data
+  const statusData = getStatusDistributionFromList(applications) // Compute status distribution for pie chart
 
   return (
+    // 3-column responsive dashboard layout
     <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
       {/* Main Stats Card */}
       <Card className='lg:col-span-1'>
@@ -46,11 +49,14 @@ const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
           <CardDescription>Your application performance metrics</CardDescription>
         </CardHeader>
         <CardContent className='space-y-6'>
+          {/* Response Rate */}
           <div className='space-y-2'>
+            {/* Label + percentage */}
             <div className='flex justify-between items-center'>
               <span className='text-sm font-medium'>Response Rate</span>
               <span className='text-sm text-muted-foreground'>{stats.responseRate}%</span>
             </div>
+            {/* Progress bar visual */}
             <Progress
               value={stats.responseRate}
               className='h-2'
@@ -62,17 +68,20 @@ const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
               <span className='text-sm font-medium'>Success Rate</span>
               <span className='text-sm text-muted-foreground'>{stats.successRate}%</span>
             </div>
+            {/* Progress bar visual */}
             <Progress
               value={stats.successRate}
               className='h-2'
             />
           </div>
-
+          {/* Interview + Offer counts */}
           <div className='grid grid-cols-2 gap-4 pt-4'>
+            {/* Interviews count */}
             <div className='text-center'>
               <div className='text-2xl font-bold text-blue-600'>{stats.interviews}</div>
               <div className='text-xs text-muted-foreground'>Active Interviews</div>
             </div>
+            {/* Offers count */}
             <div className='text-center'>
               <div className='text-2xl font-bold text-green-600'>{stats.offers}</div>
               <div className='text-xs text-muted-foreground'>Job Offers</div>
@@ -83,10 +92,12 @@ const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
 
       {/* Applications Timeline */}
       <Card className='lg:col-span-1'>
+        {/* Timeline header */}
         <CardHeader>
           <CardTitle>Applications Timeline</CardTitle>
           <CardDescription>Monthly application activity</CardDescription>
         </CardHeader>
+        {/* Bar chart container */}
         <CardContent>
           <ResponsiveContainer
             width='100%'
@@ -112,11 +123,13 @@ const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
 
       {/* Status Distribution */}
       <Card className='lg:col-span-1'>
+        {/* Status header */}
         <CardHeader>
           <CardTitle>Application Status</CardTitle>
           <CardDescription>Current status distribution</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Pie chart container */}
           <ResponsiveContainer
             width='100%'
             height={200}
@@ -131,6 +144,7 @@ const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
                 paddingAngle={5}
                 dataKey='count'
               >
+                {/* Color each slice using shared palette */}
                 {statusData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
@@ -138,9 +152,11 @@ const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
                   />
                 ))}
               </Pie>
+              {/* Tooltip formatting */}
               <Tooltip formatter={(value, name) => [`${value} applications`, name]} />
             </PieChart>
           </ResponsiveContainer>
+          {/* Legend-style list under the chart */}
           <div className='grid grid-cols-2 gap-2 mt-4'>
             {statusData.map((entry, index) => (
               <div
@@ -151,6 +167,7 @@ const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
                   className='w-3 h-3 rounded-full'
                   style={{ backgroundColor: STATUS_COLORS[entry.status] || '#CBD5E1' }}
                 />
+                {/* Status label + count */}
                 <span className='text-xs text-muted-foreground'>
                   {entry.status} ({entry.count})
                 </span>
