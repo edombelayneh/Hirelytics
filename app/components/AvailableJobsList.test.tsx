@@ -105,6 +105,7 @@ vi.mock('../utils/recruiterCache', () => ({
   getAllRecruiterUids: vi.fn(() => ['recruiter-uid-1', 'recruiter-uid-2']),
   getRandomRecruiterUid: vi.fn(() => 'recruiter-uid-1'),
   clearRecruiterCache: vi.fn(),
+  assignRecruitersToJobs: vi.fn((jobs) => jobs),
 }))
 
 describe('AvailableJobsList', () => {
