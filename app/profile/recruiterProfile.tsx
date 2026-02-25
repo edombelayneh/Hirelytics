@@ -35,6 +35,10 @@ export const RecruiterProfilePage = memo(function RecruiterProfilePage({
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false) // disables save while writing
 
+  const [errors, setErrors] = useState<Partial<Record<'companyName' | 'recruiterEmail', string>>>(
+    {}
+  )
+
   const logoInputRef = useRef<HTMLInputElement>(null)
 
   const { user, isLoaded } = useUser()
@@ -75,6 +79,10 @@ export const RecruiterProfilePage = memo(function RecruiterProfilePage({
   const handleInputChange = (field: keyof RecruiterProfile, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     setIsEditing(true)
+
+    if (field === 'companyName' || field === 'recruiterEmail') {
+      setErrors((prev) => ({ ...prev, [field]: undefined }))
+    }
   }
 
   // -------------
@@ -107,19 +115,12 @@ export const RecruiterProfilePage = memo(function RecruiterProfilePage({
   // save recruiter profile
   // -------------
   const handleSave = async () => {
-    // required fields
-    if (!formData.companyName || !formData.recruiterEmail) {
-      toast.error('Missing required fields', {
-        description: 'Please fill in company name and recruiter email.',
-      })
-      return
-    }
+    const nextErrors = validate()
+    setErrors(nextErrors)
 
-    // validate email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(formData.recruiterEmail)) {
-      toast.error('Invalid email format', {
-        description: 'Please enter a valid recruiter email address.',
+    if (Object.keys(nextErrors).length > 0) {
+      toast.error('Missing required fields', {
+        description: 'Fix the highlighted fields and try again.',
       })
       return
     }
@@ -144,6 +145,19 @@ export const RecruiterProfilePage = memo(function RecruiterProfilePage({
     const first = parts[0]?.charAt(0)?.toUpperCase() || 'C'
     const second = parts.length > 1 ? parts[1].charAt(0).toUpperCase() : ''
     return `${first}${second}`.trim()
+  }
+
+  const validate = () => {
+    const next: Partial<Record<'companyName' | 'recruiterEmail', string>> = {}
+
+    if (!formData.companyName?.trim()) next.companyName = 'Company name is required.'
+    if (!formData.recruiterEmail?.trim()) next.recruiterEmail = 'Recruiter email is required.'
+    else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formData.recruiterEmail)) next.recruiterEmail = 'Enter a valid email.'
+    }
+
+    return next
   }
 
   return (
@@ -205,8 +219,11 @@ export const RecruiterProfilePage = memo(function RecruiterProfilePage({
                   placeholder='Hirelytics Inc.'
                   value={formData.companyName || ''}
                   onChange={(e) => handleInputChange('companyName', e.target.value)}
-                  className='pl-9'
+                  className={`pl-9 ${errors.companyName ? 'border border-red-500 focus-visible:ring-red-500' : ''}`}
                 />
+                {errors.companyName && (
+                  <p className='text-sm text-red-600 mt-1'>{errors.companyName}</p>
+                )}
               </div>
             </div>
 
@@ -267,8 +284,11 @@ export const RecruiterProfilePage = memo(function RecruiterProfilePage({
                 placeholder='recruiting@hirelytics.com'
                 value={formData.recruiterEmail || ''}
                 onChange={(e) => handleInputChange('recruiterEmail', e.target.value)}
-                className='pl-9'
+                className={`pl-9 ${errors.recruiterEmail ? 'border border-red-500 focus-visible:ring-red-500' : ''}`}
               />
+              {errors.recruiterEmail && (
+                <p className='text-sm text-red-600 mt-1'>{errors.recruiterEmail}</p>
+              )}
             </div>
           </div>
 
@@ -321,28 +341,16 @@ export const RecruiterProfilePage = memo(function RecruiterProfilePage({
         </div>
       </Card>
 
-      {/* Save Button */}
-      <div className='flex justify-end gap-3 pb-8'>
-        <Button
-          size='lg'
-          onClick={handleSave}
-          disabled={!isEditing || isSaving}
-          className='gap-2'
-          type='button'
-        >
-          {isEditing ? (
-            <>
-              <Save className='h-4 w-4' />
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </>
-          ) : (
-            <>
-              <CheckCircle2 className='h-4 w-4' />
-              Saved
-            </>
-          )}
-        </Button>
-      </div>
+      <Button
+        size='lg'
+        onClick={handleSave}
+        disabled={isSaving}
+        className='gap-2'
+        type='button'
+      >
+        <Save className='h-4 w-4' />
+        {isSaving ? 'Saving...' : 'Save Changes'}
+      </Button>
     </div>
   )
 })
