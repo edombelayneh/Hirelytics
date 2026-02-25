@@ -2,38 +2,44 @@
 
 import { useState } from 'react'
 
-type Role = 'applicant' | 'recruiter'
+// Allowed roles in the system
+export type Role = 'applicant' | 'recruiter'
 
-export function RolePage({
+// UI-only component for choosing a role
+// Parent is responsible for actually persisting the role
+export function RolePageUI({
   onSelectRole,
 }: {
-  // Parent (app/page.tsx) will pass this function in
+  // Callback passed from parent to handle role persistence
   onSelectRole: (role: Role) => Promise<void> | void
 }) {
-  // Used to disable buttons while saving
+  // Tracks which role is currently being saved (used for loading + disabling buttons)
   const [savingRole, setSavingRole] = useState<Role | null>(null)
-
+  // Handles role selection and manages loading state
   const handlePick = async (role: Role) => {
+    // Set loading state immediately (disables both buttons)
     setSavingRole(role)
-
     try {
-      // Call the function the parent gave us
+      // Call parent handler
       await onSelectRole(role)
     } finally {
-      // If parent doesn't redirect, re-enable buttons
-      setSavingRole(null)
+      setSavingRole(null) // Reset loading state regardless of success/failure
     }
   }
 
   return (
+    // Full-screen centered container
     <div className='min-h-screen bg-background flex items-center justify-center px-6'>
       <div className='w-full max-w-lg rounded-xl border bg-card p-8'>
+        {/* Page heading */}
         <h1 className='text-2xl font-semibold'>Welcome</h1>
+        {/* Instructional text */}
         <p className='mt-2 text-sm text-muted-foreground'>
           Before you continue, tell us what you are here to do.
         </p>
-
+        {/* Role selection buttons */}
         <div className='mt-6 space-y-3'>
+          {/* Applicant button */}
           <button
             type='button'
             onClick={() => handlePick('applicant')}
@@ -45,7 +51,7 @@ export function RolePage({
               Track applications, save notes, and manage your job search.
             </div>
           </button>
-
+          {/* Recruiter button */}
           <button
             type='button'
             onClick={() => handlePick('recruiter')}
@@ -58,7 +64,7 @@ export function RolePage({
             </div>
           </button>
         </div>
-
+        {/* Loading indicator shown while role is being saved */}
         {savingRole && <p className='mt-4 text-sm text-muted-foreground'>Saving your choice...</p>}
       </div>
     </div>

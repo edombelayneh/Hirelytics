@@ -1,4 +1,3 @@
-
 // Import React memo for performance optimization
 import { memo } from 'react'
 // Import UI components and icons
@@ -8,14 +7,15 @@ import { Button } from './ui/button'
 import { Briefcase, MapPin, Clock, DollarSign, CheckCircle2 } from 'lucide-react'
 import { AvailableJob } from '../data/availableJobs'
 
-
 // Props for JobCard: job data, apply handler, and applied state
 interface JobCardProps {
+  // Job data to display
   job: AvailableJob
+  // Called when user clicks Apply
   onApply: (job: AvailableJob) => void
+  // Controls disabled state + label
   isApplied: boolean
 }
-
 
 // Memoized JobCard component for rendering job info and apply button
 export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCardProps) {
@@ -25,6 +25,8 @@ export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCar
   )
 
   return (
+    // Root card container
+    // data-testid helps unit tests target this specific card
     <Card
       data-testid={`job-card-${job.id}`}
       className='h-full flex flex-col'
