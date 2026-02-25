@@ -46,7 +46,7 @@ describe('AddNewJobPage', () => {
 
     expect(screen.getByText(/Unauthorized access/i)).toBeTruthy()
     expect(screen.queryByText(/Submitting job/i)).toBeNull()
-    expect(window.location.hash).toBe('')
+    expect(window.location.hash).toBe('#/')
   })
 
   it('submits and shows redirect overlay, then updates hash to /jobdetails', () => {

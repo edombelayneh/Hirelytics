@@ -5,7 +5,7 @@
 // - Shows a redirecting overlay and then sends the user to the "Job Details" page using hash navigation.
 // - Saves job data to Firebase and checks user role (recruiter only)
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type AddNewJobPageProps = {
   initialUserRole?: 'recruiter' | 'applicant'
@@ -62,6 +62,12 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
   const [submitting, setSubmitting] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
   const [userRole] = useState<'recruiter' | 'applicant'>(initialUserRole)
+
+  useEffect(() => {
+    if (userRole !== 'recruiter') {
+      window.location.hash = '/'
+    }
+  }, [userRole])
 
   // handleSubmit
   // This prevents the form from default submission.
