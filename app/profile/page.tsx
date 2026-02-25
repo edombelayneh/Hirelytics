@@ -30,6 +30,9 @@ import {
 } from 'lucide-react'
 import { UserProfile } from '../data/profileData'
 import { toast } from '../components/ui/sonner'
+import { PageHeader } from '../components/PageHeader'
+import { PageTitle } from '../components/PageTitle'
+import { PageSubtitle } from '../components/PageSubtitle'
 
 interface ProfilePageProps {
   profile: UserProfile
@@ -89,7 +92,7 @@ export const ProfilePage = memo(function ProfilePage({
       // Validate file type
       const allowedExtensions = ['.pdf', '.doc', '.docx']
       const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
-      
+
       if (!allowedExtensions.includes(fileExtension)) {
         toast.error('Invalid file type', {
           description: 'Resume must be in PDF, DOC, or DOCX format',
@@ -168,12 +171,12 @@ export const ProfilePage = memo(function ProfilePage({
   return (
     <div className='space-y-6 max-w-5xl mx-auto'>
       {/* Header */}
-      <div className='flex flex-col gap-2'>
-        <h1>My Profile</h1>
-        <p className='text-muted-foreground'>
+      <PageHeader>
+        <PageTitle>My Profile</PageTitle>
+        <PageSubtitle>
           Manage your personal information and job application preferences
-        </p>
-      </div>
+        </PageSubtitle>
+      </PageHeader>
 
       {/* Profile Picture & Resume Section */}
       <Card className='p-6'>
@@ -485,5 +488,4 @@ export const ProfilePage = memo(function ProfilePage({
       </div>
     </div>
   )
-
 })

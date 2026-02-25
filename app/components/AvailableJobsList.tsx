@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Search, Filter } from 'lucide-react'
 import { AvailableJob, availableJobs } from '../data/availableJobs'
 import type { Role } from '../utils/userRole'
+import { PageTitle } from '../components/PageTitle' // ✅ added import
 
 interface AvailableJobsListProps {
   onApply: (job: AvailableJob) => void
@@ -44,7 +45,9 @@ export const AvailableJobsList = memo(function AvailableJobsList({
     <div className='space-y-6'>
       <div className='flex items-center justify-between mb-4'>
         <div>
-          <h2 className='text-2xl font-bold mb-1'>Available Jobs</h2>
+          {/* ✅ replaced h2 with PageTitle */}
+          <PageTitle>Available Jobs</PageTitle>
+
           <p className='text-muted-foreground'>
             Browse and apply to {availableJobs.length} open positions
           </p>

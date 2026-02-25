@@ -2,10 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+
 @custom-variant dark (&:is(.dark *));
 
+
 :root {
-  --font-size: 14px;
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
   --card: #ffffff;
@@ -53,6 +54,7 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -89,6 +91,7 @@
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
 }
+
 
 @theme inline {
   --color-background: var(--background);
@@ -131,74 +134,75 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
 
   body {
     @apply bg-background text-foreground;
   }
 }
 
+
 /**
  * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
  */
+/* Typography only */
 @layer base {
-  :where(:not(:has([class*=' text-']), :not(:has([class^='text-'])))) {
-    h1 {
-      font-size: var(--text-2xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
+  html {
+    font-size: 100%; /* 16px default, and everything else uses rem */
+  }
 
-    h2 {
-      font-size: var(--text-xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
+  body {
+    font-size: 1rem; /* 16px */
+    line-height: 1.5;
+  }
 
-    h3 {
-      font-size: var(--text-lg);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
+  h1 {
+    font-size: 1.5rem; /* 24px */
+    font-weight: 700;
+    line-height: 2rem;
+  }
 
-    h4 {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
+  h2 {
+    font-size: 1.25rem; /* 20px */
+    font-weight: 600;
+    line-height: 1.75rem;
+  }
 
-    p {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-    }
+  h3 {
+    font-size: 1.125rem; /* 18px */
+    font-weight: 600;
+    line-height: 1.75rem;
+  }
 
-    label {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
+  h4 {
+    font-size: 1rem; /* 16px */
+    font-weight: 600;
+    line-height: 1.5rem;
+  }
 
-    button {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
+  p {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.25rem;
+  }
 
-    input {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-    }
+  label,
+  button,
+  input {
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.25rem;
   }
 }
 
+
 html {
-  font-size: var(--font-size);
+  font-size: 16px;
 }
+
 
 /* Home page badge/icon styles moved here from app/home/home.css */
 .badge {
@@ -209,21 +213,28 @@ html {
   color: #fff;
 }
 
+
 .icon {
   color: #fff;
   display: inline-block;
 }
+
 
 .size-8 {
   height: 2rem; /* h-8 */
   width: 2rem; /* w-8 */
 }
 
+
 .size-16 {
   height: 4rem; /* h-16 */
   width: 4rem; /* w-16 */
 }
 
+
 .badge:hover {
   box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
+
+
+
