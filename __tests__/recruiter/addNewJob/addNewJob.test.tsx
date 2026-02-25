@@ -66,6 +66,9 @@ describe('AddNewJobPage', () => {
     fireEvent.change(screen.getByPlaceholderText('Main role summary and responsibilities'), {
       target: { value: 'Build web apps' },
     })
+    fireEvent.change(screen.getByPlaceholderText('e.g. 25'), {
+      target: { value: '25' },
+    })
 
     fireEvent.click(screen.getByRole('button', { name: /Add Job/i }))
 
@@ -103,6 +106,15 @@ describe('AddNewJobPage', () => {
     })
 
     const selectFields = screen.getAllByRole('combobox')
+    const paymentTypeSelect = selectFields[0]
+    fireEvent.change(paymentTypeSelect, {
+      target: { value: 'salary' },
+    })
+
+    fireEvent.change(screen.getByPlaceholderText('e.g. 25'), {
+      target: { value: '25.75' },
+    })
+
     const visaSponsorshipSelect = selectFields[3]
     fireEvent.change(visaSponsorshipSelect, {
       target: { value: 'true' },
@@ -122,7 +134,8 @@ describe('AddNewJobPage', () => {
     expect(payload).toHaveProperty('country')
     expect(payload).toHaveProperty('state')
     expect(payload).toHaveProperty('city')
-    expect(payload).toHaveProperty('hourlyRate')
+    expect(payload).toHaveProperty('paymentType')
+    expect(payload).toHaveProperty('paymentAmount')
     expect(payload).toHaveProperty('visaRequired')
     expect(payload).toHaveProperty('jobType')
     expect(payload).toHaveProperty('employmentType')
@@ -134,6 +147,9 @@ describe('AddNewJobPage', () => {
     expect(payload).toHaveProperty('createdAt')
 
     expect(typeof payload.visaRequired).toBe('boolean')
+    expect(payload.paymentType).toBe('salary')
+    expect(typeof payload.paymentAmount).toBe('number')
+    expect(payload.paymentAmount).toBe(25)
     expect(payload.jobSource).toBe('internal')
     expect(typeof payload.recruiterId).toBe('string')
     expect(typeof payload.createdAt).toBe('string')

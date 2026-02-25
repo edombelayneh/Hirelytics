@@ -21,7 +21,8 @@ type RecruiterJobPayload = {
   country: string
   state: string
   city: string
-  hourlyRate: number | null
+  paymentType: 'hourly' | 'salary'
+  paymentAmount: number | null
   visaRequired: boolean
   jobType: string
   employmentType: string
@@ -45,7 +46,8 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
   const [country, setCountry] = useState('')
   const [stateValue, setStateValue] = useState('')
   const [city, setCity] = useState('')
-  const [hourlyRate, setHourlyRate] = useState('')
+  const [paymentType, setPaymentType] = useState<'hourly' | 'salary'>('hourly')
+  const [paymentAmount, setPaymentAmount] = useState<number | ''>('')
   const [visaRequired, setVisaRequired] = useState<boolean>(false)
   const [jobType, setJobType] = useState<'onsite' | 'remote' | 'hybrid' | ''>('')
   const [generalDescription, setGeneralDescription] = useState('')
@@ -101,7 +103,8 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
       country,
       state: stateValue,
       city,
-      hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
+      paymentType,
+      paymentAmount: paymentAmount === '' ? null : paymentAmount,
       visaRequired,
       jobType,
       employmentType,
@@ -201,13 +204,36 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
           </div>
 
           <div>
-            <label className='block text-sm mb-1'>Pay per hour (USD)</label>
+            <label className='block text-sm mb-1'>Payment Type</label>
+            <select
+              value={paymentType}
+              onChange={(e) => setPaymentType(e.target.value as 'hourly' | 'salary')}
+              className='w-full border rounded p-2'
+            >
+              <option value='hourly'>Hourly</option>
+              <option value='salary'>Salary</option>
+            </select>
+          </div>
+
+          <div>
+            <label className='block text-sm mb-1'>Payment Amount (USD)</label>
             <input
               type='number'
-              value={hourlyRate}
-              onChange={(e) => setHourlyRate(e.target.value)}
-              placeholder='e.g. 25.00'
-              step='0.01'
+              value={paymentAmount}
+              onChange={(e) => {
+                const value = e.target.value
+                if (value === '') {
+                  setPaymentAmount('')
+                  return
+                }
+
+                const parsedValue = parseInt(value, 10)
+                if (!Number.isNaN(parsedValue)) {
+                  setPaymentAmount(parsedValue)
+                }
+              }}
+              placeholder='e.g. 25'
+              step='1'
               min='0'
               className='w-full border rounded p-2'
             />
