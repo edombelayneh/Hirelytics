@@ -24,7 +24,7 @@ import {
 import { RolePageUI } from './components/RolePage'
 
 // Internal page labels used for guard checks
-type Page = 'home' | 'available' | 'applications' | 'profile' | 'addNewJob' | 'role'
+type Page = 'home' | 'available' | 'applications' | 'profile' | 'addNewJob' | 'addExternalJob' | 'role'
 
 function LandingPage() {
   // Clerk user object (metadata, reload, etc.)
@@ -66,11 +66,13 @@ function LandingPage() {
         ? 'available'
         : pathname.startsWith('/recruiter/addNewJob')
           ? 'addNewJob'
-          : pathname.startsWith('/applicant/profile') || pathname.startsWith('/recruiter/profile')
-            ? 'profile'
-            : pathname.startsWith('/role')
-              ? 'role'
-              : 'home'
+          :pathname.startsWith('/applicant/addExternalJob')
+            ? 'addExternalJob'
+            : pathname.startsWith('/applicant/profile') || pathname.startsWith('/recruiter/profile')
+              ? 'profile'
+              : pathname.startsWith('/role')
+                ? 'role'
+                : 'home'
 
     // Pages that require sign-in
     const isProtected =
@@ -78,6 +80,7 @@ function LandingPage() {
       next === 'applications' ||
       next === 'profile' ||
       next === 'addNewJob' ||
+      next === 'addExternalJob' ||
       next === 'role'
 
     // If protected + signed out then block
@@ -279,11 +282,13 @@ function LandingPage() {
         ? 'available'
         : pathname.startsWith('/recruiter/addNewJob')
           ? 'addNewJob'
-          : pathname.startsWith('/applicant/profile') || pathname.startsWith('/recruiter/profile')
-            ? 'profile'
-            : pathname.startsWith('/role')
-              ? 'role'
-              : 'home'
+          :pathname.startsWith('/applicant/addExternalJob')
+            ? 'addExternalJob'
+            : pathname.startsWith('/applicant/profile') || pathname.startsWith('/recruiter/profile')
+              ? 'profile'
+              : pathname.startsWith('/role')
+                ? 'role'
+                : 'home'
 
     // Define which pages are protected (require sign-in)
     const isProtected =
@@ -291,6 +296,7 @@ function LandingPage() {
       next === 'applications' ||
       next === 'profile' ||
       next === 'addNewJob' ||
+      next === 'addExternalJob' ||
       next === 'role'
 
     // If signed out, block protected pages
@@ -323,7 +329,7 @@ function LandingPage() {
     if (isSignedIn && roleLoaded && role) {
       // Define which pages are for applicants vs recruiters
       const applicantOnly =
-        next === 'available' || next === 'applications' || pathname.startsWith('/applicant')
+        next === 'available' || next === 'applications' || next === 'addExternalJob' || pathname.startsWith('/applicant')
       const recruiterOnly = next === 'addNewJob' || pathname.startsWith('/recruiter')
 
       // If user tries to access a page not for their role, show toast + redirect to their home page

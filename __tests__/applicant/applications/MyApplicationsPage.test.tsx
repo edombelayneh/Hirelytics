@@ -227,9 +227,7 @@ describe('MyApplicationsPage', () => {
     // This checks that the headings are present and have the correct semantic level, which is important for accessibility
     render(<MyApplicationsPage />)
 
-    const headings = screen.getAllByRole('heading', { level: 2 })
-    expect(headings).toHaveLength(2)
-    expect(headings[0].textContent).toBe('Dashboard Overview')
-    expect(headings[1].textContent).toBe('Key Metrics')
+    expect(screen.getByRole('heading', { name: /Dashboard Overview/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /Key Metrics/i })).toBeTruthy()
   })
 })

@@ -361,28 +361,15 @@ describe('ApplicationsTable', () => {
 
   // --- External Link Tests ---
 
-  it('navigates to application details when action button is clicked', () => {
-    render(<ApplicationsTable applications={mockApplications} />)
+  it('navigates to application details when row action button is clicked', () => {
+  render(<ApplicationsTable applications={mockApplications} />)
 
-    // Your Action button is icon-only, so it has no accessible name.
-    // Grab all buttons and click the first one (first row action).
-    const buttons = screen.getAllByRole('button')
-    fireEvent.click(buttons[0])
+  // There is one "View application details" button per row; click the first row's.
+  const detailButtons = screen.getAllByLabelText(/View application details/i)
+  fireEvent.click(detailButtons[0])
 
-    expect(pushMock).toHaveBeenCalledTimes(1)
-    expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1')
-  })
-
-  it('navigates to application details when action button is clicked', () => {
-    // Verifies clicking the row action triggers a route push to details page
-    render(<ApplicationsTable applications={mockApplications} />)
-
-    // There is one "Actions" button per row; click the first row's.
-    const actionButtons = screen.getAllByRole('button')
-    fireEvent.click(actionButtons[0])
-
-    expect(pushMock).toHaveBeenCalledTimes(1)
-    expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1')
+  expect(pushMock).toHaveBeenCalledTimes(1)
+  expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1')
   })
 
   // --- Edge Case Tests ---
