@@ -99,15 +99,27 @@ export const getStatusDistributionFromList = (applications: JobApplication[]) =>
   }))
 }
 
-export const getDashboardStatsFromList = (applications: JobApplication[]) => {
+export const getDashboardStatsFromList = (applications: JobApplication[] | undefined) => {
+  if (!applications || applications.length === 0) {
+    return {
+      total: 0,
+      applied: 0,
+      interviews: 0,
+      offers: 0,
+      rejected: 0,
+      responseRate: 0,
+      successRate: 0,
+    }
+  }
+
   const total = applications.length
   const applied = applications.filter((app) => app.status === 'Applied').length
   const interviews = applications.filter((app) => app.status === 'Interview').length
   const offers = applications.filter((app) => app.status === 'Offer').length
   const rejected = applications.filter((app) => app.status === 'Rejected').length
 
-  const responseRate = total > 0 ? Math.round(((interviews + offers + rejected) / total) * 100) : 0
-  const successRate = total > 0 ? Math.round((offers / total) * 100) : 0
+  const responseRate = Math.round(((interviews + offers + rejected) / total) * 100)
+  const successRate = Math.round((offers / total) * 100)
 
   return {
     total,

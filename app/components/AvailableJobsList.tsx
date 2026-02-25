@@ -1,63 +1,44 @@
 'use client'
 
-import { useState, memo, useEffect } from 'react'
+import { useState, memo } from 'react'
 import { JobCard } from './JobCard'
 import { Input } from './ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Search, Filter } from 'lucide-react'
 import { AvailableJob, availableJobs } from '../data/availableJobs'
 import type { Role } from '../utils/userRole'
-// Import functions to fetch real recruiter UIDs from Firebase
-import {
-  assignRecruitersToJobs,
-  fetchAllRecruiters,
-  getAllRecruiterUids,
-} from '../utils/recruiterCache'
 
 interface AvailableJobsListProps {
+  // Called when a user clicks Apply on a job
   onApply: (job: AvailableJob) => void
+  // Set of job IDs already applied to (controls disabled state)
   appliedJobIds: Set<number>
+  // Optional role used for conditional UI (e.g., recruiter-only actions)
   role?: Role | null
 }
 
+// Memoized to prevent unnecessary re-renders when props don’t change
 export const AvailableJobsList = memo(function AvailableJobsList({
   onApply,
   appliedJobIds,
   role,
 }: AvailableJobsListProps) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [typeFilter, setTypeFilter] = useState<string>('all')
-  const [locationFilter, setLocationFilter] = useState<string>('all')
-  // State for jobs with real recruiter UIDs from Firebase
-  const [jobs, setJobs] = useState<AvailableJob[]>(availableJobs)
+  const [searchTerm, setSearchTerm] = useState('') // Search input state
+  const [typeFilter, setTypeFilter] = useState<string>('all') // Job type filter (Full-time, Part-time, etc.)
+  const [locationFilter, setLocationFilter] = useState<string>('all') // Location filter (Remote vs On-site)
 
-  // On component load: fetch recruiters from Firebase and assign them to mock jobs
-  useEffect(() => {
-    const loadJobsWithRecruiters = async () => {
-      // Fetch all registered recruiters from Firestore
-      await fetchAllRecruiters()
-      // Get the cached list of recruiter UIDs
-      const recruiterUids = getAllRecruiterUids()
-
-      if (recruiterUids.length > 0) {
-        // Attach recruiter UIDs to every job using a stable assignment
-        const jobsWithRecruiters = assignRecruitersToJobs(availableJobs, recruiterUids)
-        // Update state with jobs that now have real recruiter UIDs
-        setJobs(jobsWithRecruiters)
-      }
-    }
-
-    loadJobsWithRecruiters()
-  }, [])
-
-  const filteredJobs = jobs.filter((job) => {
+  // Derived list: filters jobs based on search + type + location
+  const filteredJobs = availableJobs.filter((job) => {
+    // Search matches title, company, location, or description
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.description.toLowerCase().includes(searchTerm.toLowerCase())
 
+    // Type filter match
     const matchesType = typeFilter === 'all' || job.type === typeFilter
+    // Location filter logic (special handling for “remote”)
     const matchesLocation =
       locationFilter === 'all' ||
       (locationFilter === 'remote' ? job.location === 'Remote' : job.location !== 'Remote')
@@ -65,18 +46,20 @@ export const AvailableJobsList = memo(function AvailableJobsList({
     return matchesSearch && matchesType && matchesLocation
   })
 
-  const uniqueTypes = Array.from(new Set(jobs.map((job) => job.type)))
+  // Extract unique job types dynamically for dropdown options
+  const uniqueTypes = Array.from(new Set(availableJobs.map((job) => job.type)))
 
   return (
     <div className='space-y-6'>
+      {/* Header section: title + job count + optional recruiter action */}
       <div className='flex items-center justify-between mb-4'>
         <div>
           <h2 className='text-2xl font-bold mb-1'>Available Jobs</h2>
           <p className='text-muted-foreground'>
-            Browse and apply to {jobs.length} open positions
+            Browse and apply to {availableJobs.length} open positions
           </p>
         </div>
-
+        {/* Recruiter-only: Add Job button */}
         {role === 'recruiter' && (
           <a
             href='#/addNewJob'
@@ -100,8 +83,10 @@ export const AvailableJobsList = memo(function AvailableJobsList({
           />
         </div>
 
+        {/* Dropdown filters */}
         <div className='flex items-center gap-2'>
           <Filter className='h-4 w-4 text-muted-foreground' />
+          {/* Job type dropdown */}
           <Select
             value={typeFilter}
             onValueChange={setTypeFilter}
@@ -121,7 +106,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
               ))}
             </SelectContent>
           </Select>
-
+          {/* Location dropdown */}
           <Select
             value={locationFilter}
             onValueChange={setLocationFilter}
@@ -154,7 +139,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
           />
         ))}
       </div>
-
+      {/* Empty state */}
       {filteredJobs.length === 0 && (
         <div className='text-center py-12'>
           <p className='text-muted-foreground'>No jobs found matching your criteria</p>

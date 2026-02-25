@@ -108,13 +108,16 @@ vi.mock('../utils/recruiterCache', () => ({
 }))
 
 describe('AvailableJobsList', () => {
+  // Mock apply handler so we can assert it’s passed/usable if needed
   const mockOnApply = vi.fn()
 
   beforeEach(() => {
+    // Reset spies before each test
     vi.clearAllMocks()
   })
 
   afterEach(() => {
+    // Reset DOM after each test
     cleanup()
   })
 
@@ -126,7 +129,6 @@ describe('AvailableJobsList', () => {
         appliedJobIds={new Set()}
       />
     )
-
     expect(screen.getByText('Available Jobs')).toBeTruthy()
     expect(screen.getByText(/Browse and apply to 3 open positions/i)).toBeTruthy()
     expect(screen.getByText(/Showing 3 of 3 jobs/i)).toBeTruthy()
@@ -147,6 +149,7 @@ describe('AvailableJobsList', () => {
   })
 
   it('does not render Add Job link for applicants', () => {
+    // Applicants should not see recruiter-only UI
     render(
       <AvailableJobsList
         onApply={mockOnApply}
@@ -158,8 +161,8 @@ describe('AvailableJobsList', () => {
     expect(screen.queryByRole('link', { name: /Add Job/i })).toBeNull()
   })
 
-  // Renders all jobs initially
   it('renders all jobs', () => {
+    // Sanity check: all mocked jobs render on initial load
     render(
       <AvailableJobsList
         onApply={mockOnApply}
@@ -174,8 +177,8 @@ describe('AvailableJobsList', () => {
     expect(screen.getAllByTestId('job-item').length).toBe(3)
   })
 
-  // Search filters list
   it('filters jobs by search', () => {
+    // Typing into search should reduce visible job cards
     render(
       <AvailableJobsList
         onApply={mockOnApply}
@@ -193,8 +196,8 @@ describe('AvailableJobsList', () => {
     expect(screen.getByText(/Showing 1 of 3 jobs/i)).toBeTruthy()
   })
 
-  // Type dropdown filters list
   it('filters jobs by type', () => {
+    // Type dropdown should filter down to matching job types
     render(
       <AvailableJobsList
         onApply={mockOnApply}
@@ -214,8 +217,8 @@ describe('AvailableJobsList', () => {
     expect(screen.getByText(/Showing 1 of 3 jobs/i)).toBeTruthy()
   })
 
-  // Location dropdown filters list (remote)
   it('filters jobs by location (remote)', () => {
+    // Location dropdown should support “remote” filtering
     render(
       <AvailableJobsList
         onApply={mockOnApply}
@@ -235,15 +238,14 @@ describe('AvailableJobsList', () => {
     expect(screen.getByText(/Showing 1 of 3 jobs/i)).toBeTruthy()
   })
 
-  // Shows empty state when no matches
   it('shows empty message when no jobs match', () => {
+    // When filters return nothing, component should show an empty state
     render(
       <AvailableJobsList
         onApply={mockOnApply}
         appliedJobIds={new Set()}
       />
     )
-
     const input = screen.getByTestId('search-input')
     fireEvent.change(input, { target: { value: 'zzzzzz' } })
 

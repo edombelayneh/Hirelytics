@@ -29,18 +29,19 @@ describe('JobCard', () => {
   // vi.fn() creates a spy function so we can track if it is called
   const mockOnApply = vi.fn()
 
-  // --- Reset mocks before each test ---
   beforeEach(() => {
+    // Reset call counts before every test
     vi.clearAllMocks()
   })
 
-  // --- Cleanup after each test to remove mounted components from DOM ---
   afterEach(() => {
+    // Remove mounted components from DOM
     cleanup()
   })
 
   // --- Test rendering of job title and company ---
   it('renders job title and company correctly', () => {
+    // Basic content rendering check
     render(
       <JobCard
         job={mockJob}
@@ -54,6 +55,7 @@ describe('JobCard', () => {
 
   // --- Test rendering of job location and salary ---
   it('renders job location and salary', () => {
+    // Verifies secondary metadata fields render correctly
     render(
       <JobCard
         job={mockJob}
@@ -67,6 +69,7 @@ describe('JobCard', () => {
 
   // --- Test rendering of job description ---
   it('renders job description', () => {
+    // Confirms description text appears
     render(
       <JobCard
         job={mockJob}
@@ -79,6 +82,7 @@ describe('JobCard', () => {
 
   // --- Test that full-time badge is displayed for full-time jobs ---
   it('displays Full-time badge for full-time jobs', () => {
+    // Badge reflects job type
     render(
       <JobCard
         job={mockJob}
@@ -91,6 +95,7 @@ describe('JobCard', () => {
 
   // --- Test that part-time badge is displayed for part-time jobs ---
   it('displays secondary badge variant for part-time jobs', () => {
+    // Switch job type to Part-time
     const partTimeJob = { ...mockJob, type: 'Part-time' }
     render(
       <JobCard
@@ -104,6 +109,7 @@ describe('JobCard', () => {
 
   // --- Test that contract badge is displayed for contract jobs ---
   it('displays secondary badge variant for contract jobs', () => {
+    // Switch job type to Contract
     const contract = { ...mockJob, type: 'Contract' }
     render(
       <JobCard
@@ -117,6 +123,7 @@ describe('JobCard', () => {
 
   // --- Test that only the first 3 requirements are displayed ---
   it('displays only first 3 requirements', () => {
+    // Only first 3 requirements should render
     render(
       <JobCard
         job={mockJob}
@@ -133,6 +140,7 @@ describe('JobCard', () => {
 
   // --- Test display of "Today" for jobs posted on the current date ---
   it('shows "Today" for jobs posted today', () => {
+    // Create job with today’s date
     const todayJob = { ...mockJob, postedDate: new Date().toISOString().split('T')[0] }
     render(
       <JobCard
@@ -146,6 +154,7 @@ describe('JobCard', () => {
 
   // --- Test display of "days ago" for jobs posted in the past ---
   it('shows days ago for older job postings', () => {
+    // Create job posted 5 days ago
     const pastDate = new Date()
     pastDate.setDate(pastDate.getDate() - 5) // 5 days ago
     const oldJob = { ...mockJob, postedDate: pastDate.toISOString().split('T')[0] }
@@ -161,6 +170,7 @@ describe('JobCard', () => {
 
   // --- Test rendering of Apply Now button for jobs not yet applied ---
   it('renders "Apply Now" button when not applied', () => {
+    // Button should be enabled
     render(
       <JobCard
         job={mockJob}
@@ -176,6 +186,7 @@ describe('JobCard', () => {
 
   // --- Test rendering of Applied button for jobs already applied ---
   it('renders "Applied" button when already applied', () => {
+    // Button should be disabled
     render(
       <JobCard
         job={mockJob}
@@ -191,6 +202,7 @@ describe('JobCard', () => {
 
   // --- Test that onApply callback is triggered when Apply Now button is clicked ---
   it('calls onApply when Apply Now button is clicked', () => {
+    // Clicking Apply Now should call the handler
     render(
       <JobCard
         job={mockJob}
@@ -207,6 +219,7 @@ describe('JobCard', () => {
 
   // --- Test that onApply callback is NOT triggered when Applied button is clicked ---
   it('does not call onApply when Applied button is clicked', () => {
+    // Clicking disabled button should not trigger handler
     render(
       <JobCard
         job={mockJob}
@@ -222,6 +235,7 @@ describe('JobCard', () => {
 
   // --- Test that required icons are rendered ---
   it('renders all required icons', () => {
+    // Ensure icons are present (at least one SVG)
     const { container } = render(
       <JobCard
         job={mockJob}
@@ -235,6 +249,7 @@ describe('JobCard', () => {
 
   // --- Test that CheckCircle icon appears when job is applied ---
   it('renders CheckCircle icon when applied', () => {
+    // Applied state should include confirmation icon
     render(
       <JobCard
         job={mockJob}
