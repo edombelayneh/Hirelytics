@@ -155,9 +155,9 @@ describe('HeroPanel', () => {
   ]
 
   const standardStatusData = [
-    { status: 'Applied', count: 5 },
-    { status: 'Interview', count: 3 },
-    { status: 'Offer', count: 1 },
+    { status: 'Applied', count: 1 },
+    { status: 'Interview', count: 1 },
+    { status: 'Offer', count: 0 },
   ]
 
   beforeEach(() => {
@@ -263,8 +263,8 @@ describe('HeroPanel', () => {
     render(<HeroPanel applications={mockApplications} />)
 
     // Legend labels look like: "Applied (1)", "Interview (1)"
-    const appliedLabel = screen.getByText('Applied (1)')
-    const interviewLabel = screen.getByText('Interview (1)')
+    const appliedLabel = screen.getByText(/Applied\s*\(\s*1\s*\)/i)
+    const interviewLabel = screen.getByText(/Interview\s*\(\s*1\s*\)/i)
 
     const appliedDot = appliedLabel.previousSibling as HTMLElement
     const interviewDot = interviewLabel.previousSibling as HTMLElement

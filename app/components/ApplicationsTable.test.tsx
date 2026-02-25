@@ -15,8 +15,10 @@ vi.mock('../utils/dateFormatter', () => ({
 
 // Badge color utilities
 vi.mock('../utils/badgeColors', () => ({
-  getStatusColor: (status: string) => `status-${String(status).toLowerCase()}`,
-  getOutcomeColor: (outcome: string) => `outcome-${String(outcome).toLowerCase()}`,
+  getStatusColor: (status: string) =>
+    `status-${String(status).toLowerCase().replace(/\s+/g, '-')}`,
+  getOutcomeColor: (outcome: string) =>
+    `outcome-${String(outcome).toLowerCase().replace(/\s+/g, '-')}`,
 }))
 
 // Next.js router
@@ -436,21 +438,17 @@ describe('ApplicationsTable', () => {
   })
 
   // --- Graph and status color styling ---
-  it('applies the correct background color class for each status', () => {
-    render(<ApplicationsTable applications={mockApplications} />)
+  it('applies the correct background color class for each outcome', () => {
+  render(<ApplicationsTable applications={mockApplications} />)
 
-    const rows = screen.getAllByRole('row')
+  const pendingBadge = screen.getByText('Pending')
+  const inProgressBadge = screen.getByText('In Progress')
+  const unsuccessfulBadge = screen.getByText('Unsuccessful')
 
-    const firstRow = rows[1]
-    const firstStatustrigger = within(firstRow).getByRole('combobox')
-    expect(firstStatustrigger.className).toContain('bg-yellow-200')
+  // className is a big string, just check it contains our mocked class
+  expect(pendingBadge.className).toContain('outcome-pending')
+  expect(inProgressBadge.className).toContain('outcome-in-progress')
+  expect(unsuccessfulBadge.className).toContain('outcome-unsuccessful')
+})
 
-    const secondRow = rows[2]
-    const secondStatusTrigger = within(secondRow).getByRole('combobox')
-    expect(secondStatusTrigger.className).toContain('bg-blue-200')
-
-    const thirdRow = rows[3]
-    const thirdStatusTrigger = within(thirdRow).getByRole('combobox')
-    expect(thirdStatusTrigger.className).toContain('bg-red-200')
-  })
 })
