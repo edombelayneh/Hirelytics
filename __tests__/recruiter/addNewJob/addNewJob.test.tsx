@@ -83,4 +83,61 @@ describe('AddNewJobPage', () => {
 
     logSpy.mockRestore()
   })
+
+  it('submits payload with schema fields and correct types', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    render(<AddNewJobPage />)
+
+    fireEvent.change(screen.getByPlaceholderText('Software Engineer'), {
+      target: { value: 'Software Engineer' },
+    })
+    fireEvent.change(screen.getByPlaceholderText('Company Name'), {
+      target: { value: 'TechCorp' },
+    })
+    fireEvent.change(screen.getByPlaceholderText('recruiter@company.com'), {
+      target: { value: 'recruiter@techcorp.com' },
+    })
+    fireEvent.change(screen.getByPlaceholderText('Main role summary and responsibilities'), {
+      target: { value: 'Build web apps' },
+    })
+
+    const selectFields = screen.getAllByRole('combobox')
+    const visaSponsorshipSelect = selectFields[3]
+    fireEvent.change(visaSponsorshipSelect, {
+      target: { value: 'true' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Add Job/i }))
+
+    expect(logSpy).toHaveBeenCalled()
+    const payload = logSpy.mock.calls[0][1] as Record<string, unknown>
+
+    expect(payload).toHaveProperty('jobName')
+    expect(payload).toHaveProperty('companyName')
+    expect(payload).toHaveProperty('recruiterEmail')
+    expect(payload).toHaveProperty('description')
+    expect(payload).toHaveProperty('qualifications')
+    expect(payload).toHaveProperty('preferredSkills')
+    expect(payload).toHaveProperty('country')
+    expect(payload).toHaveProperty('state')
+    expect(payload).toHaveProperty('city')
+    expect(payload).toHaveProperty('hourlyRate')
+    expect(payload).toHaveProperty('visaRequired')
+    expect(payload).toHaveProperty('jobType')
+    expect(payload).toHaveProperty('employmentType')
+    expect(payload).toHaveProperty('experienceLevel')
+    expect(payload).toHaveProperty('applicationDeadline')
+    expect(payload).toHaveProperty('generalDescription')
+    expect(payload).toHaveProperty('recruiterId')
+    expect(payload).toHaveProperty('jobSource')
+    expect(payload).toHaveProperty('createdAt')
+
+    expect(typeof payload.visaRequired).toBe('boolean')
+    expect(payload.jobSource).toBe('internal')
+    expect(typeof payload.recruiterId).toBe('string')
+    expect(typeof payload.createdAt).toBe('string')
+
+    logSpy.mockRestore()
+  })
 })

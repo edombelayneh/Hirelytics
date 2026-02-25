@@ -11,6 +11,28 @@ type AddNewJobPageProps = {
   initialUserRole?: 'recruiter' | 'applicant'
 }
 
+type RecruiterJobPayload = {
+  jobName: string
+  companyName: string
+  recruiterEmail: string
+  description: string
+  qualifications: string
+  preferredSkills: string
+  country: string
+  state: string
+  city: string
+  hourlyRate: number | null
+  visaRequired: boolean
+  jobType: string
+  employmentType: string
+  experienceLevel: string
+  applicationDeadline: string
+  generalDescription: string
+  recruiterId: string
+  jobSource: 'internal'
+  createdAt: string
+}
+
 // Page for recruiters to create a new job
 export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJobPageProps) {
   // Form field state
@@ -24,7 +46,7 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
   const [stateValue, setStateValue] = useState('')
   const [city, setCity] = useState('')
   const [hourlyRate, setHourlyRate] = useState('')
-  const [visaRequired, setVisaRequired] = useState<boolean | null>(null)
+  const [visaRequired, setVisaRequired] = useState<boolean>(false)
   const [jobType, setJobType] = useState<'onsite' | 'remote' | 'hybrid' | ''>('')
   const [generalDescription, setGeneralDescription] = useState('')
   const [employmentType, setEmploymentType] = useState<
@@ -63,7 +85,7 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
 
     setSubmitting(true)
     // Create job object (currently just logged)
-    const jobData = {
+    const jobData: RecruiterJobPayload = {
       jobName,
       companyName,
       recruiterEmail,
@@ -80,6 +102,9 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
       experienceLevel,
       applicationDeadline,
       generalDescription,
+      recruiterId: 'recruiter',
+      jobSource: 'internal',
+      createdAt: new Date().toISOString(),
     }
 
     console.log('New job submitted: ', jobData)
@@ -300,17 +325,12 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
           <div>
             <label className='block text-sm mb-1'>Visa Sponsorship Available?</label>
             <select
-              value={visaRequired === null ? '' : String(visaRequired)}
+              value={String(visaRequired)}
               onChange={(e) => {
-                if (e.target.value === '') {
-                  setVisaRequired(null)
-                } else {
-                  setVisaRequired(e.target.value === 'true')
-                }
+                setVisaRequired(e.target.value === 'true')
               }}
               className='w-full border rounded p-2'
             >
-              <option value=''>Select an option</option>
               <option value='true'>Yes, we can sponsor visas</option>
               <option value='false'>No, visa sponsorship is not available</option>
             </select>
