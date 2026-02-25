@@ -2,12 +2,17 @@
 
 // A form page that lets recruiters submit new jobs.
 // - Collect job information
-// - Shows a redirecting overlay and then sends the user to the "Available Jobs" page using hash navigation.
+// - Shows a redirecting overlay and then sends the user to the "Job Details" page using hash navigation.
 // - Saves job data to Firebase and checks user role (recruiter only)
 
 import { useState } from 'react'
+
+type AddNewJobPageProps = {
+  initialUserRole?: 'recruiter' | 'applicant'
+}
+
 // Page for recruiters to create a new job
-export default function AddNewJobPage() {
+export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJobPageProps) {
   // Form field state
   const [jobName, setJobName] = useState('')
   const [companyName, setCompanyName] = useState('')
@@ -19,7 +24,7 @@ export default function AddNewJobPage() {
   const [stateValue, setStateValue] = useState('')
   const [city, setCity] = useState('')
   const [hourlyRate, setHourlyRate] = useState('')
-  const [visaRequired, setVisaRequired] = useState<'yes' | 'no' | ''>('')
+  const [visaRequired, setVisaRequired] = useState<boolean | null>(null)
   const [jobType, setJobType] = useState<'onsite' | 'remote' | 'hybrid' | ''>('')
   const [generalDescription, setGeneralDescription] = useState('')
   const [employmentType, setEmploymentType] = useState<
@@ -34,7 +39,7 @@ export default function AddNewJobPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
-  const [userRole] = useState<'recruiter' | 'applicant'>('recruiter')
+  const [userRole] = useState<'recruiter' | 'applicant'>(initialUserRole)
 
   // handleSubmit
   // This prevents the form from default submission.
@@ -42,6 +47,12 @@ export default function AddNewJobPage() {
   // Show a short success message and redirect overlay.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault() // Prevent page reload
+
+    if (userRole !== 'recruiter') {
+      setMessage('Unauthorized access')
+      return
+    }
+
     setMessage(null)
 
     // Basic validation for required fields.
@@ -73,12 +84,12 @@ export default function AddNewJobPage() {
 
     console.log('New job submitted: ', jobData)
 
-    setMessage('Job submitted. Redirecting to Available Jobs...')
+    setMessage('Job submitted. Redirecting to Job Details...')
     setRedirecting(true)
 
-    // small delay so the user sees the overlay, then go to Available Jobs
+    // small delay so the user sees the overlay, then go to Job Details
     setTimeout(() => {
-      window.location.hash = '/jobs'
+      window.location.hash = '/jobdetails'
     }, 2000)
   }
 
@@ -289,13 +300,19 @@ export default function AddNewJobPage() {
           <div>
             <label className='block text-sm mb-1'>Visa Sponsorship Available?</label>
             <select
-              value={visaRequired}
-              onChange={(e) => setVisaRequired(e.target.value as 'yes' | 'no' | '')}
+              value={visaRequired === null ? '' : String(visaRequired)}
+              onChange={(e) => {
+                if (e.target.value === '') {
+                  setVisaRequired(null)
+                } else {
+                  setVisaRequired(e.target.value === 'true')
+                }
+              }}
               className='w-full border rounded p-2'
             >
               <option value=''>Select an option</option>
-              <option value='yes'>Yes, we can sponsor visas</option>
-              <option value='no'>No, visa sponsorship is not available</option>
+              <option value='true'>Yes, we can sponsor visas</option>
+              <option value='false'>No, visa sponsorship is not available</option>
             </select>
           </div>
 

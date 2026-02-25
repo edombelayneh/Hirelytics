@@ -37,7 +37,19 @@ describe('AddNewJobPage', () => {
     expect(screen.queryByText(/Submitting job/i)).toBeNull()
   })
 
-  it('submits and shows redirect overlay, then updates hash to /jobs', () => {
+  it('shows unauthorized access message for non-recruiter submit attempt', () => {
+    const { container } = render(<AddNewJobPage initialUserRole='applicant' />)
+
+    const form = container.querySelector('form')
+    expect(form).toBeTruthy()
+    fireEvent.submit(form as HTMLFormElement)
+
+    expect(screen.getByText(/Unauthorized access/i)).toBeTruthy()
+    expect(screen.queryByText(/Submitting job/i)).toBeNull()
+    expect(window.location.hash).toBe('')
+  })
+
+  it('submits and shows redirect overlay, then updates hash to /jobdetails', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     render(<AddNewJobPage />)
@@ -61,13 +73,13 @@ describe('AddNewJobPage', () => {
     expect(savingBtn).toBeTruthy()
     expect((savingBtn as HTMLButtonElement).disabled).toBe(true)
 
-    expect(screen.getByText(/Job submitted\. Redirecting to Available Jobs/i)).toBeTruthy()
+    expect(screen.getByText(/Job submitted\. Redirecting to Job Details/i)).toBeTruthy()
     expect(screen.getByText(/Submitting job/i)).toBeTruthy()
     expect(screen.getByText(/Redirecting you to the .* page/i)).toBeTruthy()
 
     expect(window.location.hash).toBe('')
     vi.advanceTimersByTime(2000)
-    expect(window.location.hash).toBe('#/jobs')
+    expect(window.location.hash).toBe('#/jobdetails')
 
     logSpy.mockRestore()
   })

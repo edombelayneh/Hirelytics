@@ -21,7 +21,7 @@ interface Job {
   state: string
   city: string
   hourlyRate: number | null
-  visaRequired: string
+  visaRequired: boolean | 'yes' | 'no' | null
   jobType: string
   employmentType: string
   experienceLevel: string
@@ -29,7 +29,7 @@ interface Job {
   generalDescription: string
   recruiterId: string
   jobSource: string
-  createdAt: any
+  createdAt: unknown
 }
 
 export default function JobDetailsPage() {
@@ -37,6 +37,8 @@ export default function JobDetailsPage() {
   const [userRole, setUserRole] = useState<Role | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [jobs, setJobs] = useState<Job[]>([])
+
+  const hasVisaSponsorship = (value: Job['visaRequired']) => value === true || value === 'yes'
 
   // Check user role and fetch jobs
   useEffect(() => {
@@ -190,11 +192,11 @@ export default function JobDetailsPage() {
 
                 <div className='flex items-center justify-between pt-4 border-t border-gray-200'>
                   <div className='flex gap-4 text-xs text-gray-500'>
-                    {job.visaRequired && (
+                    {job.visaRequired !== null && job.visaRequired !== undefined && (
                       <span>
                         Visa Sponsorship:{' '}
                         <span className='font-medium'>
-                          {job.visaRequired === 'yes' ? 'Available' : 'Not Available'}
+                          {hasVisaSponsorship(job.visaRequired) ? 'Available' : 'Not Available'}
                         </span>
                       </span>
                     )}
@@ -207,9 +209,7 @@ export default function JobDetailsPage() {
                       </span>
                     )}
                   </div>
-                  <p className='text-xs text-gray-400'>
-                    Recruiter: {job.recruiterEmail}
-                  </p>
+                  <p className='text-xs text-gray-400'>Recruiter: {job.recruiterEmail}</p>
                 </div>
               </div>
             ))}
