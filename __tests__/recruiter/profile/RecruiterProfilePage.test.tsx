@@ -269,7 +269,7 @@ describe('RecruiterProfilePage', () => {
   })
 
   it('calls onSave with current form data when valid and shows success toast', async () => {
-    const onSave = vi.fn(async (): Promise<void> => {})
+    const onSave = vi.fn(async (_profile: RecruiterProfile): Promise<void> => {})
 
     render(
       <RecruiterProfilePage
@@ -300,14 +300,13 @@ describe('RecruiterProfilePage', () => {
   })
 
   it('disables save button and shows "Saving..." while saving', async () => {
-    let resolveSave: (() => void) | null = null
+    let resolveSaveRef: (() => void) | null = null
 
-    const onSave = vi.fn(
-      async (profile: RecruiterProfile): Promise<void> =>
-        await new Promise<void>((resolve) => {
-          resolveSave = resolve
-        })
-    )
+    const onSave = vi.fn(async (_profile: RecruiterProfile): Promise<void> => {
+      await new Promise<void>((resolve) => {
+        resolveSaveRef = resolve
+      })
+    })
 
     render(
       <RecruiterProfilePage
@@ -324,7 +323,10 @@ describe('RecruiterProfilePage', () => {
     const savingBtn = await screen.findByRole('button', { name: /Saving\.\.\./i })
     expectDisabled(savingBtn)
 
-    if (resolveSave) resolveSave()
+    // Resolve the save promise
+    if (resolveSaveRef) {
+      ;(resolveSaveRef as () => void)()
+    }
 
     await waitFor(() => {
       const saveBtn = screen.getByRole('button', { name: /Save Changes/i })
