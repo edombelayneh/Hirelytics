@@ -77,27 +77,29 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
   }
 
   return (
-    <div className='space-y-8'>
-      {/* Dashboard overview section */}
-      <section>
-        <h2 className='text-xl font-semibold mb-4'>Dashboard Overview</h2>
-        <HeroPanel applications={liveApplications} />
-      </section>
+    <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8'>
+      <div className='space-y-8'>
+        {/* Dashboard overview section */}
+        <section>
+          <h2 className='text-xl font-semibold mb-4'>Dashboard Overview</h2>
+          <HeroPanel applications={liveApplications} />
+        </section>
 
-      {/* Summary metrics section */}
-      <section>
-        <h2 className='text-xl font-semibold mb-4'>Key Metrics</h2>
-        <SummaryCards applications={liveApplications} />
-      </section>
+        {/* Summary metrics section */}
+        <section>
+          <h2 className='text-xl font-semibold mb-4'>Key Metrics</h2>
+          <SummaryCards applications={liveApplications} />
+        </section>
 
-      {/* Applications table section */}
-      <section>
-        <ApplicationsTable
-          applications={liveApplications}
-          onStatusChange={handleStatusChange}
-          onNotesChange={handleNotesChange}
-        />
-      </section>
+        {/* Applications table section */}
+        <section>
+          <ApplicationsTable
+            applications={liveApplications}
+            onStatusChange={handleStatusChange}
+            onNotesChange={handleNotesChange}
+          />
+        </section>
+      </div>
     </div>
   )
 })

@@ -12,7 +12,6 @@ import {
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import Script from 'next/script'
-import { SignedInNavbar } from './components/SignedInNavbar'
 import AppShell from '../app/AppShell'
 
 // Font configuration

@@ -195,19 +195,19 @@ export const ProfilePage = memo(function ProfilePage({
   }
 
   return (
-    <div className='space-y-6 max-w-5xl mx-auto'>
+    <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8'>
       {/* Header */}
       <div className='flex flex-col gap-2'>
-        <h1>My Profile</h1>
+        <h2 className='text-xl font-semibold'>My Profile</h2>
         <p className='text-muted-foreground'>
           Manage your personal information and job application preferences
         </p>
       </div>
 
-      {/* Profile Picture & Resume */}
+      {/* Profile Picture & Resume Section */}
       <Card className='p-6'>
         <div className='flex flex-col md:flex-row gap-8'>
-          {/* Picture */}
+          {/* Profile Picture */}
           <div className='flex flex-col items-center gap-4'>
             <Label className='text-center'>Profile Picture</Label>
             <div className='relative'>
@@ -218,17 +218,14 @@ export const ProfilePage = memo(function ProfilePage({
                 />
                 <AvatarFallback className='text-2xl'>{getInitials()}</AvatarFallback>
               </Avatar>
-
               <Button
                 size='sm'
                 variant='secondary'
                 className='absolute bottom-0 right-0 rounded-full h-10 w-10 p-0'
                 onClick={() => profilePicInputRef.current?.click()}
-                type='button'
               >
                 <Camera className='h-4 w-4' />
               </Button>
-
               <input
                 ref={profilePicInputRef}
                 type='file'
@@ -240,7 +237,7 @@ export const ProfilePage = memo(function ProfilePage({
             <p className='text-xs text-muted-foreground text-center'>PNG, JPG up to 5MB</p>
           </div>
 
-          {/* Resume */}
+          {/* Resume Upload */}
           <div className='flex-1 space-y-4'>
             <div>
               <Label>Resume</Label>
@@ -260,7 +257,6 @@ export const ProfilePage = memo(function ProfilePage({
                   size='sm'
                   variant='outline'
                   onClick={() => resumeInputRef.current?.click()}
-                  type='button'
                 >
                   <Upload className='h-4 w-4 mr-2' />
                   Replace
@@ -271,7 +267,6 @@ export const ProfilePage = memo(function ProfilePage({
                 variant='outline'
                 className='w-full h-24 border-dashed'
                 onClick={() => resumeInputRef.current?.click()}
-                type='button'
               >
                 <div className='flex flex-col items-center gap-2'>
                   <Upload className='h-6 w-6 text-muted-foreground' />
@@ -280,7 +275,6 @@ export const ProfilePage = memo(function ProfilePage({
                 </div>
               </Button>
             )}
-
             <input
               ref={resumeInputRef}
               type='file'
@@ -292,7 +286,7 @@ export const ProfilePage = memo(function ProfilePage({
         </div>
       </Card>
 
-      {/* Basic Info */}
+      {/* Basic Information */}
       <Card className='p-6'>
         <h2 className='mb-6'>Basic Information</h2>
         <div className='grid md:grid-cols-2 gap-6'>
@@ -304,7 +298,8 @@ export const ProfilePage = memo(function ProfilePage({
               <User className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='firstName'
-                value={formData.firstName || ''}
+                placeholder='John'
+                value={formData.firstName}
                 onChange={(e) => handleInputChange('firstName', e.target.value)}
                 className={`pl-9 ${errors.firstName ? 'border border-red-500 focus-visible:ring-red-500' : ''}`}
               />
@@ -320,7 +315,8 @@ export const ProfilePage = memo(function ProfilePage({
               <User className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='lastName'
-                value={formData.lastName || ''}
+                placeholder='John'
+                value={formData.lastName}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
                 className={`pl-9 ${errors.lastName ? 'border border-red-500 focus-visible:ring-red-500' : ''}`}
               />
@@ -337,7 +333,8 @@ export const ProfilePage = memo(function ProfilePage({
               <Input
                 id='email'
                 type='email'
-                value={formData.email || ''}
+                placeholder='john.doe@example.com'
+                value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 className={`pl-9 ${errors.email ? 'border border-red-500 focus-visible:ring-red-500' : ''}`}
               />
@@ -352,7 +349,8 @@ export const ProfilePage = memo(function ProfilePage({
               <Input
                 id='phone'
                 type='tel'
-                value={formData.phone || ''}
+                placeholder='+1 (555) 123-4567'
+                value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 className='pl-9'
               />
@@ -365,7 +363,8 @@ export const ProfilePage = memo(function ProfilePage({
               <MapPin className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='location'
-                value={formData.location || ''}
+                placeholder='San Francisco, CA'
+                value={formData.location}
                 onChange={(e) => handleInputChange('location', e.target.value)}
                 className='pl-9'
               />
@@ -374,7 +373,7 @@ export const ProfilePage = memo(function ProfilePage({
         </div>
       </Card>
 
-      {/* Professional Info */}
+      {/* Professional Information */}
       <Card className='p-6'>
         <h2 className='mb-6'>Professional Information</h2>
         <div className='grid md:grid-cols-2 gap-6'>
@@ -384,7 +383,8 @@ export const ProfilePage = memo(function ProfilePage({
               <Briefcase className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='currentTitle'
-                value={formData.currentTitle || ''}
+                placeholder='Software Engineer'
+                value={formData.currentTitle}
                 onChange={(e) => handleInputChange('currentTitle', e.target.value)}
                 className='pl-9'
               />
@@ -397,7 +397,8 @@ export const ProfilePage = memo(function ProfilePage({
               <Calendar className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
               <Input
                 id='yearsOfExperience'
-                value={formData.yearsOfExperience || ''}
+                placeholder='5'
+                value={formData.yearsOfExperience}
                 onChange={(e) => handleInputChange('yearsOfExperience', e.target.value)}
                 className='pl-9'
               />
@@ -407,11 +408,11 @@ export const ProfilePage = memo(function ProfilePage({
           <div className='space-y-2 md:col-span-2'>
             <Label htmlFor='availability'>Availability</Label>
             <Select
-              value={formData.availability || ''}
+              value={formData.availability}
               onValueChange={(value: string) => handleInputChange('availability', value)}
             >
               <SelectTrigger id='availability'>
-                <SelectValue placeholder='Select availability' />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value='Immediately'>Immediately</SelectItem>
@@ -425,7 +426,7 @@ export const ProfilePage = memo(function ProfilePage({
         </div>
       </Card>
 
-      {/* Links */}
+      {/* Professional Links */}
       <Card className='p-6'>
         <h2 className='mb-6'>Professional Links</h2>
         <div className='space-y-4'>
@@ -436,7 +437,8 @@ export const ProfilePage = memo(function ProfilePage({
               <Input
                 id='linkedinUrl'
                 type='url'
-                value={formData.linkedinUrl || ''}
+                placeholder='https://linkedin.com/in/johndoe'
+                value={formData.linkedinUrl}
                 onChange={(e) => handleInputChange('linkedinUrl', e.target.value)}
                 className='pl-9'
               />
@@ -450,7 +452,8 @@ export const ProfilePage = memo(function ProfilePage({
               <Input
                 id='portfolioUrl'
                 type='url'
-                value={formData.portfolioUrl || ''}
+                placeholder='https://johndoe.com'
+                value={formData.portfolioUrl}
                 onChange={(e) => handleInputChange('portfolioUrl', e.target.value)}
                 className='pl-9'
               />
@@ -464,7 +467,8 @@ export const ProfilePage = memo(function ProfilePage({
               <Input
                 id='githubUrl'
                 type='url'
-                value={formData.githubUrl || ''}
+                placeholder='https://github.com/johndoe'
+                value={formData.githubUrl}
                 onChange={(e) => handleInputChange('githubUrl', e.target.value)}
                 className='pl-9'
               />
@@ -480,39 +484,26 @@ export const ProfilePage = memo(function ProfilePage({
           <Label htmlFor='bio'>About Me</Label>
           <Textarea
             id='bio'
-            value={formData.bio || ''}
+            placeholder="Write a brief description about yourself, your skills, and what you're looking for..."
+            value={formData.bio}
             onChange={(e) => handleInputChange('bio', e.target.value)}
             rows={6}
             className='resize-none'
           />
-          <p className='text-sm text-muted-foreground'>
-            {(formData.bio || '').length} / 1000 characters
-          </p>
+          <p className='text-sm text-muted-foreground'>{formData.bio.length} / 1000 characters</p>
         </div>
       </Card>
 
-      {/* Save (always clickable) */}
-      <div className='flex justify-end gap-3 pb-8'>
-        <Button
-          size='lg'
-          onClick={handleSave}
-          disabled={isSaving}
-          className='gap-2'
-          type='button'
-        >
-          {isEditing ? (
-            <>
-              <Save className='h-4 w-4' />
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </>
-          ) : (
-            <>
-              <CheckCircle2 className='h-4 w-4' />
-              {isSaving ? 'Saving...' : 'Saved'}
-            </>
-          )}
-        </Button>
-      </div>
+      {/* Save Button */}
+      <Button
+        size='lg'
+        onClick={handleSave}
+        disabled={isSaving}
+        className='gap-2'
+      >
+        <Save className='h-4 w-4' />
+        {isSaving ? 'Saving...' : 'Save Changes'}
+      </Button>
     </div>
   )
 })

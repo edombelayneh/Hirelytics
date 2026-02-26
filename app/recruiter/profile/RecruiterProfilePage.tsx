@@ -142,10 +142,10 @@ export const RecruiterProfilePage = memo(function RecruiterProfilePage({
   }
 
   return (
-    <div className='space-y-6 max-w-5xl mx-auto'>
+    <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8'>
       {/* Header */}
       <div className='flex flex-col gap-2'>
-        <h1>Recruiter Profile</h1>
+        <h2 className='text-xl font-semibold'>Recruiter Profile</h2>
         <p className='text-muted-foreground'>
           Manage your company details and recruiter contact info for job postings.
         </p>
@@ -200,9 +200,7 @@ export const RecruiterProfilePage = memo(function RecruiterProfilePage({
                   placeholder='Hirelytics Inc.'
                   value={formData.companyName || ''}
                   onChange={(e) => handleInputChange('companyName', e.target.value)}
-                  className={`pl-9 ${
-                    errors.companyName ? 'border border-red-500 focus-visible:ring-red-500' : ''
-                  }`}
+                  className={`pl-9 ${errors.companyName ? 'border border-red-500 focus-visible:ring-red-500' : ''}`}
                 />
                 {errors.companyName && (
                   <p className='text-sm text-red-600 mt-1'>{errors.companyName}</p>
@@ -267,9 +265,7 @@ export const RecruiterProfilePage = memo(function RecruiterProfilePage({
                 placeholder='recruiting@hirelytics.com'
                 value={formData.recruiterEmail || ''}
                 onChange={(e) => handleInputChange('recruiterEmail', e.target.value)}
-                className={`pl-9 ${
-                  errors.recruiterEmail ? 'border border-red-500 focus-visible:ring-red-500' : ''
-                }`}
+                className={`pl-9 ${errors.recruiterEmail ? 'border border-red-500 focus-visible:ring-red-500' : ''}`}
               />
               {errors.recruiterEmail && (
                 <p className='text-sm text-red-600 mt-1'>{errors.recruiterEmail}</p>
@@ -326,7 +322,6 @@ export const RecruiterProfilePage = memo(function RecruiterProfilePage({
         </div>
       </Card>
 
-      {/* Save button is ALWAYS clickable */}
       <Button
         size='lg'
         onClick={handleSave}
