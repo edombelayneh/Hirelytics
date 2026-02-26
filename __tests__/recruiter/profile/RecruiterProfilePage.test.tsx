@@ -2,181 +2,453 @@
 import React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
-import { RecruiterProfilePage } from '../../../app/recruiter/profile/RecruiterProfilePage'
-import { toast } from '../../../app/components/ui/sonner'
+
+import { RecruiterProfilePage } from '../../../app/recruiter/profile/RecruiterProfilePage' // <-- adjust path
 import type { RecruiterProfile } from '../../../app/utils/userProfiles'
 
-/* -------------------------------------------------------------------------- */
-/*                                   MOCKS                                    */
-/* -------------------------------------------------------------------------- */
+// -----------------------------------------------------------------------------
+// Helpers (no jest-dom)
+// -----------------------------------------------------------------------------
+const expectInDoc = (el: unknown): void => {
+  expect(el).toBeTruthy()
+}
 
-vi.mock('../../../app/components/Navbar', () => ({
-  Navbar: () => <div data-testid='navbar-mock' />,
+const expectInputValue = (el: HTMLElement, value: string): void => {
+  expect((el as HTMLInputElement).value).toBe(value)
+}
+
+const expectDisabled = (el: HTMLElement): void => {
+  expect((el as HTMLButtonElement).disabled).toBe(true)
+}
+
+const expectEnabled = (el: HTMLElement): void => {
+  expect((el as HTMLButtonElement).disabled).toBe(false)
+}
+
+// -----------------------------------------------------------------------------
+// Mocks
+// -----------------------------------------------------------------------------
+type ClerkUser = {
+  id: string
+  firstName?: string | null
+  lastName?: string | null
+  primaryEmailAddress?: { emailAddress?: string | null } | null
+}
+type UseUserReturn = { isLoaded: boolean; user: ClerkUser | null }
+
+const useUserMock = vi.fn<() => UseUserReturn>()
+vi.mock('@clerk/nextjs', () => ({
+  useUser: (): UseUserReturn => useUserMock(),
 }))
+
+type ToastOptions = { description?: string }
+type ToastFn = (title: string, opts?: ToastOptions) => void
+
+const toastSuccess = vi.fn<ToastFn>()
+const toastError = vi.fn<ToastFn>()
 
 vi.mock('../../../app/components/ui/sonner', () => ({
   toast: {
-    success: vi.fn(),
-    error: vi.fn(),
+    success: (title: string, opts?: ToastOptions): void => toastSuccess(title, opts),
+    error: (title: string, opts?: ToastOptions): void => toastError(title, opts),
   },
 }))
 
-/* -------------------------------------------------------------------------- */
-/*                                   TESTS                                    */
-/* -------------------------------------------------------------------------- */
+vi.mock('../../../app/components/ui/card', () => ({
+  Card: ({ children }: { children: React.ReactNode }): JSX.Element => (
+    <div data-testid='card'>{children}</div>
+  ),
+}))
+
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  children?: React.ReactNode
+}
+vi.mock('../../../app/components/ui/button', () => ({
+  Button: ({ children, onClick, disabled, type, ...rest }: ButtonProps): JSX.Element => (
+    <button
+      type={type ?? 'button'}
+      onClick={onClick}
+      disabled={disabled}
+      {...rest}
+    >
+      {children}
+    </button>
+  ),
+}))
+
+type InputProps = React.InputHTMLAttributes<HTMLInputElement>
+vi.mock('../../../app/components/ui/input', () => ({
+  Input: (props: InputProps): JSX.Element => <input {...props} />,
+}))
+
+vi.mock('../../../app/components/ui/label', () => ({
+  Label: ({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }): JSX.Element => (
+    <label htmlFor={htmlFor}>{children}</label>
+  ),
+}))
+
+type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>
+vi.mock('../../../app/components/ui/textarea', () => ({
+  Textarea: (props: TextareaProps): JSX.Element => <textarea {...props} />,
+}))
+
+vi.mock('../../../app/components/ui/avatar', () => ({
+  Avatar: ({ children }: { children: React.ReactNode }): JSX.Element => <div>{children}</div>,
+  AvatarImage: ({ alt, src }: { alt?: string; src?: string }): JSX.Element => (
+    <img
+      alt={alt ?? ''}
+      src={src ?? ''}
+    />
+  ),
+  AvatarFallback: ({ children }: { children: React.ReactNode }): JSX.Element => (
+    <div>{children}</div>
+  ),
+}))
+
+// -----------------------------------------------------------------------------
+// FileReader mock
+// -----------------------------------------------------------------------------
+type MockFileReaderHandler = (() => void) | null
+
+class MockFileReader {
+  public result: string | ArrayBuffer | null = null
+  public onloadend: MockFileReaderHandler = null
+
+  public readAsDataURL(_file: File): void {
+    this.result = 'data:image/png;base64,FAKE'
+    if (this.onloadend) this.onloadend()
+  }
+}
 
 describe('RecruiterProfilePage', () => {
-  const baseProfile: RecruiterProfile = {
-    companyName: 'Hirelytics',
-    companyWebsite: 'https://hirelytics.com',
-    recruiterTitle: 'Talent Acquisition',
-  }
-
-  const onSaveMock = vi.fn(async (_data: RecruiterProfile): Promise<void> => {})
+  const baseProfile = (overrides: Partial<RecruiterProfile> = {}): RecruiterProfile =>
+    ({
+      companyName: '',
+      companyWebsite: '',
+      companyLogo: '',
+      companyLocation: '',
+      companyDescription: '',
+      recruiterName: '',
+      recruiterTitle: '',
+      recruiterEmail: '',
+      recruiterPhone: '',
+      ...overrides,
+    }) as RecruiterProfile
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    useUserMock.mockReturnValue({
+      isLoaded: true,
+      user: {
+        id: 'user_123',
+        firstName: 'Jane',
+        lastName: 'Doe',
+        primaryEmailAddress: { emailAddress: 'jane.doe@hirelytics.com' },
+      },
+    })
+
+    toastSuccess.mockClear()
+    toastError.mockClear()
+
+    const g = globalThis as unknown as { FileReader: typeof FileReader }
+    g.FileReader = MockFileReader as unknown as typeof FileReader
   })
 
   afterEach(() => {
     cleanup()
+    vi.clearAllMocks()
   })
 
-  it('renders heading + description + initial form values', () => {
+  it('renders initial fields and Save button', () => {
     render(
       <RecruiterProfilePage
-        recruiterProfile={baseProfile}
-        onSave={onSaveMock}
+        recruiterProfile={baseProfile({ companyName: 'Hirelytics Inc.' })}
+        onSave={vi.fn(async (): Promise<void> => {})}
       />
     )
 
-    expect(screen.getByText('Recruiter Profile')).toBeTruthy()
-    expect(screen.getByText('Company info used for job postings.')).toBeTruthy()
-
-    expect(screen.getByDisplayValue('Hirelytics')).toBeTruthy()
-    expect(screen.getByDisplayValue('https://hirelytics.com')).toBeTruthy()
-    expect(screen.getByDisplayValue('Talent Acquisition')).toBeTruthy()
+    expectInDoc(screen.getByText('Recruiter Profile'))
+    expectInDoc(screen.getByLabelText(/Company Name/i))
+    expectInDoc(screen.getByLabelText(/Recruiter Email/i))
+    expectInDoc(screen.getByRole('button', { name: /Save Changes/i }))
   })
 
-  it('save button is disabled until user edits a field', () => {
+  it('auto-fills recruiter name/email from Clerk when missing', async () => {
     render(
       <RecruiterProfilePage
-        recruiterProfile={baseProfile}
-        onSave={onSaveMock}
+        recruiterProfile={baseProfile({
+          companyName: 'Hirelytics Inc.',
+          recruiterName: '',
+          recruiterEmail: '',
+        })}
+        onSave={vi.fn(async (): Promise<void> => {})}
       />
     )
-
-    const saveBtn = screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement
-    expect(saveBtn.disabled).toBe(true)
-
-    // Edit company website
-    const websiteInput = screen.getByPlaceholderText('https://hirelytics.com')
-    fireEvent.change(websiteInput, { target: { value: 'https://example.com' } })
-
-    expect(saveBtn.disabled).toBe(false)
-  })
-
-  it('prevents saving if companyName is empty and shows toast error', async () => {
-    const emptyCompany: RecruiterProfile = {
-      companyName: '',
-      companyWebsite: '',
-      recruiterTitle: '',
-    }
-
-    render(
-      <RecruiterProfilePage
-        recruiterProfile={emptyCompany}
-        onSave={onSaveMock}
-      />
-    )
-
-    // make it "edited" so button is enabled
-    const titleInput = screen.getByPlaceholderText('Talent Acquisition')
-    fireEvent.change(titleInput, { target: { value: 'Recruiter' } })
-
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-    expect(onSaveMock).not.toHaveBeenCalled()
-    expect(toast.error).toHaveBeenCalledWith(
-      'Missing required field',
-      expect.objectContaining({ description: 'Company name is required.' })
-    )
-  })
-
-  it('calls onSave with updated data and shows success toast', async () => {
-    onSaveMock.mockResolvedValueOnce(undefined)
-
-    render(
-      <RecruiterProfilePage
-        recruiterProfile={baseProfile}
-        onSave={onSaveMock}
-      />
-    )
-
-    const nameInput = screen.getByPlaceholderText('Hirelytics Inc.')
-    fireEvent.change(nameInput, { target: { value: 'Hirelytics Inc.' } })
-
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => {
-      expect(onSaveMock).toHaveBeenCalledTimes(1)
-      expect(onSaveMock).toHaveBeenCalledWith(
-        expect.objectContaining({ companyName: 'Hirelytics Inc.' }) as RecruiterProfile
-      )
-      expect(toast.success).toHaveBeenCalledWith('Recruiter profile saved')
+      expectInputValue(screen.getByLabelText(/Recruiter Email/i), 'jane.doe@hirelytics.com')
+      expectInputValue(screen.getByLabelText(/Your Name/i), 'Jane Doe')
+    })
+  })
+
+  it('does not overwrite typed recruiterEmail when user is editing', async () => {
+    const { rerender } = render(
+      <RecruiterProfilePage
+        recruiterProfile={baseProfile({
+          companyName: 'Hirelytics Inc.',
+          recruiterEmail: '',
+        })}
+        onSave={vi.fn(async (): Promise<void> => {})}
+      />
+    )
+
+    fireEvent.change(screen.getByLabelText(/Recruiter Email/i), {
+      target: { value: 'typed@company.com' },
+    })
+
+    rerender(
+      <RecruiterProfilePage
+        recruiterProfile={baseProfile({
+          companyName: 'Hirelytics Inc.',
+          recruiterEmail: 'firestore@company.com',
+        })}
+        onSave={vi.fn(async (): Promise<void> => {})}
+      />
+    )
+
+    await waitFor(() => {
+      expectInputValue(screen.getByLabelText(/Recruiter Email/i), 'typed@company.com')
+    })
+  })
+  it('validates required fields and shows toast error when missing', async () => {
+    // Override Clerk values so auto-fill DOES NOT populate recruiterEmail
+    useUserMock.mockReturnValueOnce({
+      isLoaded: true,
+      user: {
+        id: 'user_123',
+        firstName: '',
+        lastName: '',
+        primaryEmailAddress: { emailAddress: '' },
+      },
+    })
+
+    render(
+      <RecruiterProfilePage
+        recruiterProfile={baseProfile({ companyName: '', recruiterEmail: '' })}
+        onSave={vi.fn(async (): Promise<void> => {})}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }))
+
+    expectInDoc(await screen.findByText(/Company name is required/i))
+    expectInDoc(await screen.findByText(/Recruiter email is required/i))
+
+    expect(toastError).toHaveBeenCalled()
+    const firstCall = toastError.mock.calls[0]
+    expect(firstCall[0]).toMatch(/Missing required fields/i)
+  })
+
+  it('validates recruiterEmail format and blocks save', async () => {
+    const onSave = vi.fn(async (): Promise<void> => {})
+
+    render(
+      <RecruiterProfilePage
+        recruiterProfile={baseProfile({
+          companyName: 'Hirelytics Inc.',
+          recruiterEmail: 'not-an-email',
+        })}
+        onSave={onSave}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }))
+
+    expectInDoc(await screen.findByText(/Enter a valid email/i))
+    expect(onSave).not.toHaveBeenCalled()
+    expect(toastError).toHaveBeenCalled()
+  })
+
+  it('calls onSave with current form data when valid and shows success toast', async () => {
+    const onSave = vi.fn(async (): Promise<void> => {})
+
+    render(
+      <RecruiterProfilePage
+        recruiterProfile={baseProfile({
+          companyName: 'Hirelytics Inc.',
+          recruiterEmail: 'recruiting@hirelytics.com',
+          recruiterName: 'Jane Recruiter',
+        })}
+        onSave={onSave}
+      />
+    )
+
+    fireEvent.change(screen.getByLabelText(/Company Website/i), {
+      target: { value: 'https://hirelytics.com' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }))
+
+    await waitFor(() => {
+      expect(onSave).toHaveBeenCalledTimes(1)
+    })
+
+    const saved = onSave.mock.calls[0][0] as RecruiterProfile
+    expect(saved.companyWebsite).toBe('https://hirelytics.com')
+
+    expect(toastSuccess).toHaveBeenCalled()
+    expect(toastSuccess.mock.calls[0][0]).toMatch(/Recruiter profile saved/i)
+  })
+
+  it('disables save button and shows "Saving..." while saving', async () => {
+    let resolveSave: (() => void) | null = null
+
+    const onSave = vi.fn(
+      async (): Promise<void> =>
+        await new Promise<void>((resolve) => {
+          resolveSave = resolve
+        })
+    )
+
+    render(
+      <RecruiterProfilePage
+        recruiterProfile={baseProfile({
+          companyName: 'Hirelytics Inc.',
+          recruiterEmail: 'recruiting@hirelytics.com',
+        })}
+        onSave={onSave}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }))
+
+    const savingBtn = await screen.findByRole('button', { name: /Saving\.\.\./i })
+    expectDisabled(savingBtn)
+
+    if (resolveSave) resolveSave()
+
+    await waitFor(() => {
+      const saveBtn = screen.getByRole('button', { name: /Save Changes/i })
+      expectEnabled(saveBtn)
     })
   })
 
   it('shows error toast if onSave throws', async () => {
-    onSaveMock.mockRejectedValueOnce(new Error('boom'))
+    const onSave = vi.fn(async (): Promise<void> => {
+      throw new Error('boom')
+    })
 
     render(
       <RecruiterProfilePage
-        recruiterProfile={baseProfile}
-        onSave={onSaveMock}
+        recruiterProfile={baseProfile({
+          companyName: 'Hirelytics Inc.',
+          recruiterEmail: 'recruiting@hirelytics.com',
+        })}
+        onSave={onSave}
       />
     )
 
-    const websiteInput = screen.getByPlaceholderText('https://hirelytics.com')
-    fireEvent.change(websiteInput, { target: { value: 'https://fail.com' } })
-
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }))
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        'Save failed',
-        expect.objectContaining({ description: 'Please try again.' })
-      )
+      expect(toastError).toHaveBeenCalled()
     })
+
+    const last = toastError.mock.calls.at(-1)
+    expect(last ? last[0] : '').toMatch(/Save failed/i)
   })
 
-  it('updates the form when recruiterProfile prop changes', async () => {
-    const { rerender } = render(
+  it('rejects non-image logo uploads with toast error', () => {
+    render(
       <RecruiterProfilePage
-        recruiterProfile={baseProfile}
-        onSave={onSaveMock}
+        recruiterProfile={baseProfile({
+          companyName: 'Hirelytics Inc.',
+          recruiterEmail: 'recruiting@hirelytics.com',
+        })}
+        onSave={vi.fn(async (): Promise<void> => {})}
       />
     )
 
-    expect(screen.getByDisplayValue('Hirelytics')).toBeTruthy()
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement | null
+    expect(fileInput).not.toBeNull()
+    if (!fileInput) return
 
-    const updated: RecruiterProfile = {
-      companyName: 'NewCo',
-      companyWebsite: 'https://newco.com',
-      recruiterTitle: 'Hiring Manager',
-    }
+    const badFile = new File(['hello'], 'bad.txt', { type: 'text/plain' })
+    fireEvent.change(fileInput, { target: { files: [badFile] } })
 
-    rerender(
+    expect(toastError).toHaveBeenCalled()
+    const [title, opts] = toastError.mock.calls[0]
+    expect(title).toMatch(/Invalid file type/i)
+    expect(opts?.description ?? '').toMatch(/Logo must be an image/i)
+  })
+
+  it('rejects logo uploads over 5MB with toast error', () => {
+    render(
       <RecruiterProfilePage
-        recruiterProfile={updated}
-        onSave={onSaveMock}
+        recruiterProfile={baseProfile({
+          companyName: 'Hirelytics Inc.',
+          recruiterEmail: 'recruiting@hirelytics.com',
+        })}
+        onSave={vi.fn(async (): Promise<void> => {})}
       />
     )
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement | null
+    expect(fileInput).not.toBeNull()
+    if (!fileInput) return
+
+    const bigFile = new File(['x'], 'big.png', { type: 'image/png' })
+    Object.defineProperty(bigFile, 'size', { value: 5 * 1024 * 1024 + 1 })
+
+    fireEvent.change(fileInput, { target: { files: [bigFile] } })
+
+    expect(toastError).toHaveBeenCalled()
+    const [title, opts] = toastError.mock.calls[0]
+    expect(title).toMatch(/File too large/i)
+    expect(opts?.description ?? '').toMatch(/less than 5MB/i)
+  })
+
+  it('accepts valid image logo upload, updates preview src, and shows success toast', async () => {
+    render(
+      <RecruiterProfilePage
+        recruiterProfile={baseProfile({
+          companyName: 'Hirelytics Inc.',
+          recruiterEmail: 'recruiting@hirelytics.com',
+        })}
+        onSave={vi.fn(async (): Promise<void> => {})}
+      />
+    )
+
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement | null
+    expect(fileInput).not.toBeNull()
+    if (!fileInput) return
+
+    const goodFile = new File(['pngbytes'], 'logo.png', { type: 'image/png' })
+    Object.defineProperty(goodFile, 'size', { value: 1024 })
+
+    fireEvent.change(fileInput, { target: { files: [goodFile] } })
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('NewCo')).toBeTruthy()
-      expect(screen.getByDisplayValue('https://newco.com')).toBeTruthy()
-      expect(screen.getByDisplayValue('Hiring Manager')).toBeTruthy()
+      const img = screen.getByAltText(/Company logo/i) as HTMLImageElement
+      expect(img.src).toContain('data:image/png;base64,FAKE')
     })
+
+    expect(toastSuccess).toHaveBeenCalled()
+    const last = toastSuccess.mock.calls.at(-1)
+    expect(last ? last[0] : '').toMatch(/Company logo uploaded/i)
+  })
+
+  it('shows company initials fallback when no logo and company name present', () => {
+    render(
+      <RecruiterProfilePage
+        recruiterProfile={baseProfile({
+          companyName: 'Hirelytics Inc.',
+          recruiterEmail: 'recruiting@hirelytics.com',
+          companyLogo: '',
+        })}
+        onSave={vi.fn(async (): Promise<void> => {})}
+      />
+    )
+
+    expectInDoc(screen.getByText('HI'))
   })
 })
