@@ -91,6 +91,7 @@ describe('ProfilePage', () => {
 
   /* ---------------------------- RENDER TEST ---------------------------- */
 
+  // Test that all profile information displays correctly on the page
   it('renders profile data correctly', () => {
     // Render component
     render(
@@ -111,6 +112,7 @@ describe('ProfilePage', () => {
 
   /* ---------------------------- SAVE SUCCESS ---------------------------- */
 
+  // Test that clicking Save updates the profile when all required fields are filled
   it('calls onUpdateProfile when Save is clicked with valid data', async () => {
     // Make mock save resolve successfully
     mockOnUpdateProfile.mockResolvedValueOnce(undefined)
@@ -145,6 +147,8 @@ describe('ProfilePage', () => {
   })
 
   /* ---------------------------- REQUIRED FIELD TESTS ---------------------------- */
+
+  // Test that user cannot save if first name is left empty
   it('prevents saving when first name is empty', async () => {
     render(
       <ProfilePage
@@ -189,6 +193,7 @@ describe('ProfilePage', () => {
     })
   })
 
+  // Test that user cannot save if email format is wrong
   it('prevents saving when email format is invalid', async () => {
     render(
       <ProfilePage
@@ -220,6 +225,7 @@ describe('ProfilePage', () => {
 
   /* ---------------------------- FILE UPLOAD TESTS ---------------------------- */
 
+  // Test that uploading a resume with wrong file type shows error
   it('rejects invalid resume file type', async () => {
     render(
       <ProfilePage
@@ -249,6 +255,7 @@ describe('ProfilePage', () => {
     })
   })
 
+  // Test that uploading a profile picture larger than 5MB shows error
   it('rejects profile pictures over 5MB', async () => {
     render(
       <ProfilePage
@@ -279,6 +286,7 @@ describe('ProfilePage', () => {
     })
   })
 
+  // Test that uploading a non-image file as profile picture shows error
   it('rejects invalid profile picture file type', async () => {
     render(
       <ProfilePage
@@ -308,6 +316,7 @@ describe('ProfilePage', () => {
     })
   })
 
+  // Test that uploading a resume larger than 10MB shows error
   it('rejects resume files over 10MB', async () => {
     render(
       <ProfilePage
@@ -338,6 +347,7 @@ describe('ProfilePage', () => {
     })
   })
 
+  // Test that uploading a valid profile picture works
   it('successfully uploads valid profile picture', async () => {
     render(
       <ProfilePage
@@ -362,6 +372,7 @@ describe('ProfilePage', () => {
     })
   })
 
+  // Test that uploading a valid resume file works
   it('successfully uploads valid resume', async () => {
     render(
       <ProfilePage
@@ -387,6 +398,8 @@ describe('ProfilePage', () => {
   })
 
   /* ---------------------------- SAVE BUTTON STATE TESTS ---------------------------- */
+
+  // Test that an error message appears when saving fails
   it('shows error toast when save fails', async () => {
     // Make mock save reject with error
     mockOnUpdateProfile.mockRejectedValueOnce(new Error('Save failed'))
@@ -418,6 +431,7 @@ describe('ProfilePage', () => {
 
   /* ---------------------------- VALIDATION TESTS ---------------------------- */
 
+  // Test that user cannot save if last name is left empty
   it('prevents saving when last name is empty', async () => {
     render(
       <ProfilePage
@@ -461,6 +475,7 @@ describe('ProfilePage', () => {
 
   /* ---------------------------- AVATAR INITIALS TESTS ---------------------------- */
 
+  // Test that the profile picture shows the correct initials (first letter of first and last name)
   it('displays correct avatar initials from first and last name', () => {
     render(
       <ProfilePage
@@ -472,18 +487,9 @@ describe('ProfilePage', () => {
     // Should show "JD" for Jane Doe
     expect(screen.getByText('JD')).toBeTruthy()
   })
-
-  // Note: Testing "U" fallback is complex due to Clerk auto-fill
-  // The component auto-fills from Clerk when profile fields are empty
-  // so we would need to mock Clerk to return empty values to test this
-
-  /* ---------------------------- BIO CHARACTER COUNT TESTS ---------------------------- */
-  // Note: Bio character count test was removed as the Bio section rendering
-  // has compatibility issues with the current test setup.
-  // The component correctly displays bio.length in production.
-
   /* ---------------------------- URL FIELD TESTS ---------------------------- */
 
+  // Test that user can change their LinkedIn profile link
   it('can edit LinkedIn URL field', () => {
     render(
       <ProfilePage
@@ -498,6 +504,7 @@ describe('ProfilePage', () => {
     expect((linkedInInput as HTMLInputElement).value).toBe('https://linkedin.com/in/johndoe')
   })
 
+  // Test that user can change their Portfolio website link
   it('can edit Portfolio URL field', () => {
     render(
       <ProfilePage
@@ -512,6 +519,7 @@ describe('ProfilePage', () => {
     expect((portfolioInput as HTMLInputElement).value).toBe('https://johndoe.dev')
   })
 
+  // Test that user can change their GitHub profile link
   it('can edit GitHub URL field', () => {
     render(
       <ProfilePage
@@ -528,6 +536,7 @@ describe('ProfilePage', () => {
 
   /* ---------------------------- FORM SECTIONS RENDER TESTS ---------------------------- */
 
+  // Test that all the different parts of the form are visible on the page
   it('renders all form sections', () => {
     render(
       <ProfilePage
@@ -547,6 +556,7 @@ describe('ProfilePage', () => {
 
   /* ---------------------------- PHONE FIELD TEST ---------------------------- */
 
+  // Test that user can change their phone number
   it('can edit phone number field', () => {
     render(
       <ProfilePage
@@ -563,6 +573,7 @@ describe('ProfilePage', () => {
 
   /* ---------------------------- LOCATION FIELD TEST ---------------------------- */
 
+  // Test that user can change their location
   it('can edit location field', () => {
     render(
       <ProfilePage
@@ -579,6 +590,7 @@ describe('ProfilePage', () => {
 
   /* ---------------------------- CURRENT TITLE & EXPERIENCE TEST ---------------------------- */
 
+  // Test that user can change their current job title
   it('can edit current title field', () => {
     render(
       <ProfilePage
@@ -593,6 +605,7 @@ describe('ProfilePage', () => {
     expect((titleInput as HTMLInputElement).value).toBe('Senior Software Engineer')
   })
 
+  // Test that user can change their years of experience
   it('can edit years of experience field', () => {
     render(
       <ProfilePage
