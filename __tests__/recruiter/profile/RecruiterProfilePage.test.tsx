@@ -1,5 +1,5 @@
 // __tests__/recruiter/profile/RecruiterProfilePage.test.tsx
-import React from 'react'
+import React, { JSX } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
 
@@ -292,7 +292,7 @@ describe('RecruiterProfilePage', () => {
       expect(onSave).toHaveBeenCalledTimes(1)
     })
 
-    const saved = onSave.mock.calls[0][0] as RecruiterProfile
+    const saved = onSave.mock.calls[0][0] as unknown as RecruiterProfile
     expect(saved.companyWebsite).toBe('https://hirelytics.com')
 
     expect(toastSuccess).toHaveBeenCalled()
@@ -303,7 +303,7 @@ describe('RecruiterProfilePage', () => {
     let resolveSave: (() => void) | null = null
 
     const onSave = vi.fn(
-      async (): Promise<void> =>
+      async (profile: RecruiterProfile): Promise<void> =>
         await new Promise<void>((resolve) => {
           resolveSave = resolve
         })
