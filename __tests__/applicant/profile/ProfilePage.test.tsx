@@ -145,46 +145,49 @@ describe('ProfilePage', () => {
   })
 
   /* ---------------------------- REQUIRED FIELD TESTS ---------------------------- */
-  // it('prevents saving when first name is empty', async () => {
-  //   render(
-  //     <ProfilePage
-  //       profile={mockProfile}
-  //       onUpdateProfile={mockOnUpdateProfile}
-  //     />
-  //   )
+  it('prevents saving when first name is empty', async () => {
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+      />
+    )
 
-  //   const firstNameInput = screen.getByLabelText(/first name/i)
+    const firstNameInput = screen.getByLabelText(/first name/i)
 
-  //   // Clear first name
-  //   fireEvent.change(firstNameInput, { target: { value: '' } })
+    // First, trigger editing mode by making any change
+    fireEvent.change(firstNameInput, { target: { value: 'J' } })
 
-  //   // Attempt save
-  //   fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    // Now clear first name (this will be preserved since isEditing is now true)
+    fireEvent.change(firstNameInput, { target: { value: '' } })
 
-  //   // Ensure save was NOT called
-  //   await waitFor(() => {
-  //     expect(mockOnUpdateProfile).not.toHaveBeenCalled()
-  //   })
+    // Attempt save
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
-  //   // Assert the UI indicates an error in *some* reliable way
-  //   await waitFor(() => {
-  //     const ariaInvalid = firstNameInput.getAttribute('aria-invalid') === 'true'
-  //     const inlineError =
-  //       !!screen.queryByText(/first name.*required/i) ||
-  //       !!screen.queryByText(/required.*first name/i)
+    // Ensure save was NOT called
+    await waitFor(() => {
+      expect(mockOnUpdateProfile).not.toHaveBeenCalled()
+    })
 
-  //     // If your component uses the same toast as the other validation test,
-  //     // this will also make the test pass even if there's no inline error text.
-  //     const toastErrorCalled = (toast.error as unknown as { mock?: { calls: unknown[][] } })?.mock
-  //       ?.calls?.length
-  //       ? true
-  //       : false
+    // Assert the UI indicates an error in *some* reliable way
+    await waitFor(() => {
+      const ariaInvalid = firstNameInput.getAttribute('aria-invalid') === 'true'
+      const inlineError =
+        !!screen.queryByText(/first name.*required/i) ||
+        !!screen.queryByText(/required.*first name/i)
 
-  //     if (!ariaInvalid && !inlineError && !toastErrorCalled) {
-  //       throw new Error('First name was not marked invalid (aria/message/toast not found).')
-  //     }
-  //   })
-  // })
+      // If your component uses the same toast as the other validation test,
+      // this will also make the test pass even if there's no inline error text.
+      const toastErrorCalled = (toast.error as unknown as { mock?: { calls: unknown[][] } })?.mock
+        ?.calls?.length
+        ? true
+        : false
+
+      if (!ariaInvalid && !inlineError && !toastErrorCalled) {
+        throw new Error('First name was not marked invalid (aria/message/toast not found).')
+      }
+    })
+  })
 
   it('prevents saving when email format is invalid', async () => {
     render(
