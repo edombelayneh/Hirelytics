@@ -13,6 +13,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import Script from 'next/script'
 import { SignedInNavbar } from './components/SignedInNavbar'
+import AppShell from '../app/AppShell'
 
 // Font configuration
 const geistSans = Geist({
@@ -55,8 +56,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </SignUpButton>
             </header>
           </SignedOut>
-          <SignedInNavbar />
-          {children}
+          {/* <SignedInNavbar /> */}
+          <AppShell>{children}</AppShell>
         </body>
       </html>
     </ClerkProvider>

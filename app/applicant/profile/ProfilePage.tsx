@@ -1,5 +1,7 @@
 'use client'
-import { memo, useEffect, useState, useRef } from 'react'
+
+import { memo, useEffect, useRef, useState } from 'react'
+import { useUser } from '@clerk/nextjs'
 import { Card } from '../../components/ui/card'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
@@ -29,477 +31,487 @@ import {
   Calendar,
   CheckCircle2,
 } from 'lucide-react'
-import { UserProfile } from '../../data/profileData'
+import type { UserProfile } from '../../data/profileData'
 import { toast } from '../../components/ui/sonner'
-import { Navbar } from '../../components/Navbar'
+
+type RequiredFields = 'firstName' | 'lastName' | 'email'
 
 interface ProfilePageProps {
-  // Current saved profile data from parent (Firestore-loaded
   profile: UserProfile
-  onUpdateProfile: (profile: UserProfile) => Promise<void> // async for firebase - basically waits for firebase write to finish
+  onUpdateProfile: (profile: UserProfile) => Promise<void>
 }
-// Memoized to avoid re-rendering unless props/state actually change
+
 export const ProfilePage = memo(function ProfilePage({
   profile,
   onUpdateProfile,
 }: ProfilePageProps) {
-  const [formData, setFormData] = useState<UserProfile>(profile) // Local form state (editable copy of the profile)
-  const [isEditing, setIsEditing] = useState(false) // Tracks whether the user has unsaved edits
-  const [isSaving, setIsSaving] = useState(false) // disables save while writing
+  const { user, isLoaded } = useUser()
 
-  // Hidden file input refs (triggered by buttons)
+  const [formData, setFormData] = useState<UserProfile>(profile)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
   const profilePicInputRef = useRef<HTMLInputElement>(null)
   const resumeInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    // When parent loads profile from Firestore, update the form fields
-    setFormData(profile)
-  }, [profile])
+  const [errors, setErrors] = useState<Partial<Record<RequiredFields, string>>>({})
 
-  // -------------
-  // handle input changes
-  // -------------
+  // Sync Firestore -> form + Clerk autofill for missing fields
+  useEffect(() => {
+    if (!isLoaded) return
+
+    const clerkEmail = user?.primaryEmailAddress?.emailAddress ?? ''
+    const clerkFirst = user?.firstName ?? ''
+    const clerkLast = user?.lastName ?? ''
+
+    setFormData((prev) => {
+      const next: UserProfile = { ...profile }
+
+      // Only fill missing values
+      next.email = next.email || clerkEmail
+      next.firstName = next.firstName || clerkFirst
+      next.lastName = next.lastName || clerkLast
+
+      // Don’t overwrite while user is editing
+      if (isEditing) {
+        return {
+          ...prev,
+          email: prev.email || next.email,
+          firstName: prev.firstName || next.firstName,
+          lastName: prev.lastName || next.lastName,
+        }
+      }
+
+      return next
+    })
+  }, [profile, isLoaded, user?.id, isEditing])
+
+  const validate = () => {
+    const next: Partial<Record<RequiredFields, string>> = {}
+
+    if (!formData.firstName?.trim()) next.firstName = 'First name is required.'
+    if (!formData.lastName?.trim()) next.lastName = 'Last name is required.'
+    if (!formData.email?.trim()) next.email = 'Email is required.'
+    else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formData.email)) next.email = 'Enter a valid email address.'
+    }
+
+    return next
+  }
+
   const handleInputChange = (field: keyof UserProfile, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     setIsEditing(true)
+
+    if (field === 'firstName' || field === 'lastName' || field === 'email') {
+      setErrors((prev) => ({ ...prev, [field]: undefined }))
+    }
   }
 
-  // -------------
-  // handle file uploads
-  // -------------
   const handleProfilePictureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (file) {
-      // Basic size guardrail (prevents huge base64 payloads)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('File too large', {
-          description: 'Profile picture must be less than 5MB',
-        })
-        return
-      }
-      // Read file into a data URL for quick preview + saving
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, profilePicture: reader.result as string }))
-        setIsEditing(true)
-        toast.success('Profile picture uploaded successfully')
-      }
-      reader.readAsDataURL(file)
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Invalid file type', { description: 'Profile picture must be an image.' })
+      return
     }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large', { description: 'Profile picture must be less than 5MB' })
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setFormData((prev) => ({ ...prev, profilePicture: reader.result as string }))
+      setIsEditing(true)
+      toast.success('Profile picture uploaded successfully')
+    }
+    reader.readAsDataURL(file)
   }
-  // -------------
-  //  Handles resume upload
-  // -------------
+
   const handleResumeUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (file) {
-      // Restrict resume formats to common document types
-      const allowedExtensions = ['.pdf', '.doc', '.docx']
-      const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
+    if (!file) return
 
-      if (!allowedExtensions.includes(fileExtension)) {
-        toast.error('Invalid file type', {
-          description: 'Resume must be in PDF, DOC, or DOCX format',
-        })
-        return
-      }
-      // Size guardrail for resume uploads
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('File too large', {
-          description: 'Resume must be less than 10MB',
-        })
-        return
-      }
-      // Read file into a data URL so it can be persisted with the profile
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setFormData((prev) => ({
-          ...prev,
-          resumeFile: reader.result as string,
-          resumeFileName: file.name,
-        }))
-        setIsEditing(true)
-        toast.success('Resume uploaded successfully')
-      }
-      reader.readAsDataURL(file)
+    const allowedExtensions = ['.pdf', '.doc', '.docx']
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
+
+    if (!allowedExtensions.includes(ext)) {
+      toast.error('Invalid file type', { description: 'Resume must be PDF, DOC, or DOCX.' })
+      return
     }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File too large', { description: 'Resume must be less than 10MB' })
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setFormData((prev) => ({
+        ...prev,
+        resumeFile: reader.result as string,
+        resumeFileName: file.name,
+      }))
+      setIsEditing(true)
+      toast.success('Resume uploaded successfully')
+    }
+    reader.readAsDataURL(file)
   }
 
-  // -------------
-  // handle save form for applicant profile
-  // -------------
   const handleSave = async () => {
-    // Required fields check (prevents incomplete profiles)
-    if (!formData.firstName || !formData.lastName || !formData.email) {
-      toast.error('Missing required fields', {
-        description: 'Please fill in your name and email',
-      })
-      return
-    }
-    // Basic email format validation (quick UX feedback)
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(formData.email)) {
-      toast.error('Invalid email format', {
-        description: 'Please enter a valid email address',
-      })
-      return
-    }
-    // Switch UI into “saving” mode to prevent repeat submits
-    setIsSaving(true)
+    const nextErrors = validate()
+    setErrors(nextErrors)
 
+    if (Object.keys(nextErrors).length > 0) {
+      toast.error('Missing required fields', {
+        description: 'Fix the highlighted fields and try again.',
+      })
+      return
+    }
+
+    setIsSaving(true)
     try {
-      // Save to Firebase (async) and wait on firebase until that finishes
       await onUpdateProfile(formData)
-      // Mark as clean after successful save
       setIsEditing(false)
       toast.success('Profile updated successfully', {
-        description: 'Your changes have been saved',
+        description: 'Your changes have been saved.',
       })
     } catch (err) {
-      // Log for debugging + show user-friendly message
       console.error('Save profile error:', err)
-      toast.error('Save failed', {
-        description: 'Please try again.',
-      })
+      toast.error('Save failed', { description: 'Please try again.' })
     } finally {
-      // Always release the save lock
       setIsSaving(false)
     }
   }
-  // Derives initials for the avatar fallback state
+
   const getInitials = () => {
-    const first = formData.firstName.charAt(0).toUpperCase()
-    const last = formData.lastName.charAt(0).toUpperCase()
-    return `${first}${last}` || 'U'
+    const first = (formData.firstName || '').trim().charAt(0).toUpperCase()
+    const last = (formData.lastName || '').trim().charAt(0).toUpperCase()
+    return `${first}${last}`.trim() || 'U'
   }
 
   return (
-    <div className='min-h-screen bg-background'>
-      <div className='space-y-6 max-w-5xl mx-auto'>
-        {/* Header */}
-        <div className='flex flex-col gap-2'>
-          <h1>My Profile</h1>
-          <p className='text-muted-foreground'>
-            Manage your personal information and job application preferences
-          </p>
-        </div>
+    <div className='space-y-6 max-w-5xl mx-auto'>
+      {/* Header */}
+      <div className='flex flex-col gap-2'>
+        <h1>My Profile</h1>
+        <p className='text-muted-foreground'>
+          Manage your personal information and job application preferences
+        </p>
+      </div>
 
-        {/* Profile Picture & Resume Section */}
-        <Card className='p-6'>
-          <div className='flex flex-col md:flex-row gap-8'>
-            {/* Profile Picture */}
-            <div className='flex flex-col items-center gap-4'>
-              <Label className='text-center'>Profile Picture</Label>
-              <div className='relative'>
-                <Avatar className='h-32 w-32'>
-                  <AvatarImage
-                    src={formData.profilePicture || ''}
-                    alt='Profile'
-                  />
-                  <AvatarFallback className='text-2xl'>{getInitials()}</AvatarFallback>
-                </Avatar>
-                {/* Button triggers hidden file input */}
-                <Button
-                  size='sm'
-                  variant='secondary'
-                  className='absolute bottom-0 right-0 rounded-full h-10 w-10 p-0'
-                  onClick={() => profilePicInputRef.current?.click()}
-                >
-                  <Camera className='h-4 w-4' />
-                </Button>
-                {/* Hidden file input for image upload */}
-                <input
-                  ref={profilePicInputRef}
-                  type='file'
-                  accept='image/*'
-                  className='hidden'
-                  onChange={handleProfilePictureUpload}
+      {/* Profile Picture & Resume */}
+      <Card className='p-6'>
+        <div className='flex flex-col md:flex-row gap-8'>
+          {/* Picture */}
+          <div className='flex flex-col items-center gap-4'>
+            <Label className='text-center'>Profile Picture</Label>
+            <div className='relative'>
+              <Avatar className='h-32 w-32'>
+                <AvatarImage
+                  src={formData.profilePicture || ''}
+                  alt='Profile'
                 />
-              </div>
+                <AvatarFallback className='text-2xl'>{getInitials()}</AvatarFallback>
+              </Avatar>
 
-              <p className='text-xs text-muted-foreground text-center'>PNG, JPG up to 5MB</p>
+              <Button
+                size='sm'
+                variant='secondary'
+                className='absolute bottom-0 right-0 rounded-full h-10 w-10 p-0'
+                onClick={() => profilePicInputRef.current?.click()}
+                type='button'
+              >
+                <Camera className='h-4 w-4' />
+              </Button>
+
+              <input
+                ref={profilePicInputRef}
+                type='file'
+                accept='image/*'
+                className='hidden'
+                onChange={handleProfilePictureUpload}
+              />
+            </div>
+            <p className='text-xs text-muted-foreground text-center'>PNG, JPG up to 5MB</p>
+          </div>
+
+          {/* Resume */}
+          <div className='flex-1 space-y-4'>
+            <div>
+              <Label>Resume</Label>
+              <p className='text-sm text-muted-foreground mb-3'>
+                Upload your latest resume to streamline job applications
+              </p>
             </div>
 
-            {/* Resume upload UI with “upload” vs “replace” states */}
-            <div className='flex-1 space-y-4'>
-              <div>
-                <Label>Resume</Label>
-                <p className='text-sm text-muted-foreground mb-3'>
-                  Upload your latest resume to streamline job applications
-                </p>
-              </div>
-              {/* If a resume exists, show filename + replace option */}
-              {formData.resumeFileName ? (
-                <div className='flex items-center gap-3 p-4 border rounded-lg bg-muted/50'>
-                  <FileText className='h-8 w-8 text-primary' />
-                  <div className='flex-1 min-w-0'>
-                    <p className='font-medium truncate'>{formData.resumeFileName}</p>
-                    <p className='text-sm text-muted-foreground'>Resume uploaded</p>
-                  </div>
-                  <Button
-                    size='sm'
-                    variant='outline'
-                    onClick={() => resumeInputRef.current?.click()}
-                  >
-                    <Upload className='h-4 w-4 mr-2' />
-                    Replace
-                  </Button>
+            {formData.resumeFileName ? (
+              <div className='flex items-center gap-3 p-4 border rounded-lg bg-muted/50'>
+                <FileText className='h-8 w-8 text-primary' />
+                <div className='flex-1 min-w-0'>
+                  <p className='font-medium truncate'>{formData.resumeFileName}</p>
+                  <p className='text-sm text-muted-foreground'>Resume uploaded</p>
                 </div>
-              ) : (
-                // Otherwise show the large “upload” call-to-action
                 <Button
+                  size='sm'
                   variant='outline'
-                  className='w-full h-24 border-dashed'
                   onClick={() => resumeInputRef.current?.click()}
+                  type='button'
                 >
-                  <div className='flex flex-col items-center gap-2'>
-                    <Upload className='h-6 w-6 text-muted-foreground' />
-                    <span>Click to upload resume</span>
-                    <span className='text-xs text-muted-foreground'>PDF, DOC, DOCX up to 10MB</span>
-                  </div>
+                  <Upload className='h-4 w-4 mr-2' />
+                  Replace
                 </Button>
-              )}
-              {/* Hidden file input for resume upload */}
-              <input
-                ref={resumeInputRef}
-                type='file'
-                accept='.pdf,.doc,.docx'
-                className='hidden'
-                onChange={handleResumeUpload}
+              </div>
+            ) : (
+              <Button
+                variant='outline'
+                className='w-full h-24 border-dashed'
+                onClick={() => resumeInputRef.current?.click()}
+                type='button'
+              >
+                <div className='flex flex-col items-center gap-2'>
+                  <Upload className='h-6 w-6 text-muted-foreground' />
+                  <span>Click to upload resume</span>
+                  <span className='text-xs text-muted-foreground'>PDF, DOC, DOCX up to 10MB</span>
+                </div>
+              </Button>
+            )}
+
+            <input
+              ref={resumeInputRef}
+              type='file'
+              accept='.pdf,.doc,.docx'
+              className='hidden'
+              onChange={handleResumeUpload}
+            />
+          </div>
+        </div>
+      </Card>
+
+      {/* Basic Info */}
+      <Card className='p-6'>
+        <h2 className='mb-6'>Basic Information</h2>
+        <div className='grid md:grid-cols-2 gap-6'>
+          <div className='space-y-2'>
+            <Label htmlFor='firstName'>
+              First Name <span className='text-destructive'>*</span>
+            </Label>
+            <div className='relative'>
+              <User className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
+              <Input
+                id='firstName'
+                value={formData.firstName || ''}
+                onChange={(e) => handleInputChange('firstName', e.target.value)}
+                className={`pl-9 ${errors.firstName ? 'border border-red-500 focus-visible:ring-red-500' : ''}`}
+              />
+              {errors.firstName && <p className='text-sm text-red-600 mt-1'>{errors.firstName}</p>}
+            </div>
+          </div>
+
+          <div className='space-y-2'>
+            <Label htmlFor='lastName'>
+              Last Name <span className='text-destructive'>*</span>
+            </Label>
+            <div className='relative'>
+              <User className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
+              <Input
+                id='lastName'
+                value={formData.lastName || ''}
+                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                className={`pl-9 ${errors.lastName ? 'border border-red-500 focus-visible:ring-red-500' : ''}`}
+              />
+              {errors.lastName && <p className='text-sm text-red-600 mt-1'>{errors.lastName}</p>}
+            </div>
+          </div>
+
+          <div className='space-y-2'>
+            <Label htmlFor='email'>
+              Email Address <span className='text-destructive'>*</span>
+            </Label>
+            <div className='relative'>
+              <Mail className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
+              <Input
+                id='email'
+                type='email'
+                value={formData.email || ''}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                className={`pl-9 ${errors.email ? 'border border-red-500 focus-visible:ring-red-500' : ''}`}
+              />
+              {errors.email && <p className='text-sm text-red-600 mt-1'>{errors.email}</p>}
+            </div>
+          </div>
+
+          <div className='space-y-2'>
+            <Label htmlFor='phone'>Phone Number</Label>
+            <div className='relative'>
+              <Phone className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
+              <Input
+                id='phone'
+                type='tel'
+                value={formData.phone || ''}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                className='pl-9'
               />
             </div>
           </div>
-        </Card>
 
-        {/* Basic Information */}
-        <Card className='p-6'>
-          <h2 className='mb-6'>Basic Information</h2>
-          <div className='grid md:grid-cols-2 gap-6'>
-            {/* First name */}
-            <div className='space-y-2'>
-              <Label htmlFor='firstName'>
-                First Name <span className='text-destructive'>*</span>
-              </Label>
-              <div className='relative'>
-                <User className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
-                <Input
-                  id='firstName'
-                  placeholder='John'
-                  value={formData.firstName}
-                  onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  className='pl-9'
-                />
-              </div>
-            </div>
-            {/* Last name */}
-            <div className='space-y-2'>
-              <Label htmlFor='lastName'>
-                Last Name <span className='text-destructive'>*</span>
-              </Label>
-              <div className='relative'>
-                <User className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
-                <Input
-                  id='lastName'
-                  placeholder='Doe'
-                  value={formData.lastName}
-                  onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  className='pl-9'
-                />
-              </div>
-            </div>
-            {/* Email */}
-            <div className='space-y-2'>
-              <Label htmlFor='email'>
-                Email Address <span className='text-destructive'>*</span>
-              </Label>
-              <div className='relative'>
-                <Mail className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
-                <Input
-                  id='email'
-                  type='email'
-                  placeholder='john.doe@example.com'
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className='pl-9'
-                />
-              </div>
-            </div>
-            {/* Phone */}
-            <div className='space-y-2'>
-              <Label htmlFor='phone'>Phone Number</Label>
-              <div className='relative'>
-                <Phone className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
-                <Input
-                  id='phone'
-                  type='tel'
-                  placeholder='+1 (555) 123-4567'
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className='pl-9'
-                />
-              </div>
-            </div>
-            {/* Location */}
-            <div className='space-y-2 md:col-span-2'>
-              <Label htmlFor='location'>Location</Label>
-              <div className='relative'>
-                <MapPin className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
-                <Input
-                  id='location'
-                  placeholder='San Francisco, CA'
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  className='pl-9'
-                />
-              </div>
+          <div className='space-y-2 md:col-span-2'>
+            <Label htmlFor='location'>Location</Label>
+            <div className='relative'>
+              <MapPin className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
+              <Input
+                id='location'
+                value={formData.location || ''}
+                onChange={(e) => handleInputChange('location', e.target.value)}
+                className='pl-9'
+              />
             </div>
           </div>
-        </Card>
-
-        {/* Professional Information */}
-        <Card className='p-6'>
-          <h2 className='mb-6'>Professional Information</h2>
-          <div className='grid md:grid-cols-2 gap-6'>
-            {/* Current title */}
-            <div className='space-y-2'>
-              <Label htmlFor='currentTitle'>Current Job Title</Label>
-              <div className='relative'>
-                <Briefcase className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
-                <Input
-                  id='currentTitle'
-                  placeholder='Software Engineer'
-                  value={formData.currentTitle}
-                  onChange={(e) => handleInputChange('currentTitle', e.target.value)}
-                  className='pl-9'
-                />
-              </div>
-            </div>
-            {/* Years of experience */}
-            <div className='space-y-2'>
-              <Label htmlFor='yearsOfExperience'>Years of Experience</Label>
-              <div className='relative'>
-                <Calendar className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
-                <Input
-                  id='yearsOfExperience'
-                  placeholder='5'
-                  value={formData.yearsOfExperience}
-                  onChange={(e) => handleInputChange('yearsOfExperience', e.target.value)}
-                  className='pl-9'
-                />
-              </div>
-            </div>
-            {/* Availability dropdown */}
-            <div className='space-y-2 md:col-span-2'>
-              <Label htmlFor='availability'>Availability</Label>
-              <Select
-                value={formData.availability}
-                onValueChange={(value: string) => handleInputChange('availability', value)}
-              >
-                <SelectTrigger id='availability'>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='Immediately'>Immediately</SelectItem>
-                  <SelectItem value='2 weeks'>2 weeks</SelectItem>
-                  <SelectItem value='1 month'>1 month</SelectItem>
-                  <SelectItem value='2-3 months'>2-3 months</SelectItem>
-                  <SelectItem value='Not available'>Not available</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </Card>
-
-        {/* Professional Links */}
-        <Card className='p-6'>
-          <h2 className='mb-6'>Professional Links</h2>
-          <div className='space-y-4'>
-            {/* LinkedIn */}
-            <div className='space-y-2'>
-              <Label htmlFor='linkedinUrl'>LinkedIn Profile</Label>
-              <div className='relative'>
-                <Linkedin className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
-                <Input
-                  id='linkedinUrl'
-                  type='url'
-                  placeholder='https://linkedin.com/in/johndoe'
-                  value={formData.linkedinUrl}
-                  onChange={(e) => handleInputChange('linkedinUrl', e.target.value)}
-                  className='pl-9'
-                />
-              </div>
-            </div>
-            {/* Portfolio */}
-            <div className='space-y-2'>
-              <Label htmlFor='portfolioUrl'>Portfolio Website</Label>
-              <div className='relative'>
-                <Globe className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
-                <Input
-                  id='portfolioUrl'
-                  type='url'
-                  placeholder='https://johndoe.com'
-                  value={formData.portfolioUrl}
-                  onChange={(e) => handleInputChange('portfolioUrl', e.target.value)}
-                  className='pl-9'
-                />
-              </div>
-            </div>
-            {/* GitHub */}
-            <div className='space-y-2'>
-              <Label htmlFor='githubUrl'>GitHub Profile</Label>
-              <div className='relative'>
-                <Github className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
-                <Input
-                  id='githubUrl'
-                  type='url'
-                  placeholder='https://github.com/johndoe'
-                  value={formData.githubUrl}
-                  onChange={(e) => handleInputChange('githubUrl', e.target.value)}
-                  className='pl-9'
-                />
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Bio */}
-        <Card className='p-6'>
-          <h2 className='mb-6'>Professional Bio</h2>
-          <div className='space-y-2'>
-            <Label htmlFor='bio'>About Me</Label>
-            <Textarea
-              id='bio'
-              placeholder="Write a brief description about yourself, your skills, and what you're looking for..."
-              value={formData.bio}
-              onChange={(e) => handleInputChange('bio', e.target.value)}
-              rows={6}
-              className='resize-none'
-            />
-            <p className='text-sm text-muted-foreground'>{formData.bio.length} / 1000 characters</p>
-          </div>
-        </Card>
-
-        {/* Save Button */}
-        <div className='flex justify-end gap-3 pb-8'>
-          <Button
-            size='lg'
-            onClick={handleSave}
-            disabled={!isEditing || isSaving} // disable while saving
-            className='gap-2'
-          >
-            {isEditing ? (
-              <>
-                <Save className='h-4 w-4' />
-                Save Changes
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className='h-4 w-4' />
-                Saved
-              </>
-            )}
-          </Button>
         </div>
+      </Card>
+
+      {/* Professional Info */}
+      <Card className='p-6'>
+        <h2 className='mb-6'>Professional Information</h2>
+        <div className='grid md:grid-cols-2 gap-6'>
+          <div className='space-y-2'>
+            <Label htmlFor='currentTitle'>Current Job Title</Label>
+            <div className='relative'>
+              <Briefcase className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
+              <Input
+                id='currentTitle'
+                value={formData.currentTitle || ''}
+                onChange={(e) => handleInputChange('currentTitle', e.target.value)}
+                className='pl-9'
+              />
+            </div>
+          </div>
+
+          <div className='space-y-2'>
+            <Label htmlFor='yearsOfExperience'>Years of Experience</Label>
+            <div className='relative'>
+              <Calendar className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
+              <Input
+                id='yearsOfExperience'
+                value={formData.yearsOfExperience || ''}
+                onChange={(e) => handleInputChange('yearsOfExperience', e.target.value)}
+                className='pl-9'
+              />
+            </div>
+          </div>
+
+          <div className='space-y-2 md:col-span-2'>
+            <Label htmlFor='availability'>Availability</Label>
+            <Select
+              value={formData.availability || ''}
+              onValueChange={(value: string) => handleInputChange('availability', value)}
+            >
+              <SelectTrigger id='availability'>
+                <SelectValue placeholder='Select availability' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='Immediately'>Immediately</SelectItem>
+                <SelectItem value='2 weeks'>2 weeks</SelectItem>
+                <SelectItem value='1 month'>1 month</SelectItem>
+                <SelectItem value='2-3 months'>2-3 months</SelectItem>
+                <SelectItem value='Not available'>Not available</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </Card>
+
+      {/* Links */}
+      <Card className='p-6'>
+        <h2 className='mb-6'>Professional Links</h2>
+        <div className='space-y-4'>
+          <div className='space-y-2'>
+            <Label htmlFor='linkedinUrl'>LinkedIn Profile</Label>
+            <div className='relative'>
+              <Linkedin className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
+              <Input
+                id='linkedinUrl'
+                type='url'
+                value={formData.linkedinUrl || ''}
+                onChange={(e) => handleInputChange('linkedinUrl', e.target.value)}
+                className='pl-9'
+              />
+            </div>
+          </div>
+
+          <div className='space-y-2'>
+            <Label htmlFor='portfolioUrl'>Portfolio Website</Label>
+            <div className='relative'>
+              <Globe className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
+              <Input
+                id='portfolioUrl'
+                type='url'
+                value={formData.portfolioUrl || ''}
+                onChange={(e) => handleInputChange('portfolioUrl', e.target.value)}
+                className='pl-9'
+              />
+            </div>
+          </div>
+
+          <div className='space-y-2'>
+            <Label htmlFor='githubUrl'>GitHub Profile</Label>
+            <div className='relative'>
+              <Github className='absolute left-3 inset-y-0 my-auto h-4 w-4 text-muted-foreground' />
+              <Input
+                id='githubUrl'
+                type='url'
+                value={formData.githubUrl || ''}
+                onChange={(e) => handleInputChange('githubUrl', e.target.value)}
+                className='pl-9'
+              />
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Bio */}
+      <Card className='p-6'>
+        <h2 className='mb-6'>Professional Bio</h2>
+        <div className='space-y-2'>
+          <Label htmlFor='bio'>About Me</Label>
+          <Textarea
+            id='bio'
+            value={formData.bio || ''}
+            onChange={(e) => handleInputChange('bio', e.target.value)}
+            rows={6}
+            className='resize-none'
+          />
+          <p className='text-sm text-muted-foreground'>
+            {(formData.bio || '').length} / 1000 characters
+          </p>
+        </div>
+      </Card>
+
+      {/* Save (always clickable) */}
+      <div className='flex justify-end gap-3 pb-8'>
+        <Button
+          size='lg'
+          onClick={handleSave}
+          disabled={isSaving}
+          className='gap-2'
+          type='button'
+        >
+          {isEditing ? (
+            <>
+              <Save className='h-4 w-4' />
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className='h-4 w-4' />
+              {isSaving ? 'Saving...' : 'Saved'}
+            </>
+          )}
+        </Button>
       </div>
     </div>
   )
