@@ -18,8 +18,6 @@ import {
 import { useAuth } from '@clerk/nextjs'
 import { useEffect, useState } from 'react'
 
-// FIXME: UI IS TWEAKING
-
 const MyApplicationsPage = memo(function MyApplicationsPage() {
   // Get authenticated user and loading state from Clerk
   const { userId, isLoaded } = useAuth()
