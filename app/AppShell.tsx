@@ -142,7 +142,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       currentPage === 'applications' ||
       currentPage === 'profile' ||
       currentPage === 'addNewJob' ||
-      currentPage === 'addExternalJob' ||
+      currentPage === 'addExternalJob' || //added this
       currentPage === 'recruiterHome' ||
       currentPage === 'role'
 
