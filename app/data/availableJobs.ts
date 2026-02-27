@@ -10,6 +10,8 @@ export interface AvailableJob {
   requirements: string[]
   status: string
   applyLink: string
+  // Links each job to the Firebase UID of the recruiter who posted it
+  recruiterId: string
 }
 
 export const availableJobs: AvailableJob[] = [
@@ -30,6 +32,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-1',
   },
   {
     id: 2,
@@ -47,6 +50,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-2',
   },
   {
     id: 3,
@@ -65,6 +69,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-3',
   },
   {
     id: 4,
@@ -82,6 +87,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-1',
   },
   {
     id: 5,
@@ -100,6 +106,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-2',
   },
   {
     id: 6,
@@ -117,6 +124,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-3',
   },
   {
     id: 7,
@@ -134,6 +142,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-1',
   },
   {
     id: 8,
@@ -151,6 +160,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-2',
   },
   {
     id: 9,
@@ -168,6 +178,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-3',
   },
   {
     id: 10,
@@ -185,6 +196,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-1',
   },
   {
     id: 11,
@@ -202,6 +214,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-2',
   },
   {
     id: 12,
@@ -219,6 +232,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-3',
   },
   {
     id: 13,
@@ -236,6 +250,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-1',
   },
   {
     id: 14,
@@ -253,6 +268,7 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-2',
   },
   {
     id: 15,
@@ -270,5 +286,6 @@ export const availableJobs: AvailableJob[] = [
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-3',
   },
 ]
