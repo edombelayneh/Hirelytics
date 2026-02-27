@@ -13,6 +13,14 @@ import { formatDate } from '../utils/dateFormatter'
 import { getStatusColor, getOutcomeColor } from '../utils/badgeColors'
 import { useRouter } from 'next/navigation'
 
+const STATUS_STYLES: Record<string, string> ={
+  Applied: '!bg-yellow-200',
+  Interview: '!bg-blue-200',
+  Offer: '!bg-green-200',
+  Rejected: '!bg-red-200',
+  Withdrawn: '!bg-purple-200',
+}
+
 interface ApplicationsTableProps {
   // Full list of applications to render
   applications: JobApplication[]
@@ -127,15 +135,16 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                         onStatusChange?.(app.id, status as JobApplication['status'])
                       }
                     >
-                      <SelectTrigger className='w-[120px]'>
+                      <SelectTrigger className={`w-[120px] ${STATUS_STYLES[app.status] ?? ''}`}
+                      >
                         <SelectValue placeholder='Status' />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value='Applied'>Applied</SelectItem>
-                        <SelectItem value='Interview'>Interview</SelectItem>
-                        <SelectItem value='Offer'>Offer</SelectItem>
-                        <SelectItem value='Rejected'>Rejected</SelectItem>
-                        <SelectItem value='Withdrawn'>Withdrawn</SelectItem>
+                        <SelectItem value='Applied' className={STATUS_STYLES.Applied}>Applied</SelectItem>
+                        <SelectItem value='Interview' className={STATUS_STYLES.Interview}>Interview</SelectItem>
+                        <SelectItem value='Offer' className={STATUS_STYLES.Offer}>Offer</SelectItem>
+                        <SelectItem value='Rejected' className={STATUS_STYLES.Rejected}>Rejected</SelectItem>
+                        <SelectItem value='Withdrawn' className={STATUS_STYLES.Withdrawn}>Withdrawn</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
