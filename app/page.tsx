@@ -1,8 +1,3 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
-import { useAuth, useUser } from '@clerk/nextjs'
 import HomePage from './home/page'
 import type { UserProfile } from './data/profileData'
 import { defaultProfile } from './data/profileData'
@@ -480,5 +475,3 @@ function LandingPage() {
     </div>
   )
 }
-
-export default LandingPage
