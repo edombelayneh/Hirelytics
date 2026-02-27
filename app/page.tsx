@@ -56,6 +56,29 @@ function LandingPage() {
   // Makes sure signed-out users cannot access protected routes via URL hash
   // ---------------------------
   useEffect(() => {
+    const hashToRoute: Record<string, string> = {
+      '#/': '/',
+      '#/jobs': '/applicant/jobs',
+      '#/applications': '/applicant/applications',
+      '#/profile': '/applicant/profile',
+      '#/addNewJob': '/recruiter/addNewJob',
+      '#/myJobs': '/recruiter/myJobs',
+      '#/jobdetails': '/Jobdetails',
+      '#/role': '/role',
+    }
+
+    const syncHashRoute = () => {
+      const target = hashToRoute[window.location.hash]
+      if (!target || target === pathname) return
+      router.replace(target)
+    }
+
+    syncHashRoute()
+    window.addEventListener('hashchange', syncHashRoute)
+    return () => window.removeEventListener('hashchange', syncHashRoute)
+  }, [pathname, router])
+
+  useEffect(() => {
     // Wait until Clerk finishes loading
     if (!isLoaded) return
 
