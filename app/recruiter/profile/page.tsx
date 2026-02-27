@@ -9,49 +9,49 @@ import {
   type RecruiterProfile,
 } from '../../utils/userProfiles'
 
-// Default/empty recruiter profile shape
-// Used before data loads or if no profile exists
 const defaultRecruiterProfile: RecruiterProfile = {
   companyName: '',
   companyWebsite: '',
+  companyLogo: '',
+  companyLocation: '',
+  companyDescription: '',
+  recruiterName: '',
+  recruiterEmail: '',
+  recruiterPhone: '',
   recruiterTitle: '',
 }
-// Route wrapper: fetches + saves recruiter profile
-export default function RecruiterProfileRoute() {
-  // Local state holding recruiter profile data
-  const [profile, setProfile] = useState<RecruiterProfile>(defaultRecruiterProfile)
 
-  // Load saved profile when component mounts
+export default function RecruiterProfileRoute() {
+  const [profile, setProfile] = useState<RecruiterProfile>(defaultRecruiterProfile)
+  const [loadedOnce, setLoadedOnce] = useState(false)
+
   useEffect(() => {
-    // Async loader function
     const load = async () => {
-      // Get current authenticated user ID
       const uid = firebaseAuth.currentUser?.uid
-      // If no logged-in user, exit early
       if (!uid) return
 
-      // Fetch recruiter profile from database
       const saved = await getRecruiterProfile(uid)
-      // If profile exists, update local state
       if (saved) setProfile(saved)
+      setLoadedOnce(true)
     }
 
-    load().catch(console.error) // Log load errors
+    load().catch((e) => {
+      console.error(e)
+      setLoadedOnce(true)
+    })
   }, [])
 
-  // Persist profile changes
   const handleSave = async (updated: RecruiterProfile) => {
-    // Get current user ID
     const uid = firebaseAuth.currentUser?.uid
-    // If no user, do nothing
     if (!uid) return
 
-    // Persist updated profile to database
     await saveRecruiterProfile(uid, updated)
-    // Update local state after successful save
     setProfile(updated)
   }
-  // Render UI component with data + save handler
+
+  // Optional: you can show nothing/skeleton until first load attempt finishes
+  // if (!loadedOnce) return null
+
   return (
     <RecruiterProfilePage
       recruiterProfile={profile}
