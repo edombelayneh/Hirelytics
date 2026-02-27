@@ -40,8 +40,17 @@ export async function saveUserProfile(uid: string, profile: UserProfile): Promis
 // Recruiter profile support
 // -------------------------
 export type RecruiterProfile = {
+  // Company Info
   companyName: string
   companyWebsite: string
+  companyLogo: string
+  companyLocation: string
+  companyDescription: string
+
+  // Recruiter Info
+  recruiterName: string
+  recruiterEmail: string
+  recruiterPhone: string
   recruiterTitle: string
 }
 

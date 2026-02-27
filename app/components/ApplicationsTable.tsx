@@ -13,6 +13,14 @@ import { formatDate } from '../utils/dateFormatter'
 import { getStatusColor, getOutcomeColor } from '../utils/badgeColors'
 import { useRouter } from 'next/navigation'
 
+const STATUS_STYLES: Record<string, string> ={
+  Applied: '!bg-yellow-200',
+  Interview: '!bg-blue-200',
+  Offer: '!bg-green-200',
+  Rejected: '!bg-red-200',
+  Withdrawn: '!bg-purple-200',
+}
+
 interface ApplicationsTableProps {
   // Full list of applications to render
   applications: JobApplication[]
@@ -20,6 +28,7 @@ interface ApplicationsTableProps {
   // Optional callbacks for inline edits (parent controls persistence)
   onStatusChange?: (id: string, status: JobApplication['status']) => void
   onNotesChange?: (id: string, notes: string) => void
+  onAddApplication?: (add: JobApplication) => void
 }
 
 // Memoized to avoid re-rendering when props don’t change
@@ -50,9 +59,18 @@ export const ApplicationsTable = memo(function ApplicationsTable({
   return (
     <Card>
       <CardHeader>
-        {/* Title + helper text */}
-        <CardTitle>Job Applications</CardTitle>
-        <CardDescription>Track and manage all your job applications in one place</CardDescription>
+        <div className='flex items-center justify-between'>
+          <div>
+            <CardTitle>Job Applications</CardTitle>
+            <CardDescription>Track and manage all your job applications in one place</CardDescription>
+          </div>
+          <button
+            className='rounded bg-black text-white px-4 py-1'
+            onClick={() => router.push('/applicant/addExternalJob')}
+          >
+            Add External Job
+          </button>
+        </div>
 
         {/* Filters */}
         <div className='flex flex-col sm:flex-row gap-4'>
@@ -127,15 +145,16 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                         onStatusChange?.(app.id, status as JobApplication['status'])
                       }
                     >
-                      <SelectTrigger className='w-[120px]'>
+                      <SelectTrigger className={`w-[120px] ${STATUS_STYLES[app.status] ?? ''}`}
+                      >
                         <SelectValue placeholder='Status' />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value='Applied'>Applied</SelectItem>
-                        <SelectItem value='Interview'>Interview</SelectItem>
-                        <SelectItem value='Offer'>Offer</SelectItem>
-                        <SelectItem value='Rejected'>Rejected</SelectItem>
-                        <SelectItem value='Withdrawn'>Withdrawn</SelectItem>
+                        <SelectItem value='Applied' className={STATUS_STYLES.Applied}>Applied</SelectItem>
+                        <SelectItem value='Interview' className={STATUS_STYLES.Interview}>Interview</SelectItem>
+                        <SelectItem value='Offer' className={STATUS_STYLES.Offer}>Offer</SelectItem>
+                        <SelectItem value='Rejected' className={STATUS_STYLES.Rejected}>Rejected</SelectItem>
+                        <SelectItem value='Withdrawn' className={STATUS_STYLES.Withdrawn}>Withdrawn</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
@@ -159,6 +178,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                     <Button
                       variant='ghost'
                       size='sm'
+                      aria-label='View application details'
                       onClick={() => router.push(`/applicant/applications/${app.id}`)}
                     >
                       <ExternalLink className='h-4 w-4' />

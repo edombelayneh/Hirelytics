@@ -1,6 +1,6 @@
 // ApplicationsTable.test.tsx
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup, within } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, waitFor, within } from '@testing-library/react'
 import { ApplicationsTable } from './ApplicationsTable'
 import type { JobApplication } from '../data/mockData'
 
@@ -15,8 +15,10 @@ vi.mock('../utils/dateFormatter', () => ({
 
 // Badge color utilities
 vi.mock('../utils/badgeColors', () => ({
-  getStatusColor: (status: string) => `status-${String(status).toLowerCase()}`,
-  getOutcomeColor: (outcome: string) => `outcome-${String(outcome).toLowerCase()}`,
+  getStatusColor: (status: string) =>
+    `status-${String(status).toLowerCase().replace(/\s+/g, '-')}`,
+  getOutcomeColor: (outcome: string) =>
+    `outcome-${String(outcome).toLowerCase().replace(/\s+/g, '-')}`,
 }))
 
 // Next.js router
@@ -361,28 +363,15 @@ describe('ApplicationsTable', () => {
 
   // --- External Link Tests ---
 
-  it('navigates to application details when action button is clicked', () => {
-    render(<ApplicationsTable applications={mockApplications} />)
+  it('navigates to application details when row action button is clicked', () => {
+  render(<ApplicationsTable applications={mockApplications} />)
 
-    // Your Action button is icon-only, so it has no accessible name.
-    // Grab all buttons and click the first one (first row action).
-    const buttons = screen.getAllByRole('button')
-    fireEvent.click(buttons[0])
+  // There is one "View application details" button per row; click the first row's.
+  const detailButtons = screen.getAllByLabelText(/View application details/i)
+  fireEvent.click(detailButtons[0])
 
-    expect(pushMock).toHaveBeenCalledTimes(1)
-    expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1')
-  })
-
-  it('navigates to application details when action button is clicked', () => {
-    // Verifies clicking the row action triggers a route push to details page
-    render(<ApplicationsTable applications={mockApplications} />)
-
-    // There is one "Actions" button per row; click the first row's.
-    const actionButtons = screen.getAllByRole('button')
-    fireEvent.click(actionButtons[0])
-
-    expect(pushMock).toHaveBeenCalledTimes(1)
-    expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1')
+  expect(pushMock).toHaveBeenCalledTimes(1)
+  expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1')
   })
 
   // --- Edge Case Tests ---
@@ -434,4 +423,19 @@ describe('ApplicationsTable', () => {
     // Elements should be the same (component memoized)
     expect(initialCompanyElement).toBe(afterRerenderCompanyElement)
   })
+
+  // --- Graph and status color styling ---
+  it('applies the correct background color class for each outcome', () => {
+  render(<ApplicationsTable applications={mockApplications} />)
+
+  const pendingBadge = screen.getByText('Pending')
+  const inProgressBadge = screen.getByText('In Progress')
+  const unsuccessfulBadge = screen.getByText('Unsuccessful')
+
+  // className is a big string, just check it contains our mocked class
+  expect(pendingBadge.className).toContain('outcome-pending')
+  expect(inProgressBadge.className).toContain('outcome-in-progress')
+  expect(unsuccessfulBadge.className).toContain('outcome-unsuccessful')
+})
+
 })
