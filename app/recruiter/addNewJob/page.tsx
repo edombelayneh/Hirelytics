@@ -2,11 +2,39 @@
 
 // A form page that lets recruiters submit new jobs.
 // - Collect job information
-// - Shows a redirecting overlay and then sends the user to the "Available Jobs" page using hash navigation.
+// - Shows a redirecting overlay and then sends the user to the "Job Details" page using hash navigation.
+// - Saves job data to Firebase and checks user role (recruiter only)
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
+type AddNewJobPageProps = {
+  initialUserRole?: 'recruiter' | 'applicant'
+}
+
+type RecruiterJobPayload = {
+  jobName: string
+  companyName: string
+  recruiterEmail: string
+  description: string
+  qualifications: string
+  preferredSkills: string
+  country: string
+  state: string
+  city: string
+  hourlyRate: number | null
+  visaRequired: boolean
+  jobType: string
+  employmentType: string
+  experienceLevel: string
+  applicationDeadline: string
+  generalDescription: string
+  recruiterId: string
+  jobSource: 'internal'
+  createdAt: string
+}
+
 // Page for recruiters to create a new job
-export default function AddNewJobPage() {
+export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJobPageProps) {
   // Form field state
   const [jobName, setJobName] = useState('')
   const [companyName, setCompanyName] = useState('')
@@ -18,7 +46,7 @@ export default function AddNewJobPage() {
   const [stateValue, setStateValue] = useState('')
   const [city, setCity] = useState('')
   const [hourlyRate, setHourlyRate] = useState('')
-  const [visaRequired, setVisaRequired] = useState<'yes' | 'no' | ''>('')
+  const [visaRequired, setVisaRequired] = useState<boolean>(false)
   const [jobType, setJobType] = useState<'onsite' | 'remote' | 'hybrid' | ''>('')
   const [generalDescription, setGeneralDescription] = useState('')
   const [employmentType, setEmploymentType] = useState<
@@ -33,12 +61,26 @@ export default function AddNewJobPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
+  const [userRole] = useState<'recruiter' | 'applicant'>(initialUserRole)
+
+  useEffect(() => {
+    if (userRole !== 'recruiter') {
+      window.location.hash = '/'
+    }
+  }, [userRole])
 
   // handleSubmit
   // This prevents the form from default submission.
+  // Saves the job data to Firebase in the 'jobs' collection
   // Show a short success message and redirect overlay.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault() // Prevent page reload
+
+    if (userRole !== 'recruiter') {
+      setMessage('Unauthorized access')
+      return
+    }
+
     setMessage(null)
 
     // Basic validation for required fields.
@@ -49,7 +91,7 @@ export default function AddNewJobPage() {
 
     setSubmitting(true)
     // Create job object (currently just logged)
-    const jobData = {
+    const jobData: RecruiterJobPayload = {
       jobName,
       companyName,
       recruiterEmail,
@@ -59,23 +101,26 @@ export default function AddNewJobPage() {
       country,
       state: stateValue,
       city,
-      hourlyRate,
+      hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
       visaRequired,
       jobType,
       employmentType,
       experienceLevel,
       applicationDeadline,
       generalDescription,
+      recruiterId: 'recruiter',
+      jobSource: 'internal',
+      createdAt: new Date().toISOString(),
     }
 
     console.log('New job submitted: ', jobData)
-    // Show success + redirect overlay
-    setMessage('Job submitted. Redirecting to Available Jobs...')
+
+    setMessage('Job submitted. Redirecting to Job Details...')
     setRedirecting(true)
 
-    // small delay so the user sees the overlay, then go to Available Jobs
+    // small delay so the user sees the overlay, then go to Job Details
     setTimeout(() => {
-      window.location.hash = '/jobs'
+      window.location.hash = '/jobdetails'
     }, 2000)
   }
 
@@ -86,7 +131,7 @@ export default function AddNewJobPage() {
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
           <div className='bg-white rounded-lg px-6 py-4 shadow-lg text-center'>
             <p className='font-medium mb-2'>Submitting job...</p>
-            <p className='text-sm text-gray-600'>Redirecting you to the Available Jobs page.</p>
+            <p className='text-sm text-gray-600'>Redirecting you to the Job Details page.</p>
           </div>
         </div>
       )}
@@ -286,13 +331,14 @@ export default function AddNewJobPage() {
           <div>
             <label className='block text-sm mb-1'>Visa Sponsorship Available?</label>
             <select
-              value={visaRequired}
-              onChange={(e) => setVisaRequired(e.target.value as 'yes' | 'no' | '')}
+              value={String(visaRequired)}
+              onChange={(e) => {
+                setVisaRequired(e.target.value === 'true')
+              }}
               className='w-full border rounded p-2'
             >
-              <option value=''>Select an option</option>
-              <option value='yes'>Yes, we can sponsor visas</option>
-              <option value='no'>No, visa sponsorship is not available</option>
+              <option value='true'>Yes, we can sponsor visas</option>
+              <option value='false'>No, visa sponsorship is not available</option>
             </select>
           </div>
 
@@ -307,14 +353,16 @@ export default function AddNewJobPage() {
             />
           </div>
 
-          {/* Submit button */}
-          <button
-            type='submit'
-            disabled={submitting}
-            className='inline-flex items-center gap-2 rounded bg-black text-white px-4 py-2 text-sm font-medium'
-          >
-            {submitting ? 'Saving...' : 'Add Job'}
-          </button>
+          {/* Submit button - only visible to recruiters */}
+          {userRole === 'recruiter' && (
+            <button
+              type='submit'
+              disabled={submitting}
+              className='inline-flex items-center gap-2 rounded bg-black text-white px-4 py-2 text-sm font-medium'
+            >
+              {submitting ? 'Saving...' : 'Add Job'}
+            </button>
+          )}
         </form>
       </div>
     </main>
