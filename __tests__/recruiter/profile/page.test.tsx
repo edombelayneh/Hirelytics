@@ -9,6 +9,7 @@ import type { RecruiterProfile } from '../../../app/utils/userProfiles'
 /* -------------------------------------------------------------------------- */
 
 declare global {
+  // eslint-disable-next-line no-var
   var __mockCurrentUser: { uid: string } | null
 }
 
