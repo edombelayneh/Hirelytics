@@ -63,7 +63,7 @@ function LandingPage() {
       '#/profile': '/applicant/profile',
       '#/addNewJob': '/recruiter/addNewJob',
       '#/myJobs': '/recruiter/myJobs',
-      '#/jobdetails': '/Jobdetails',
+      '#/jobdetails': '/recruiter/myJobs',
       '#/role': '/role',
     }
 
