@@ -26,6 +26,7 @@ type Page =
   | 'applications'
   | 'profile'
   | 'addNewJob'
+  | 'addExternalJob'
   | 'role'
   | 'recruiterHome'
 
@@ -33,6 +34,7 @@ function pageFromPathname(pathname: string): Page {
   if (pathname.startsWith('/applicant/applications')) return 'applications'
   if (pathname.startsWith('/applicant/jobs')) return 'available'
   if (pathname.startsWith('/recruiter/addNewJob')) return 'addNewJob'
+  if (pathname.startsWith('/recruiter/addExternalJob')) return 'addExternalJob'
   if (pathname.startsWith('/recruiter/myJobs')) return 'recruiterHome'
   if (pathname.startsWith('/applicant/profile') || pathname.startsWith('/recruiter/profile'))
     return 'profile'
@@ -140,6 +142,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       currentPage === 'applications' ||
       currentPage === 'profile' ||
       currentPage === 'addNewJob' ||
+      currentPage === 'addExternalJob' || //added this
       currentPage === 'recruiterHome' ||
       currentPage === 'role'
 

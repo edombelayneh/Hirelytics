@@ -28,6 +28,7 @@ interface ApplicationsTableProps {
   // Optional callbacks for inline edits (parent controls persistence)
   onStatusChange?: (id: string, status: JobApplication['status']) => void
   onNotesChange?: (id: string, notes: string) => void
+  onAddApplication?: (add: JobApplication) => void
 }
 
 // Memoized to avoid re-rendering when props don’t change
@@ -58,9 +59,18 @@ export const ApplicationsTable = memo(function ApplicationsTable({
   return (
     <Card>
       <CardHeader>
-        {/* Title + helper text */}
-        <CardTitle>Job Applications</CardTitle>
-        <CardDescription>Track and manage all your job applications in one place</CardDescription>
+        <div className='flex items-center justify-between'>
+          <div>
+            <CardTitle>Job Applications</CardTitle>
+            <CardDescription>Track and manage all your job applications in one place</CardDescription>
+          </div>
+          <button
+            className='rounded bg-black text-white px-4 py-1'
+            onClick={() => router.push('/applicant/addExternalJob')}
+          >
+            Add External Job
+          </button>
+        </div>
 
         {/* Filters */}
         <div className='flex flex-col sm:flex-row gap-4'>
@@ -168,6 +178,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                     <Button
                       variant='ghost'
                       size='sm'
+                      aria-label='View application details'
                       onClick={() => router.push(`/applicant/applications/${app.id}`)}
                     >
                       <ExternalLink className='h-4 w-4' />
