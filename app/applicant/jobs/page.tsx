@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { AvailableJobsList } from '../../components/AvailableJobsList'
 import { AvailableJob } from '../../data/availableJobs'
+import type { Role } from '../../utils/userRole'
 import { useAuth, useUser } from '@clerk/nextjs'
 import { db } from '../../lib/firebaseClient'
 import { collection, onSnapshot, doc, setDoc, serverTimestamp } from 'firebase/firestore'
@@ -15,7 +16,7 @@ function Jobs() {
   const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
   // Access user metadata (e.g., role-based logic if needed)
   const { user } = useUser()
-  const role = user?.publicMetadata?.role
+  const role = (user?.publicMetadata?.role as Role | undefined) ?? null
 
   useEffect(() => {
     // Wait until Clerk finishes loading and user exists
@@ -55,6 +56,7 @@ function Jobs() {
       ref,
       {
         id: String(job.id),
+        jobId: String(job.id),
         company: job.company ?? '',
         position: job.title ?? '',
         country: '',
@@ -66,6 +68,20 @@ function Jobs() {
         outcome: 'Pending',
         notes: '',
         jobLink: '',
+        jobDetails: {
+          id: String(job.id),
+          title: job.title ?? '',
+          company: job.company ?? '',
+          location: job.location ?? '',
+          type: job.type ?? '',
+          postedDate: job.postedDate ?? '',
+          salary: job.salary ?? '',
+          description: job.description ?? '',
+          requirements: job.requirements ?? [],
+          status: job.status ?? '',
+          applyLink: job.applyLink ?? '',
+          recruiterId: job.recruiterId ?? '',
+        },
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       },
@@ -81,6 +97,7 @@ function Jobs() {
           <AvailableJobsList
             onApply={handleApply}
             appliedJobIds={appliedJobIds} // Controls disabled Apply buttons
+            role={role}
           />
         </section>
       </main>

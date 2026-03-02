@@ -87,6 +87,7 @@ vi.mock('../../../app/components/AvailableJobsList', () => ({
             requirements: ['Req 1'],
             status: 'Open',
             applyLink: 'https://example.com/apply',
+            recruiterId: 'recruiter-uid-1',
           })
         }
       >
