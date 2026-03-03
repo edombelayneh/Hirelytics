@@ -153,7 +153,7 @@ describe('Jobs Page', () => {
         position: 'Test Job',
         city: 'Test City',
         status: 'Applied',
-        jobSource: 'Available Jobs',
+        jobSource: 'Hirelytics',
         outcome: 'Pending',
         createdAt: 'SERVER_TS',
         updatedAt: 'SERVER_TS',

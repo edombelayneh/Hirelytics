@@ -3,6 +3,7 @@ export interface AvailableJob {
   title: string
   company: string
   location: string
+  jobSource?: string
   type: string
   postedDate: string
   salary: string

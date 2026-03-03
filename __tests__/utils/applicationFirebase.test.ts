@@ -53,7 +53,7 @@ describe('app/utils/applicationFirebase', () => {
       company: 'Acme',
       position: 'Frontend Engineer',
       city: 'Remote',
-      jobSource: 'Available Jobs',
+      jobSource: 'Hirelytics',
       jobDetails: {
         id: '7',
         title: 'Frontend Engineer',

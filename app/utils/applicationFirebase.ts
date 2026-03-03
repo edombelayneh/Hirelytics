@@ -120,7 +120,7 @@ export function buildApplicationFromAvailableJob(
     country: '',
     city: job.location ?? '',
     contactPerson: '',
-    jobSource: 'Available Jobs',
+    jobSource: job.jobSource ?? 'Hirelytics',
     jobLink: '',
     jobDetails: {
       id: jobId,
@@ -157,7 +157,7 @@ export function buildApplicationFromJobDetails(
     country,
     city,
     contactPerson,
-    jobSource = 'Available Jobs',
+    jobSource = 'Hirelytics',
     jobLink,
     title,
     location,
@@ -201,7 +201,7 @@ export function buildApplicationFromJobDetails(
 // High-level builder for the job-details page where values may come from multiple merged sources.
 // It resolves aliases/fallbacks, then delegates to `buildApplicationFromJobDetails`.
 export function buildApplication(input: BuildFromJobDetailsRecordInput): SaveUserApplicationInput {
-  const { userId, jobId, mergedJob, fallback, jobSource = 'Available Jobs' } = input
+  const { userId, jobId, mergedJob, fallback, jobSource = 'Hirelytics' } = input
 
   const company = firstNonEmpty(mergedJob.company, mergedJob.companyName, fallback.company)
   const position = firstNonEmpty(mergedJob.title, mergedJob.position, fallback.title)
