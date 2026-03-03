@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
-import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { doc, onSnapshot } from 'firebase/firestore'
@@ -9,6 +8,7 @@ import { db } from '../../../lib/firebaseClient'
 import { Button } from '../../../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card'
 import { formatDateWithYear } from '../../../utils/dateFormatter'
+import { applyToJobFromDetails } from '../../../utils/applicationFirebase'
 // Fixme(TODO - remove after Firebase init): Temporary JSON fallback for local testing only.
 import { availableJobs } from '../../../data/availableJobs'
 
@@ -18,14 +18,6 @@ type SnapshotState = { key: string; data: DetailRecord | null }
 
 function isDetailRecord(value: unknown): value is DetailRecord {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function formatLabel(key: string) {
-  // Convert object keys like `applicationDeadline` or `job_source` into readable labels.
-  return key
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/[_-]/g, ' ')
-    .replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
 function formatValue(value: unknown): string {
@@ -232,6 +224,30 @@ export default function JobDetailsPage() {
         ? toList(mergedJob.preferredSkills)
         : toList(mergedJob.qualifications)
 
+  // Date-only metadata shown in footer.
+  const postedDate = toDateOnly(mergedJob.postedAt ?? mergedJob.postedDate ?? mergedJob.createdAt)
+  const updatedDate = toDateOnly(mergedJob.updatedAt)
+
+  const hasApplied = Boolean(applicationDocData)
+
+  const handleApplyNow = async () => {
+    if (!isLoaded || !userId || !jobId || hasApplied) return
+
+    await applyToJobFromDetails({
+      userId,
+      jobId: String(jobId),
+      mergedJob,
+      fallback: {
+        title,
+        company,
+        location,
+        description: jobDetailsText,
+        requirements,
+        postedDate: postedDate !== '—' ? postedDate : '',
+      },
+    })
+  }
+
   const applicantInfoFields: Array<[label: string, value: string]> = [
     ['Employment Type', formatValue(mergedJob.employmentType ?? mergedJob.type)],
     ['Work Arrangement', formatValue(mergedJob.workArrangement ?? mergedJob.jobType)],
@@ -246,48 +262,6 @@ export default function JobDetailsPage() {
     ['Job Source', formatValue(mergedJob.jobSource)],
     ['Application Status', formatValue(mergedJob.status)],
   ].filter((entry): entry is [string, string] => entry[1] !== '—')
-
-  const hiddenFields = new Set([
-    'id',
-    'jobId',
-    'recruiterId',
-    'jobDetails',
-    'title',
-    'position',
-    'company',
-    'companyName',
-    'location',
-    'city',
-    'country',
-    'description',
-    'generalDescription',
-    'requirements',
-    'optionalRequirements',
-    'preferredSkills',
-    'qualifications',
-    'employmentType',
-    'type',
-    'workArrangement',
-    'jobType',
-    'experienceLevel',
-    'salary',
-    'hourlyRate',
-    'paymentAmount',
-    'applicationDeadline',
-    'visaRequired',
-    'contactPerson',
-    'jobSource',
-    'status',
-    'jobLink',
-    'createdAt',
-    'updatedAt',
-  ])
-
-  const detailsToRender = Object.entries(mergedJob).filter(([key]) => !hiddenFields.has(key))
-
-  // Date-only metadata shown in footer.
-  const createdDate = toDateOnly(mergedJob.createdAt)
-  const updatedDate = toDateOnly(mergedJob.updatedAt)
 
   return (
     <div className='min-h-screen bg-background'>
@@ -310,18 +284,13 @@ export default function JobDetailsPage() {
             </Button>
           )}
 
-          {/* Keep the posting link as a single action button instead of showing raw URL text. */}
-          {formatValue(mergedJob.jobLink) !== '—' ? (
-            <Button asChild>
-              <Link
-                href={String(mergedJob.jobLink)}
-                target='_blank'
-                rel='noreferrer'
-              >
-                Open Job Posting
-              </Link>
-            </Button>
-          ) : null}
+          <Button
+            onClick={handleApplyNow}
+            disabled={hasApplied}
+            variant={hasApplied ? 'secondary' : 'default'}
+          >
+            {hasApplied ? 'Applied' : 'Apply Now'}
+          </Button>
         </div>
 
         {loading ? (
@@ -413,27 +382,12 @@ export default function JobDetailsPage() {
                 </section>
               ) : null}
 
-              {detailsToRender.length > 0 ? (
-                // Any remaining non-hidden fields for completeness/debug visibility.
-                <section className='rounded-xl border bg-muted/20 p-5 space-y-3'>
-                  <h3 className='text-xl font-semibold'>Additional Information</h3>
-                  <dl className='grid grid-cols-1 md:grid-cols-2 gap-4 text-base'>
-                    {detailsToRender.map(([key, value]) => (
-                      <div key={key}>
-                        <dt className='font-semibold'>{formatLabel(key)}</dt>
-                        <dd className='text-muted-foreground break-words'>{formatValue(value)}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </section>
-              ) : null}
-
               <div className='rounded-xl border-t pt-5'>
-                {/* Created/updated metadata grouped together at the bottom. */}
+                {/* Posted/updated metadata grouped together at the bottom. */}
                 <dl className='grid grid-cols-1 md:grid-cols-2 gap-4 text-base'>
                   <div>
-                    <dt className='font-semibold'>Created</dt>
-                    <dd className='text-muted-foreground'>{createdDate}</dd>
+                    <dt className='font-semibold'>Posted</dt>
+                    <dd className='text-muted-foreground'>{postedDate}</dd>
                   </div>
                   <div>
                     <dt className='font-semibold'>Updated</dt>

@@ -93,22 +93,32 @@ describe('Applicant Job Details Page', () => {
     expect(screen.getByText(/React/i)).toBeTruthy()
     expect(screen.getByText(/TypeScript/i)).toBeTruthy()
     expect(screen.getByText(/Firebase experience/i)).toBeTruthy()
-    expect(screen.getByText('Applied')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Applied/i })).toBeTruthy()
     expect(screen.getByRole('button', { name: /Back to My Applications/i })).toBeTruthy()
   })
 
-  it('hides internal ids and renders created/updated as date-only at the bottom', () => {
-    // Ensures internal fields stay hidden and timestamps are date-only formatted.
+  it('hides internal ids and renders posted/updated as date-only at the bottom', () => {
+    // Ensures internal fields stay hidden and footer dates are date-only formatted.
     render(<JobDetailsPage />)
 
     expect(screen.queryByRole('heading', { name: /Job 1/i })).toBeNull()
     expect(screen.queryByText(/^Id$/i)).toBeNull()
     expect(screen.queryByText(/^Job Id$/i)).toBeNull()
 
-    expect(screen.getByText('Created')).toBeTruthy()
+    expect(screen.getByText('Posted')).toBeTruthy()
     expect(screen.getByText('Updated')).toBeTruthy()
     expect(screen.queryByText(/T13:30:00/)).toBeNull()
     expect(screen.queryByText(/T17:45:00/)).toBeNull()
+  })
+
+  it('shows disabled Applied button when an application already exists', () => {
+    // Application listener returns an existing document in this suite.
+    render(<JobDetailsPage />)
+
+    const appliedButton = screen.getByRole('button', { name: /Applied/i })
+    expect(appliedButton).toBeTruthy()
+    expect((appliedButton as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.queryByRole('button', { name: /Apply Now/i })).toBeNull()
   })
 
   it('routes back to applications when back button is clicked', () => {
@@ -117,13 +127,5 @@ describe('Applicant Job Details Page', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Back to My Applications/i }))
     expect(pushMock).toHaveBeenCalledWith('/applicant/applications')
-  })
-
-  it('shows the open job posting link when jobLink exists', () => {
-    // Confirms external job posting action is rendered when a link is present.
-    render(<JobDetailsPage />)
-
-    const postingLink = screen.getByRole('link', { name: /Open Job Posting/i })
-    expect(postingLink.getAttribute('href')).toBe('https://example.com/jobs/1')
   })
 })

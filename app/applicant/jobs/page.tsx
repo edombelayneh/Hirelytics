@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react'
 import { AvailableJobsList } from '../../components/AvailableJobsList'
 import { AvailableJob } from '../../data/availableJobs'
 import type { Role } from '../../utils/userRole'
+import { applyToAvailableJob } from '../../utils/applicationFirebase'
 import { useAuth, useUser } from '@clerk/nextjs'
 import { db } from '../../lib/firebaseClient'
-import { collection, onSnapshot, doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, onSnapshot } from 'firebase/firestore'
 
 function Jobs() {
   // Get Clerk authentication state
@@ -48,45 +49,8 @@ function Jobs() {
     if (appliedJobIds.has(job.id)) return
     // Ensure authenticated user exists before writing to Firestore
     if (!isLoaded || !userId) return
-    // Create document reference using job ID as the document key
-    const ref = doc(db, 'users', userId, 'applications', String(job.id))
-
     // Save application record to Firestore
-    await setDoc(
-      ref,
-      {
-        id: String(job.id),
-        jobId: String(job.id),
-        company: job.company ?? '',
-        position: job.title ?? '',
-        country: '',
-        city: job.location ?? '',
-        applicationDate: new Date().toISOString(),
-        status: 'Applied',
-        contactPerson: '',
-        jobSource: 'Available Jobs',
-        outcome: 'Pending',
-        notes: '',
-        jobLink: '',
-        jobDetails: {
-          id: String(job.id),
-          title: job.title ?? '',
-          company: job.company ?? '',
-          location: job.location ?? '',
-          type: job.type ?? '',
-          postedDate: job.postedDate ?? '',
-          salary: job.salary ?? '',
-          description: job.description ?? '',
-          requirements: job.requirements ?? [],
-          status: job.status ?? '',
-          applyLink: job.applyLink ?? '',
-          recruiterId: job.recruiterId ?? '',
-        },
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true } // Prevent overwriting existing data
-    )
+    await applyToAvailableJob({ userId, job })
   }
 
   return (
