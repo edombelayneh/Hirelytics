@@ -160,41 +160,42 @@ export default function AddNewJobPage() {
             />
           </div>
 
-          <div>
-            <label className='block text-sm mb-1'>Pay per hour (USD)</label>
-            <label className='block text-sm mb-1'>Payment Type</label>
-            <select
-              value={paymentType}
-              onChange={(e) => setPaymentType(e.target.value as 'hourly' | 'salary')}
-              className='w-full border rounded p-2'
-            >
-              <option value='hourly'>Hourly</option>
-              <option value='salary'>Salary</option>
-            </select>
-          </div>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div>
+              <label className='block text-sm mb-1'>Payment Amount (USD)</label>
+              <input
+                type='number'
+                value={paymentAmount}
+                onChange={(e) => {
+                  const value = e.target.value
+                  if (value === '') {
+                    setPaymentAmount('')
+                    return
+                  }
 
-          <div>
-            <label className='block text-sm mb-1'>Payment Amount (USD)</label>
-            <input
-              type='number'
-              value={paymentAmount}
-              onChange={(e) => {
-                const value = e.target.value
-                if (value === '') {
-                  setPaymentAmount('')
-                  return
-                }
+                  const parsedValue = parseInt(value, 10)
+                  if (!Number.isNaN(parsedValue)) {
+                    setPaymentAmount(parsedValue)
+                  }
+                }}
+                placeholder='e.g. 25'
+                step='1'
+                min='0'
+                className='w-full border rounded p-2'
+              />
+            </div>
 
-                const parsedValue = parseInt(value, 10)
-                if (!Number.isNaN(parsedValue)) {
-                  setPaymentAmount(parsedValue)
-                }
-              }}
-              placeholder='e.g. 25'
-              step='1'
-              min='0'
-              className='w-full border rounded p-2'
-            />
+            <div>
+              <label className='block text-sm mb-1'>Payment Type</label>
+              <select
+                value={paymentType}
+                onChange={(e) => setPaymentType(e.target.value as 'hourly' | 'salary')}
+                className='w-full border rounded p-2'
+              >
+                <option value='hourly'>Hourly</option>
+                <option value='salary'>Salary</option>
+              </select>
+            </div>
           </div>
 
           <div>
