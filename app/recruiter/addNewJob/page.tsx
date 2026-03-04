@@ -6,6 +6,7 @@
 // - Saves job data to Firebase and checks user role (recruiter only)
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 type AddNewJobPageProps = {
   initialUserRole?: 'recruiter' | 'applicant'
@@ -136,7 +137,16 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
         </div>
       )}
 
-      <div className='max-w-3xl mx-auto py-10 px-6'>
+      <div className='px-6 pt-4'>
+        <Link
+          href='/recruiter/myJobs'
+          className='inline-flex items-center rounded border px-3 py-1.5 text-sm'
+        >
+          Back to My Jobs
+        </Link>
+      </div>
+
+      <div className='max-w-3xl mx-auto pt-6 pb-10 px-6'>
         <h1 className='text-2xl font-semibold mb-4'>Add Job</h1>
         <p className='text-sm text-gray-600 mb-6'>
           Fill in the job details below. This information will be sent for review.
