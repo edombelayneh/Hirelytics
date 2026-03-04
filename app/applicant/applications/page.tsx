@@ -1,5 +1,6 @@
 'use client'
 
+
 import { memo } from 'react'
 import HeroPanel from '../../components/HeroPanel'
 import { SummaryCards } from '../../components/SummaryCards'
@@ -18,23 +19,28 @@ import {
 import { useAuth } from '@clerk/nextjs'
 import { useEffect, useState } from 'react'
 
+
 const MyApplicationsPage = memo(function MyApplicationsPage() {
   // Get authenticated user and loading state from Clerk
   const { userId, isLoaded } = useAuth()
 
+
   // Store live application data from Firestore
   const [liveApplications, setLiveApplications] = useState<JobApplication[]>([])
+
 
   // Listen in real-time to this user's applications
   useEffect(() => {
     // Wait until Clerk finishes loading and user exists
     if (!isLoaded || !userId) return
 
+
     // Query this user's applications ordered by newest first
     const q = query(
       collection(db, 'users', userId, 'applications'),
       orderBy('applicationDate', 'desc')
     )
+
 
     // Subscribe to real-time updates
     const unsub = onSnapshot(q, (snap) => {
@@ -46,13 +52,16 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
         }
       })
 
+
       // Update UI state with latest data
       setLiveApplications(next)
     })
 
+
     // Cleanup listener when component unmounts
     return () => unsub()
   }, [isLoaded, userId])
+
 
   // Handle status updates from the table
   const handleStatusChange = async (id: string, status: JobApplication['status']) => {
@@ -64,6 +73,7 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
     })
   }
 
+
   // Handle notes updates from the table
   const handleNotesChange = async (id: string, notes: string) => {
     if (!isLoaded || !userId) return
@@ -74,20 +84,23 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
     })
   }
 
+
   return (
     <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8'>
       <div className='space-y-8'>
         {/* Dashboard overview section */}
         <section>
-          <h2 className='text-xl font-semibold mb-4'>Dashboard Overview</h2>
+          <h1 className='text-2xl font-bold tracking-tight mb-4'>Dashboard Overview</h1>
           <HeroPanel applications={liveApplications} />
         </section>
 
+
         {/* Summary metrics section */}
         <section>
-          <h2 className='text-xl font-semibold mb-4'>Key Metrics</h2>
+          <h2 className='text-2xl font-bold tracking-tight mb-4'>Key Metrics</h2>
           <SummaryCards applications={liveApplications} />
         </section>
+
 
         {/* Applications table section */}
         <section>
@@ -102,4 +115,6 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
   )
 })
 
+
 export default MyApplicationsPage
+

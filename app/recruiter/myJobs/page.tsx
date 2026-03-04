@@ -43,7 +43,8 @@ export default function RecruiterMyJobsPage() {
       <main className='container mx-auto px-6 py-8 space-y-6'>
         <div className='flex items-start justify-between gap-4'>
           <div>
-            <h1 className='text-2xl font-semibold'>My Jobs</h1>
+            
+            <h2 className='text-2xl font-bold mb-1'>My Jobs</h2>
             <p className='text-sm text-muted-foreground'>
               Manage the jobs you’ve posted and review applicants.
             </p>
