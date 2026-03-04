@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 type AddNewJobPageProps = {
   initialUserRole?: 'recruiter' | 'applicant'
@@ -36,6 +37,7 @@ type RecruiterJobPayload = {
 
 // Page for recruiters to create a new job
 export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJobPageProps) {
+  const router = useRouter()
   // Form field state
   const [jobName, setJobName] = useState('')
   const [companyName, setCompanyName] = useState('')
@@ -66,9 +68,9 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
 
   useEffect(() => {
     if (userRole !== 'recruiter') {
-      window.location.hash = '/'
+      router.replace('/')
     }
-  }, [userRole])
+  }, [userRole, router])
 
   // handleSubmit
   // This prevents the form from default submission.
@@ -119,9 +121,9 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
     setMessage('Job submitted. Redirecting to Job Details...')
     setRedirecting(true)
 
-    // small delay so the user sees the overlay, then go to Job Details
+    // small delay so the user sees the overlay, then go to my jobs
     setTimeout(() => {
-      window.location.hash = '/jobdetails'
+      router.push('/recruiter/myJobs')
     }, 2000)
   }
 

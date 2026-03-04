@@ -34,7 +34,7 @@ function pageFromPathname(pathname: string): Page {
   if (pathname.startsWith('/applicant/applications')) return 'applications'
   if (pathname.startsWith('/applicant/jobs')) return 'available'
   if (pathname.startsWith('/recruiter/addNewJob')) return 'addNewJob'
-  if (pathname.startsWith('/recruiter/addExternalJob')) return 'addExternalJob'
+  if (pathname.startsWith('/applicant/addExternalJob')) return 'addExternalJob'
   if (pathname.startsWith('/recruiter/myJobs')) return 'recruiterHome'
   if (pathname.startsWith('/applicant/profile') || pathname.startsWith('/recruiter/profile'))
     return 'profile'
@@ -79,31 +79,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [roleLoaded, setRoleLoaded] = useState(false)
 
   const [showProfileBanner, setShowProfileBanner] = useState(false)
-
-  // Keep legacy hash links from HomePage in sync with Next routes
-  useEffect(() => {
-    const hashToRoute: Record<string, string> = {
-      '#/': '/',
-      '#/jobs': '/applicant/jobs',
-      '#/applications': '/applicant/applications',
-      '#/profile': '/applicant/profile',
-      '#/addNewJob': '/recruiter/addNewJob',
-      '#/addExternalJob': '/recruiter/addExternalJob',
-      '#/myJobs': '/recruiter/myJobs',
-      '#/jobdetails': '/recruiter/myJobs',
-      '#/role': '/role',
-    }
-
-    const syncHashRoute = () => {
-      const target = hashToRoute[window.location.hash]
-      if (!target || target === pathname) return
-      router.replace(target)
-    }
-
-    syncHashRoute()
-    window.addEventListener('hashchange', syncHashRoute)
-    return () => window.removeEventListener('hashchange', syncHashRoute)
-  }, [pathname, router])
 
   // Clerk ↔ Firebase linking
   useEffect(() => {

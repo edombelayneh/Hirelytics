@@ -3,11 +3,19 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import React from 'react'
 import AddNewJobPage from '../../../app/recruiter/addNewJob/page'
 
+const navigation = vi.hoisted(() => ({
+  push: vi.fn(),
+  replace: vi.fn(),
+}))
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => navigation,
+}))
+
 describe('AddNewJobPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useFakeTimers()
-    window.location.hash = ''
   })
 
   afterEach(() => {
@@ -46,10 +54,10 @@ describe('AddNewJobPage', () => {
 
     expect(screen.getByText(/Unauthorized access/i)).toBeTruthy()
     expect(screen.queryByText(/Submitting job/i)).toBeNull()
-    expect(window.location.hash).toBe('#/')
+    expect(navigation.replace).toHaveBeenCalledWith('/')
   })
 
-  it('submits and shows redirect overlay, then updates hash to /jobdetails', () => {
+  it('submits and shows redirect overlay, then routes to recruiter my jobs', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     render(<AddNewJobPage />)
@@ -77,9 +85,8 @@ describe('AddNewJobPage', () => {
     expect(screen.getByText(/Submitting job/i)).toBeTruthy()
     expect(screen.getByText(/Redirecting you to the .* page/i)).toBeTruthy()
 
-    expect(window.location.hash).toBe('')
     vi.advanceTimersByTime(2000)
-    expect(window.location.hash).toBe('#/jobdetails')
+    expect(navigation.push).toHaveBeenCalledWith('/recruiter/myJobs')
 
     logSpy.mockRestore()
   })
