@@ -30,6 +30,32 @@ type Snapshot = {
   data: () => Record<string, unknown>
 }
 
+const defaultJobSnapshotData = {
+  title: 'Software Engineer',
+  company: 'TechCorp',
+  location: 'Remote',
+  description: 'Build and maintain applicant-facing features.',
+  requirements: ['React', 'TypeScript'],
+  optionalRequirements: ['Firebase experience'],
+  salary: '$100,000',
+  type: 'Full-time',
+}
+
+const defaultApplicationSnapshotData = {
+  id: '1',
+  jobId: '1',
+  status: 'Applied',
+  notes: 'Submitted this week',
+  jobLink: 'https://example.com/jobs/1',
+  createdAt: '2026-01-15T13:30:00.000Z',
+  updatedAt: '2026-01-20T17:45:00.000Z',
+}
+
+let jobSnapshotExists = true
+let applicationSnapshotExists = true
+let jobSnapshotData: Record<string, unknown> = defaultJobSnapshotData
+let applicationSnapshotData: Record<string, unknown> = defaultApplicationSnapshotData
+
 // Mock Firestore listeners for both job doc and application doc subscriptions.
 vi.mock('firebase/firestore', () => ({
   doc: (...path: unknown[]) => ({ path }),
@@ -38,17 +64,8 @@ vi.mock('firebase/firestore', () => ({
     if (ref.path[1] === 'jobs') {
       cb({
         id: String(ref.path[2]),
-        exists: () => true,
-        data: () => ({
-          title: 'Software Engineer',
-          company: 'TechCorp',
-          location: 'Remote',
-          description: 'Build and maintain applicant-facing features.',
-          requirements: ['React', 'TypeScript'],
-          optionalRequirements: ['Firebase experience'],
-          salary: '$100,000',
-          type: 'Full-time',
-        }),
+        exists: () => jobSnapshotExists,
+        data: () => jobSnapshotData,
       })
       return vi.fn()
     }
@@ -56,16 +73,8 @@ vi.mock('firebase/firestore', () => ({
     // `users/{userId}/applications/{jobId}` listener payload.
     cb({
       id: String(ref.path[4]),
-      exists: () => true,
-      data: () => ({
-        id: '1',
-        jobId: '1',
-        status: 'Applied',
-        notes: 'Submitted this week',
-        jobLink: 'https://example.com/jobs/1',
-        createdAt: '2026-01-15T13:30:00.000Z',
-        updatedAt: '2026-01-20T17:45:00.000Z',
-      }),
+      exists: () => applicationSnapshotExists,
+      data: () => applicationSnapshotData,
     })
 
     return vi.fn()
@@ -76,6 +85,10 @@ describe('Applicant Job Details Page', () => {
   beforeEach(() => {
     // Reset call counts/args to keep each test isolated.
     vi.clearAllMocks()
+    jobSnapshotExists = true
+    applicationSnapshotExists = true
+    jobSnapshotData = defaultJobSnapshotData
+    applicationSnapshotData = defaultApplicationSnapshotData
   })
 
   afterEach(() => {
@@ -127,5 +140,27 @@ describe('Applicant Job Details Page', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Back to My Applications/i }))
     expect(pushMock).toHaveBeenCalledWith('/applicant/applications')
+  })
+
+  it('renders fallback details when Firebase documents are partial', () => {
+    // Simulate missing canonical job doc and sparse application doc for same job.
+    jobSnapshotExists = false
+    applicationSnapshotData = {
+      id: '1',
+      jobId: '1',
+      status: 'Applied',
+    }
+
+    render(<JobDetailsPage />)
+
+    expect(screen.getByRole('heading', { name: /Software Engineer/i })).toBeTruthy()
+    expect(screen.getByText(/TechCorp/i)).toBeTruthy()
+    expect(
+      screen.getByText(
+        'Develop and maintain web applications, collaborate with cross-functional teams, and ensure code quality.'
+      )
+    ).toBeTruthy()
+    expect(screen.getByText("Bachelor's in Computer Science")).toBeTruthy()
+    expect(screen.getByText('Proficiency in JavaScript and Python')).toBeTruthy()
   })
 })

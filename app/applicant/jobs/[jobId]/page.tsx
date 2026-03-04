@@ -180,16 +180,16 @@ export default function JobDetailsPage() {
       : {}
 
     // FIXME(TODO - remove after Firebase init): Temporary JSON fallback for local testing only.
-    // Use local JSON only when Firebase has no job/application record for this job ID.
-    const firebaseHasData = Boolean(jobDocData) || Boolean(applicationDocData)
-    if (!firebaseHasData && jsonFallbackJob) {
-      return {
-        ...jsonFallbackJob,
-        id: String(jsonFallbackJob.id),
-      } as DetailRecord
-    }
+    // Layer fallback data first so partial Firebase/application snapshots still render complete details.
+    const fallbackJobData = jsonFallbackJob
+      ? ({
+          ...jsonFallbackJob,
+          id: String(jsonFallbackJob.id),
+        } as DetailRecord)
+      : {}
 
     return {
+      ...fallbackJobData,
       ...applicationDocData,
       ...applicationJobDetails,
       ...jobDocData,
