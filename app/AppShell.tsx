@@ -80,6 +80,31 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   const [showProfileBanner, setShowProfileBanner] = useState(false)
 
+  // Keep legacy hash links from HomePage in sync with Next routes
+  useEffect(() => {
+    const hashToRoute: Record<string, string> = {
+      '#/': '/',
+      '#/jobs': '/applicant/jobs',
+      '#/applications': '/applicant/applications',
+      '#/profile': '/applicant/profile',
+      '#/addNewJob': '/recruiter/addNewJob',
+      '#/addExternalJob': '/recruiter/addExternalJob',
+      '#/myJobs': '/recruiter/myJobs',
+      '#/jobdetails': '/recruiter/myJobs',
+      '#/role': '/role',
+    }
+
+    const syncHashRoute = () => {
+      const target = hashToRoute[window.location.hash]
+      if (!target || target === pathname) return
+      router.replace(target)
+    }
+
+    syncHashRoute()
+    window.addEventListener('hashchange', syncHashRoute)
+    return () => window.removeEventListener('hashchange', syncHashRoute)
+  }, [pathname, router])
+
   // Clerk ↔ Firebase linking
   useEffect(() => {
     if (!isLoaded) return
