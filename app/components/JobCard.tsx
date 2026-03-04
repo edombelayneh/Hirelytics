@@ -1,5 +1,6 @@
 // Import React memo for performance optimization
 import { memo } from 'react'
+import Link from 'next/link'
 // Import UI components and icons
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
@@ -86,9 +87,16 @@ export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCar
       </CardContent>
 
       {/* Footer: Apply button (disabled if already applied) */}
-      <CardFooter>
+      <CardFooter className='flex gap-2'>
         <Button
-          className='w-full'
+          asChild
+          variant='outline'
+          className='flex-1'
+        >
+          <Link href={`/applicant/jobs/${job.id}`}>View Details</Link>
+        </Button>
+        <Button
+          className='flex-1'
           onClick={() => onApply(job)}
           disabled={isApplied}
           variant={isApplied ? 'secondary' : 'default'}

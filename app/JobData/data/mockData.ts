@@ -11,7 +11,14 @@ export interface JobApplication {
   status: 'Applied' | 'Interview' | 'Rejected' | 'Offer' | 'Withdrawn'
   contactPerson: string
   notes: string
-  jobSource: 'LinkedIn' | 'Company Website' | 'Indeed' | 'Glassdoor' | 'Referral' | 'Other'
+  jobSource:
+    | 'LinkedIn'
+    | 'Company Website'
+    | 'Indeed'
+    | 'Glassdoor'
+    | 'Referral'
+    | 'Hirelytics'
+    | 'Other'
   outcome: 'Pending' | 'Successful' | 'Unsuccessful' | 'In Progress'
 }
 
