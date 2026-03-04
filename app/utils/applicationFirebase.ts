@@ -218,6 +218,7 @@ export function buildApplication(input: BuildFromJobDetailsRecordInput): SaveUse
   )
   const requirements = toStringList(mergedJob.requirements)
   const status = firstNonEmpty(mergedJob.status)
+  const resolvedJobSource = firstNonEmpty(mergedJob.jobSource, jobSource)
   const applyLink = firstNonEmpty(mergedJob.applyLink, mergedJob.jobLink)
   const recruiterId = firstNonEmpty(mergedJob.recruiterId)
 
@@ -229,7 +230,7 @@ export function buildApplication(input: BuildFromJobDetailsRecordInput): SaveUse
     country,
     city,
     contactPerson,
-    jobSource,
+    jobSource: resolvedJobSource,
     jobLink,
     title: position || fallback.title,
     location: firstNonEmpty(mergedJob.location, fallback.location),

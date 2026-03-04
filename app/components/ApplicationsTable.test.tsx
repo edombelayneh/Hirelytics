@@ -152,7 +152,7 @@ describe('ApplicationsTable', () => {
       'Job Source',
       'Outcome',
       'Notes',
-      'Actions',
+      'Job Details',
     ].forEach((h) => expect(headerScope.getByText(h)).toBeTruthy())
   })
 

@@ -110,6 +110,31 @@ describe('app/utils/applicationFirebase', () => {
     })
   })
 
+  it('buildApplication preserves merged jobSource before default fallback', async () => {
+    const { buildApplication } = await import('@/app/utils/applicationFirebase')
+
+    const payload = buildApplication({
+      userId: 'user-4',
+      jobId: '88',
+      mergedJob: {
+        title: 'Data Engineer',
+        company: 'Northwind',
+        location: 'Austin, TX',
+        jobSource: 'LinkedIn',
+      },
+      fallback: {
+        title: 'Fallback Role',
+        company: 'Fallback Co',
+        location: 'Remote',
+        description: 'Fallback description',
+        requirements: ['SQL'],
+        postedDate: '2026-03-01',
+      },
+    })
+
+    expect(payload.jobSource).toBe('LinkedIn')
+  })
+
   it('saveUserApplication writes merge setDoc with timestamps', async () => {
     // Verifies Firestore write contract: user-scoped path, merge mode, and timestamp fields.
     const { saveUserApplication } = await import('@/app/utils/applicationFirebase')
@@ -122,7 +147,7 @@ describe('app/utils/applicationFirebase', () => {
       country: 'Canada',
       city: 'Toronto',
       contactPerson: 'Jane Doe',
-      jobSource: 'Available Jobs',
+      jobSource: 'Hirelytics',
       jobLink: 'https://example.com/jobs/9',
       jobDetails: {
         id: '9',

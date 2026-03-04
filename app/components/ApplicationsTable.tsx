@@ -124,7 +124,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                 <TableHead>Job Source</TableHead>
                 <TableHead>Outcome</TableHead>
                 <TableHead>Notes</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Job Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

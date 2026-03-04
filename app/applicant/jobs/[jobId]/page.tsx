@@ -74,6 +74,13 @@ function toList(value: unknown): string[] {
   return []
 }
 
+function normalizeJobSource(value: unknown): string {
+  const formatted = formatValue(value)
+  if (formatted === '—') return formatted
+
+  return formatted.trim().toLowerCase() === 'available jobs' ? 'Hirelytics' : formatted
+}
+
 export default function JobDetailsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -259,7 +266,7 @@ export default function JobDetailsPage() {
     ['Application Deadline', formatValue(mergedJob.applicationDeadline)],
     ['Visa Required', formatValue(mergedJob.visaRequired)],
     ['Contact Person', formatValue(mergedJob.contactPerson)],
-    ['Job Source', formatValue(mergedJob.jobSource)],
+    ...(fromApplications ? [['Job Source', normalizeJobSource(mergedJob.jobSource)] as const] : []),
     ['Application Status', formatValue(mergedJob.status)],
   ].filter((entry): entry is [string, string] => entry[1] !== '—')
 
