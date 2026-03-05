@@ -26,6 +26,7 @@ type JobSource =
   | 'Glassdoor'
   | 'Google Jobs'
   | 'Company Career Page'
+  | 'Hirelytics'
   | 'Other'
   | ''
 type PaymentType = 'hourly' | 'salary' | ''
@@ -125,7 +126,9 @@ export default function AddExternalJobPage() {
     try {
       new URL(url)
     } catch {
-      setUrlError('That does not look like a valid URL. Example: https://www.indeed.com/viewjob?...')
+      setUrlError(
+        'That does not look like a valid URL. Example: https://www.indeed.com/viewjob?...'
+      )
       return
     }
 

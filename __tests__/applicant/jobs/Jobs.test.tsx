@@ -87,6 +87,7 @@ vi.mock('../../../app/components/AvailableJobsList', () => ({
             requirements: ['Req 1'],
             status: 'Open',
             applyLink: 'https://example.com/apply',
+            recruiterId: 'recruiter-uid-1',
           })
         }
       >
@@ -152,7 +153,7 @@ describe('Jobs Page', () => {
         position: 'Test Job',
         city: 'Test City',
         status: 'Applied',
-        jobSource: 'Available Jobs',
+        jobSource: 'Hirelytics',
         outcome: 'Pending',
         createdAt: 'SERVER_TS',
         updatedAt: 'SERVER_TS',

@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react'
 import { AvailableJobsList } from '../../components/AvailableJobsList'
 import { AvailableJob } from '../../data/availableJobs'
+import type { Role } from '../../utils/userRole'
+import { applyToAvailableJob } from '../../utils/applicationFirebase'
 import { useAuth, useUser } from '@clerk/nextjs'
 import { db } from '../../lib/firebaseClient'
-import { collection, onSnapshot, doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, onSnapshot } from 'firebase/firestore'
 
 function Jobs() {
   // Get Clerk authentication state
@@ -15,7 +17,7 @@ function Jobs() {
   const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
   // Access user metadata (e.g., role-based logic if needed)
   const { user } = useUser()
-  const role = user?.publicMetadata?.role
+  const role = (user?.publicMetadata?.role as Role | undefined) ?? null
 
   useEffect(() => {
     // Wait until Clerk finishes loading and user exists
@@ -47,30 +49,8 @@ function Jobs() {
     if (appliedJobIds.has(job.id)) return
     // Ensure authenticated user exists before writing to Firestore
     if (!isLoaded || !userId) return
-    // Create document reference using job ID as the document key
-    const ref = doc(db, 'users', userId, 'applications', String(job.id))
-
     // Save application record to Firestore
-    await setDoc(
-      ref,
-      {
-        id: String(job.id),
-        company: job.company ?? '',
-        position: job.title ?? '',
-        country: '',
-        city: job.location ?? '',
-        applicationDate: new Date().toISOString(),
-        status: 'Applied',
-        contactPerson: '',
-        jobSource: 'Available Jobs',
-        outcome: 'Pending',
-        notes: '',
-        jobLink: '',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true } // Prevent overwriting existing data
-    )
+    await applyToAvailableJob({ userId, job })
   }
 
   return (
@@ -81,6 +61,7 @@ function Jobs() {
           <AvailableJobsList
             onApply={handleApply}
             appliedJobIds={appliedJobIds} // Controls disabled Apply buttons
+            role={role}
           />
         </section>
       </main>
