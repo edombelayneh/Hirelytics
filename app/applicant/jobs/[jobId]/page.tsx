@@ -107,7 +107,7 @@ export default function JobDetailsPage() {
     if (!jobId) return
 
     const unsub = onSnapshot(
-      doc(db, 'jobs', jobId),
+      doc(db, 'jobPostings', jobId),
       (snapshot) => {
         if (!snapshot.exists()) {
           setJobSnapshotState({ key: jobId, data: null })
@@ -268,6 +268,12 @@ export default function JobDetailsPage() {
     ['Contact Person', formatValue(mergedJob.contactPerson)],
     ...(fromApplications ? [['Job Source', normalizeJobSource(mergedJob.jobSource)] as const] : []),
     ['Application Status', formatValue(mergedJob.status)],
+    [
+      'People Applied',
+      Array.isArray(mergedJob.applicantsId)
+        ? String((mergedJob.applicantsId as unknown[]).length)
+        : '0',
+    ],
   ].filter((entry): entry is [string, string] => entry[1] !== '—')
 
   return (
