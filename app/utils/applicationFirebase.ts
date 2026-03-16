@@ -1,4 +1,4 @@
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { arrayUnion, doc, serverTimestamp, setDoc } from 'firebase/firestore'
 import { db } from '../lib/firebaseClient'
 import type { AvailableJob } from '../data/availableJobs'
 
@@ -120,7 +120,7 @@ export function buildApplicationFromAvailableJob(
     country: '',
     city: job.location ?? '',
     contactPerson: '',
-    jobSource: job.jobSource ?? 'Hirelytics',
+    jobSource: 'Hirelytics',
     jobLink: '',
     jobDetails: {
       id: jobId,
@@ -140,8 +140,15 @@ export function buildApplicationFromAvailableJob(
 }
 
 // One-call list-page helper: map input model -> persist to Firestore.
+// Also appends the applicant's userId to the job's applicantsId array in jobPostings.
 export async function applyToAvailableJob(input: BuildFromAvailableJobInput) {
+  const { userId, job } = input
+  const jobId = String(job.id)
+
   await saveUserApplication(buildApplicationFromAvailableJob(input))
+
+  const jobRef = doc(db, 'jobPostings', jobId)
+  await setDoc(jobRef, { applicantsId: arrayUnion(userId) }, { merge: true })
 }
 
 // Low-level builder for already-normalized detail values.

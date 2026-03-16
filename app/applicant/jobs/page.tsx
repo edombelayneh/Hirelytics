@@ -7,7 +7,7 @@ import type { Role } from '../../utils/userRole'
 import { applyToAvailableJob } from '../../utils/applicationFirebase'
 import { useAuth, useUser } from '@clerk/nextjs'
 import { db } from '../../lib/firebaseClient'
-import { collection, onSnapshot } from 'firebase/firestore'
+import { collection, getDocs, onSnapshot } from 'firebase/firestore'
 
 function Jobs() {
   // Get Clerk authentication state
@@ -15,9 +15,20 @@ function Jobs() {
 
   // Stores job IDs the user has already applied to
   const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
+  // Jobs fetched from Firestore jobPostings collection
+  const [jobs, setJobs] = useState<AvailableJob[]>([])
   // Access user metadata (e.g., role-based logic if needed)
   const { user } = useUser()
   const role = (user?.publicMetadata?.role as Role | undefined) ?? null
+
+  // Fetch all jobs from Firestore jobPostings collection
+  useEffect(() => {
+    const ref = collection(db, 'jobPostings')
+    getDocs(ref).then((snap) => {
+      const fetched = snap.docs.map((doc) => ({ id: Number(doc.id), ...doc.data() } as AvailableJob))
+      setJobs(fetched)
+    })
+  }, [])
 
   useEffect(() => {
     // Wait until Clerk finishes loading and user exists
@@ -59,8 +70,9 @@ function Jobs() {
       <main className='container mx-auto px-6 py-8 space-y-8'>
         <section>
           <AvailableJobsList
+            jobs={jobs}
             onApply={handleApply}
-            appliedJobIds={appliedJobIds} // Controls disabled Apply buttons
+            appliedJobIds={appliedJobIds}
             role={role}
           />
         </section>
