@@ -1,42 +1,49 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@clerk/nextjs'
+import { collection, onSnapshot, query, where } from 'firebase/firestore'
+import { db } from '@/app/lib/firebaseClient'
 import { Button } from '@/app/components/ui/button'
-import { Navbar } from '@/app/components/Navbar'
 import { RecruiterJobCard } from '../../components/RecruiterJobCard'
 import { EmptyMyJobs } from '../../components/EmptyMyJobs'
 import type { RecruiterJob } from '../../types/recruiterJobs'
 
 export default function RecruiterMyJobsPage() {
-  // TODO: replace with Firestore fetch for recruiter jobs
-  const jobs = useMemo<RecruiterJob[]>(
-    () => [
-      {
-        id: 'job-1',
-        title: 'Software Engineer Intern',
-        company: 'Hirelytics',
-        location: 'Remote',
-        type: 'Internship',
-        postedAt: '2026-02-21',
-        status: 'Open',
-        applicantsCount: 3,
-        description: 'Work on the Hirelytics platform...',
-      },
-      {
-        id: 'job-2',
-        title: 'Frontend Engineer',
-        company: 'Hirelytics',
-        location: 'Detroit, MI',
-        type: 'Full-time',
-        postedAt: '2026-02-10',
-        status: 'Paused',
-        applicantsCount: 0,
-        description: 'Build UI features in Next.js...',
-      },
-    ],
-    []
-  )
+  const { userId, isLoaded } = useAuth()
+  const [jobs, setJobs] = useState<RecruiterJob[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!isLoaded || !userId) return
+
+    const q = query(
+      collection(db, 'jobPostings'),
+      where('recruiterId', '==', userId)
+    )
+
+    const unsub = onSnapshot(q, (snap) => {
+      const fetched = snap.docs.map((doc) => {
+        const data = doc.data()
+        return {
+          id: doc.id,
+          title: data.title ?? '',
+          company: data.company ?? '',
+          location: data.location,
+          type: data.type,
+          postedAt: data.postedDate,
+          status: data.status,
+          applicantsCount: Array.isArray(data.applicantsId) ? data.applicantsId.length : 0,
+          description: data.description,
+        } as RecruiterJob
+      })
+      setJobs(fetched)
+      setLoading(false)
+    })
+
+    return () => unsub()
+  }, [isLoaded, userId])
 
   return (
     <div className='min-h-screen bg-background'>
@@ -45,7 +52,7 @@ export default function RecruiterMyJobsPage() {
           <div>
             <h1 className='text-2xl font-semibold'>My Jobs</h1>
             <p className='text-sm text-muted-foreground'>
-              Manage the jobs you’ve posted and review applicants.
+              Manage the jobs you&apos;ve posted and review applicants.
             </p>
           </div>
 
@@ -54,7 +61,9 @@ export default function RecruiterMyJobsPage() {
           </Button>
         </div>
 
-        {jobs.length === 0 ? (
+        {loading ? (
+          <p className='text-sm text-muted-foreground'>Loading your jobs...</p>
+        ) : jobs.length === 0 ? (
           <EmptyMyJobs />
         ) : (
           <div className='grid gap-4'>
