@@ -15,7 +15,9 @@ export default function JobDetailsPage() {
   const { jobId } = useParams<{ jobId: string }>()
 
 
+  // Job posting data fetched from jobPostings collection
   const [job, setJob] = useState<Job | null>(null)
+  // Applicant profiles resolved from users/{uid}.profile for each id in applicantsId
   const [applicants, setApplicants] = useState<Applicant[]>([])
   const [loadingJob, setLoadingJob] = useState(true)
 
@@ -44,6 +46,7 @@ export default function JobDetailsPage() {
       // Fetch profile for each applicant userId stored in applicantsId
       const applicantIds: string[] = Array.isArray(data.applicantsId) ? data.applicantsId : []
 
+      // Fetch each applicant's profile from users/{uid}.profile in parallel
       const profiles = await Promise.all(
         applicantIds.map(async (uid) => {
           const userSnap = await getDoc(doc(db, 'users', uid))

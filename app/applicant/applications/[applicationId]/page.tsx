@@ -65,9 +65,12 @@ export default function ApplicationDetailsPage() {
   const { userId, isLoaded } = useAuth()
 
   const [application, setApplication] = useState<JobApplication | null>(null)
+  // undefined = listener not yet resolved; null = doc doesn't exist
   const [jobDoc, setJobDoc] = useState<DetailRecord | null | undefined>(undefined)
   const [loadingApp, setLoadingApp] = useState(true)
+  // Local notes state kept in sync with Firestore on save
   const [notes, setNotes] = useState('')
+  // Tracks in-flight Firestore write to disable the Save button
   const [savingNotes, setSavingNotes] = useState(false)
 
   // Fetch the user's application document
@@ -84,6 +87,7 @@ export default function ApplicationDetailsPage() {
     })
   }, [isLoaded, userId, applicationId])
 
+  // Persists edited notes back to the user's application document in Firestore
   const handleSaveNotes = async () => {
     if (!userId) return
     setSavingNotes(true)
@@ -118,7 +122,9 @@ export default function ApplicationDetailsPage() {
     }
   }, [application, jobDoc])
 
+  // Still loading if the Firestore listener hasn't returned a value yet
   const loadingJob = jobDoc === undefined
+  // Show spinner until both the application doc and job posting have resolved
   const loading = loadingApp || loadingJob
 
   if (loading) {

@@ -12,12 +12,14 @@ import type { RecruiterJob } from '../../types/recruiterJobs'
 
 export default function RecruiterMyJobsPage() {
   const { userId, isLoaded } = useAuth()
+  // Jobs posted by this recruiter, fetched in real-time from Firestore
   const [jobs, setJobs] = useState<RecruiterJob[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!isLoaded || !userId) return
 
+    // Only fetch jobs where recruiterId matches the logged-in user
     const q = query(
       collection(db, 'jobPostings'),
       where('recruiterId', '==', userId)
@@ -34,6 +36,7 @@ export default function RecruiterMyJobsPage() {
           type: data.type,
           postedAt: data.postedDate,
           status: data.status,
+          // Derive applicant count from the applicantsId array length
           applicantsCount: Array.isArray(data.applicantsId) ? data.applicantsId.length : 0,
           description: data.description,
         } as RecruiterJob
@@ -42,6 +45,7 @@ export default function RecruiterMyJobsPage() {
       setLoading(false)
     })
 
+    // Cleanup listener on unmount
     return () => unsub()
   }, [isLoaded, userId])
 
