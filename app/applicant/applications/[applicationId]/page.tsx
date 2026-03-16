@@ -4,11 +4,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
-import { doc, getDoc, onSnapshot } from 'firebase/firestore'
+import { doc, getDoc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/app/lib/firebaseClient'
 import { Button } from '@/app/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs'
+import { Textarea } from '@/app/components/ui/textarea'
 import type { JobApplication } from '@/app/data/mockData'
 import { formatDateWithYear } from '@/app/utils/dateFormatter'
 
@@ -66,6 +67,8 @@ export default function ApplicationDetailsPage() {
   const [application, setApplication] = useState<JobApplication | null>(null)
   const [jobDoc, setJobDoc] = useState<DetailRecord | null | undefined>(undefined)
   const [loadingApp, setLoadingApp] = useState(true)
+  const [notes, setNotes] = useState('')
+  const [savingNotes, setSavingNotes] = useState(false)
 
   // Fetch the user's application document
   useEffect(() => {
@@ -73,11 +76,23 @@ export default function ApplicationDetailsPage() {
     const ref = doc(db, 'users', userId, 'applications', applicationId)
     getDoc(ref).then((snap) => {
       if (snap.exists()) {
-        setApplication({ id: snap.id, ...snap.data() } as JobApplication)
+        const data = { id: snap.id, ...snap.data() } as JobApplication
+        setApplication(data)
+        setNotes(data.notes ?? '')
       }
       setLoadingApp(false)
     })
   }, [isLoaded, userId, applicationId])
+
+  const handleSaveNotes = async () => {
+    if (!userId) return
+    setSavingNotes(true)
+    await updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
+      notes,
+      updatedAt: serverTimestamp(),
+    })
+    setSavingNotes(false)
+  }
 
   // Subscribe to the job posting document
   useEffect(() => {
@@ -294,7 +309,9 @@ export default function ApplicationDetailsPage() {
                     </div>
                     <div>
                       <dt className='font-semibold'>Applied</dt>
-                      <dd className='text-muted-foreground'>{application.applicationDate}</dd>
+                      <dd className='text-muted-foreground'>
+                        {formatDateWithYear(application.applicationDate)}
+                      </dd>
                     </div>
                     <div>
                       <dt className='font-semibold'>Location</dt>
@@ -312,9 +329,21 @@ export default function ApplicationDetailsPage() {
                 {/* Notes */}
                 <section className='rounded-xl border bg-muted/20 p-5 space-y-3'>
                   <h3 className='text-lg font-semibold'>Notes</h3>
-                  <p className='text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed'>
-                    {application.notes?.trim() ? application.notes : 'No notes yet.'}
-                  </p>
+                  <Textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder='Add notes about this application...'
+                    className='min-h-[120px] text-sm'
+                  />
+                  <div className='flex justify-end'>
+                    <Button
+                      size='sm'
+                      onClick={handleSaveNotes}
+                      disabled={savingNotes}
+                    >
+                      {savingNotes ? 'Saving...' : 'Save Notes'}
+                    </Button>
+                  </div>
                 </section>
               </CardContent>
             </Card>
