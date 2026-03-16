@@ -253,8 +253,14 @@ export function buildApplication(input: BuildFromJobDetailsRecordInput): SaveUse
 }
 
 // One-call details-page helper: normalize merged record -> persist to Firestore.
+// Also appends the applicant's userId to the job's applicantsId array in jobPostings.
 export async function applyToJobFromDetails(input: BuildFromJobDetailsRecordInput) {
+  const { userId, jobId } = input
+
   await saveUserApplication(buildApplication(input))
+
+  const jobRef = doc(db, 'jobPostings', jobId)
+  await setDoc(jobRef, { applicantsId: arrayUnion(userId) }, { merge: true })
 }
 
 // Persists the canonical application document using merge semantics.
