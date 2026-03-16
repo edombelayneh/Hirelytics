@@ -5,7 +5,7 @@
 // - Shows a redirecting overlay and then sends the user to the "Job Details" page using hash navigation.
 // - Saves job data to Firebase and checks user role (recruiter only)
 
-import { useEffect, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -24,6 +24,8 @@ type RecruiterJobPayload = {
   state: string
   city: string
   hourlyRate: number | null
+  paymentType: 'hourly' | 'salary'
+  paymentAmount: number | null
   visaRequired: boolean
   jobType: string
   employmentType: string
@@ -39,9 +41,6 @@ type RecruiterJobPayload = {
 export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJobPageProps) {
   const router = useRouter()
 
-import { useState } from 'react'
-
-export default function AddNewJobPage() {
   // Form field state
   const [jobName, setJobName] = useState('')
   const [companyName, setCompanyName] = useState('')
@@ -56,7 +55,6 @@ export default function AddNewJobPage() {
   const [visaRequired, setVisaRequired] = useState<boolean>(false)
   const [paymentType, setPaymentType] = useState<'hourly' | 'salary'>('hourly')
   const [paymentAmount, setPaymentAmount] = useState<number | ''>('')
-  const [visaRequired, setVisaRequired] = useState<'yes' | 'no' | ''>('')
   const [jobType, setJobType] = useState<'onsite' | 'remote' | 'hybrid' | ''>('')
   const [generalDescription, setGeneralDescription] = useState('')
   const [employmentType, setEmploymentType] = useState<
@@ -83,7 +81,7 @@ export default function AddNewJobPage() {
   // This prevents the form from default submission.
   // Saves the job data to Firebase in the 'jobs' collection
   // Show a short success message and redirect overlay.
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault() // Prevent page reload
 
     if (userRole !== 'recruiter') {
