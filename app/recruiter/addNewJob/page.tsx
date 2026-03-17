@@ -3,27 +3,39 @@
 // A form page that lets recruiters submit new jobs.
 // - Collect job information
 // - Shows a redirecting overlay and then sends the user to the "Job Details" page using hash navigation.
-// - Saves job data to Firebase and checks user role (recruiter only)
+// - Saves job data to Firebase in the 'jobPostings' collection and checks user role (recruiter only)
 
 import { type FormEvent, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { addDoc, collection } from 'firebase/firestore'
+import { db } from '../../lib/firebaseClient'
 
 type AddNewJobPageProps = {
   initialUserRole?: 'recruiter' | 'applicant'
 }
 
+// Matches the AvailableJob interface shape so the document is readable by the applicant job list,
+// plus extra recruiter-only fields saved alongside it.
 type RecruiterJobPayload = {
-  jobName: string
-  companyName: string
-  recruiterEmail: string
+  // AvailableJob fields
+  title: string
+  company: string
+  location: string
+  type: string
+  postedDate: string
+  salary: string
   description: string
-  qualifications: string
+  requirements: string[]
+  status: 'Open'
+  applyLink: string
+  recruiterId: string
+  // Extra fields from the form
+  recruiterEmail: string
   preferredSkills: string
   country: string
   state: string
   city: string
-  hourlyRate: number | null
   paymentType: 'hourly' | 'salary'
   paymentAmount: number | null
   visaRequired: boolean
@@ -32,7 +44,6 @@ type RecruiterJobPayload = {
   experienceLevel: string
   applicationDeadline: string
   generalDescription: string
-  recruiterId: string
   jobSource: 'internal'
   createdAt: string
 }
@@ -68,6 +79,7 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
 
   const [message, setMessage] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
   const [userRole] = useState<'recruiter' | 'applicant'>(initialUserRole)
 
@@ -79,9 +91,9 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
 
   // handleSubmit
   // This prevents the form from default submission.
-  // Saves the job data to Firebase in the 'jobs' collection
+  // Saves the job data to the 'jobPostings' Firestore collection.
   // Show a short success message and redirect overlay.
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault() // Prevent page reload
 
     if (userRole !== 'recruiter') {
@@ -98,18 +110,43 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
     }
 
     setSubmitting(true)
-    // Create job object (currently just logged)
+
+    // Build location string from individual fields
+    const location = [city, stateValue, country].filter(Boolean).join(', ')
+
+    // Build salary display string
+    const salaryDisplay =
+      paymentAmount !== ''
+        ? paymentType === 'hourly'
+          ? `$${paymentAmount}/hr`
+          : `$${Number(paymentAmount).toLocaleString()}/yr`
+        : ''
+
+    // Split qualifications by newline into a requirements array
+    const requirements = qualifications
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean)
+
     const jobData: RecruiterJobPayload = {
-      jobName,
-      companyName,
-      recruiterEmail,
+      // AvailableJob fields
+      title: jobName,
+      company: companyName,
+      location,
+      type: employmentType,
+      postedDate: new Date().toISOString().split('T')[0],
+      salary: salaryDisplay,
       description,
-      qualifications,
+      requirements,
+      status: 'Open',
+      applyLink: '#',
+      recruiterId: 'recruiter',
+      // Extra fields
+      recruiterEmail,
       preferredSkills,
       country,
       state: stateValue,
       city,
-      hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
       paymentType,
       paymentAmount: paymentAmount === '' ? null : paymentAmount,
       visaRequired,
@@ -118,24 +155,59 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
       experienceLevel,
       applicationDeadline,
       generalDescription,
-      recruiterId: 'recruiter',
       jobSource: 'internal',
       createdAt: new Date().toISOString(),
     }
 
-    console.log('New job submitted: ', jobData)
+    try {
+      await addDoc(collection(db, 'jobPostings'), jobData)
+    } catch (error) {
+      console.error('Failed to save job:', error)
+      setMessage('Failed to save job. Please try again.')
+      setSubmitting(false)
+      return
+    }
 
     setMessage('Job submitted. Redirecting to Job Details...')
-    setRedirecting(true)
+    setShowSuccessToast(true)
 
-    // small delay so the user sees the overlay, then go to my jobs
+    // Show success toast first, then show redirect overlay
     setTimeout(() => {
-      router.push('/recruiter/myJobs')
-    }, 2000)
+      setShowSuccessToast(false)
+      setRedirecting(true)
+    }, 1400)
+
+    // Small delay so user sees toast and overlay before navigation
+    setTimeout(() => {
+      router.push('/recruiter/JobDetails')
+    }, 3400)
   }
 
   return (
     <main className='min-h-screen bg-gray-50'>
+      {showSuccessToast && (
+        <div className='fixed bottom-4 right-4 z-[60]'>
+          <div className='flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-lg'>
+            <span className='inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-white'>
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                viewBox='0 0 20 20'
+                fill='currentColor'
+                className='h-4 w-4'
+                aria-hidden='true'
+              >
+                <path
+                  fillRule='evenodd'
+                  d='M16.704 5.29a1 1 0 0 1 .006 1.414l-8 8a1 1 0 0 1-1.42-.003l-4-4a1 1 0 0 1 1.414-1.414l3.294 3.293 7.296-7.29a1 1 0 0 1 1.41 0Z'
+                  clipRule='evenodd'
+                />
+              </svg>
+            </span>
+            <p className='text-sm font-medium text-emerald-900'>Job Successfully Saved</p>
+          </div>
+        </div>
+      )}
+
       {/* Overlay shown during redirect */}
       {redirecting && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
