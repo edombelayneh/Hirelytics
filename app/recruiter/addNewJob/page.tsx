@@ -6,10 +6,13 @@
 // - Saves job data to Firebase in the 'jobPostings' collection and checks user role (recruiter only)
 
 import { type FormEvent, useEffect, useState } from 'react'
+import { useUser } from '@clerk/nextjs'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { addDoc, collection } from 'firebase/firestore'
-import { db } from '../../lib/firebaseClient'
+import { addDoc, collection, getDocs } from 'firebase/firestore'
+import { db, firebaseAuth } from '../../lib/firebaseClient'
+import { availableJobs } from '../../data/availableJobs'
+import { getRecruiterProfile } from '../../utils/userProfiles'
 
 type AddNewJobPageProps = {
   initialUserRole?: 'recruiter' | 'applicant'
@@ -18,6 +21,7 @@ type AddNewJobPageProps = {
 // Matches the AvailableJob interface shape so the document is readable by the applicant job list,
 // plus extra recruiter-only fields saved alongside it.
 type RecruiterJobPayload = {
+  id: number
   // AvailableJob fields
   title: string
   company: string
@@ -51,6 +55,30 @@ type RecruiterJobPayload = {
 // Page for recruiters to create a new job
 export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJobPageProps) {
   const router = useRouter()
+  const { user, isLoaded } = useUser()
+
+  const getNextJobId = async () => {
+    const seededMaxId = availableJobs.reduce((maxId, job) => Math.max(maxId, job.id), 0)
+    const snapshot = await getDocs(collection(db, 'jobPostings'))
+
+    let maxPostedJobId = 0
+
+    snapshot.forEach((jobDoc) => {
+      const data = jobDoc.data() as { id?: unknown }
+      const numericId =
+        typeof data.id === 'number'
+          ? data.id
+          : typeof data.id === 'string'
+            ? Number(data.id)
+            : Number.NaN
+
+      if (Number.isFinite(numericId)) {
+        maxPostedJobId = Math.max(maxPostedJobId, numericId)
+      }
+    })
+
+    return Math.max(seededMaxId, maxPostedJobId) + 1
+  }
 
   // Form field state
   const [jobName, setJobName] = useState('')
@@ -82,12 +110,47 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
   const [showSuccessToast, setShowSuccessToast] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
   const [userRole] = useState<'recruiter' | 'applicant'>(initialUserRole)
+  const [hasEditedRecruiterEmail, setHasEditedRecruiterEmail] = useState(false)
 
   useEffect(() => {
     if (userRole !== 'recruiter') {
       router.replace('/')
     }
   }, [userRole, router])
+
+  useEffect(() => {
+    if (!isLoaded) return
+
+    let isCancelled = false
+
+    const hydrateRecruiterEmail = async () => {
+      const clerkEmail = user?.primaryEmailAddress?.emailAddress ?? ''
+      const uid = firebaseAuth.currentUser?.uid
+
+      let preferredEmail = clerkEmail
+
+      if (uid) {
+        try {
+          const recruiterProfile = await getRecruiterProfile(uid)
+          preferredEmail = recruiterProfile?.recruiterEmail?.trim() || clerkEmail
+        } catch (error) {
+          console.error('Failed to load recruiter profile email:', error)
+        }
+      }
+
+      if (isCancelled || hasEditedRecruiterEmail || !preferredEmail) return
+
+      setRecruiterEmail((currentEmail) => currentEmail || preferredEmail)
+    }
+
+    hydrateRecruiterEmail().catch((error) => {
+      console.error('Failed to hydrate recruiter email:', error)
+    })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [isLoaded, user?.id, user?.primaryEmailAddress?.emailAddress, hasEditedRecruiterEmail])
 
   // handleSubmit
   // This prevents the form from default submission.
@@ -128,7 +191,19 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
       .map((s) => s.trim())
       .filter(Boolean)
 
+    let nextJobId: number
+
+    try {
+      nextJobId = await getNextJobId()
+    } catch (error) {
+      console.error('Failed to generate job id:', error)
+      setMessage('Failed to generate job id. Please try again.')
+      setSubmitting(false)
+      return
+    }
+
     const jobData: RecruiterJobPayload = {
+      id: nextJobId,
       // AvailableJob fields
       title: jobName,
       company: companyName,
@@ -179,7 +254,7 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
 
     // Small delay so user sees toast and overlay before navigation
     setTimeout(() => {
-      router.push('/recruiter/JobDetails')
+      router.push(`/recruiter/JobDetails/${nextJobId}`)
     }, 3400)
   }
 
@@ -274,7 +349,10 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
             <input
               type='email'
               value={recruiterEmail}
-              onChange={(e) => setRecruiterEmail(e.target.value)}
+              onChange={(e) => {
+                setHasEditedRecruiterEmail(true)
+                setRecruiterEmail(e.target.value)
+              }}
               placeholder='recruiter@company.com'
               className='w-full border rounded p-2'
             />
