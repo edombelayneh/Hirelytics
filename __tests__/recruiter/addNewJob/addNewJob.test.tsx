@@ -1,14 +1,82 @@
-// app/addNewJob/AddNewJobPage.test.tsx
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import React from 'react'
 import AddNewJobPage from '../../../app/recruiter/addNewJob/page'
 
+const navigation = vi.hoisted(() => ({
+  push: vi.fn(),
+  replace: vi.fn(),
+}))
+
+type CollectionPath = { __collection: unknown[] }
+type SavedJobData = { id?: number | string }
+type MockQuerySnapshot = {
+  forEach: (callback: (doc: { data: () => SavedJobData }) => void) => void
+}
+
+const collectionMock = vi.fn((...args: unknown[]): CollectionPath => ({ __collection: args }))
+const addDocMock = vi.fn()
+const getDocsMock = vi.fn<(...args: unknown[]) => Promise<MockQuerySnapshot>>()
+const getRecruiterProfileMock = vi.fn()
+const useUserMock = vi.fn()
+
+const createSnapshot = (ids: Array<number | string>): MockQuerySnapshot => ({
+  forEach: (callback) => {
+    ids.forEach((id) => callback({ data: () => ({ id }) }))
+  },
+})
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => navigation,
+}))
+
+vi.mock('@clerk/nextjs', () => ({
+  useUser: () => useUserMock(),
+}))
+
+vi.mock('../../../app/lib/firebaseClient', () => ({
+  db: {},
+  firebaseAuth: {
+    currentUser: { uid: 'firebase-user-1' },
+  },
+}))
+
+vi.mock('../../../app/utils/userProfiles', () => ({
+  getRecruiterProfile: (...args: unknown[]) => getRecruiterProfileMock(...args),
+}))
+
+vi.mock('firebase/firestore', () => ({
+  collection: (...args: unknown[]) => collectionMock(...args),
+  addDoc: (...args: unknown[]) => addDocMock(...args),
+  getDocs: (...args: unknown[]) => getDocsMock(...args),
+}))
+
+function fillRequiredFields() {
+  fireEvent.change(screen.getByPlaceholderText('Software Engineer'), {
+    target: { value: 'Software Engineer' },
+  })
+  fireEvent.change(screen.getByPlaceholderText('Company Name'), {
+    target: { value: 'TechCorp' },
+  })
+  fireEvent.change(screen.getByPlaceholderText('Main role summary and responsibilities'), {
+    target: { value: 'Build web apps' },
+  })
+}
+
 describe('AddNewJobPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useFakeTimers()
-    window.location.hash = ''
+    addDocMock.mockResolvedValue(undefined)
+    getDocsMock.mockResolvedValue(createSnapshot([]))
+    getRecruiterProfileMock.mockResolvedValue({ recruiterEmail: 'profile@techcorp.com' })
+    useUserMock.mockReturnValue({
+      isLoaded: true,
+      user: {
+        id: 'user_123',
+        primaryEmailAddress: { emailAddress: 'clerk@techcorp.com' },
+      },
+    })
   })
 
   afterEach(() => {
@@ -24,8 +92,23 @@ describe('AddNewJobPage', () => {
     expect(screen.getByPlaceholderText('Company Name')).toBeTruthy()
     expect(screen.getByPlaceholderText('recruiter@company.com')).toBeTruthy()
     expect(screen.getByPlaceholderText('Main role summary and responsibilities')).toBeTruthy()
-
     expect(screen.getByRole('button', { name: /Add Job/i })).toBeTruthy()
+  })
+
+  it('prefills recruiter email from saved profile and still allows editing', async () => {
+    render(<AddNewJobPage />)
+
+    await vi.runAllTimersAsync()
+
+    const recruiterEmailInput = screen.getByPlaceholderText('recruiter@company.com')
+
+    expect((recruiterEmailInput as HTMLInputElement).value).toBe('profile@techcorp.com')
+
+    fireEvent.change(recruiterEmailInput, {
+      target: { value: 'edited@techcorp.com' },
+    })
+
+    expect((recruiterEmailInput as HTMLInputElement).value).toBe('edited@techcorp.com')
   })
 
   it('shows error message when required fields are missing', () => {
@@ -36,65 +119,81 @@ describe('AddNewJobPage', () => {
     expect(
       screen.getByText(/Please fill in Job Name, Company Name, Description, and Recruiter Email/i)
     ).toBeTruthy()
-
     expect(screen.queryByText(/Submitting job/i)).toBeNull()
   })
 
-  it('submits and shows redirect overlay, then updates hash to /jobs', () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+  it('shows unauthorized access message for non-recruiter submit attempt', () => {
+    const { container } = render(<AddNewJobPage initialUserRole='applicant' />)
 
+    const form = container.querySelector('form')
+    expect(form).toBeTruthy()
+    fireEvent.submit(form as HTMLFormElement)
+
+    expect(screen.getByText(/Unauthorized access/i)).toBeTruthy()
+    expect(screen.queryByText(/Submitting job/i)).toBeNull()
+    expect(navigation.replace).toHaveBeenCalledWith('/')
+  })
+
+  it('submits and shows redirect overlay, then routes to the created recruiter job details page', async () => {
     render(<AddNewJobPage />)
 
-    fireEvent.change(screen.getByPlaceholderText('Software Engineer'), {
-      target: { value: 'Software Engineer' },
-    })
-    fireEvent.change(screen.getByPlaceholderText('Company Name'), {
-      target: { value: 'TechCorp' },
-    })
-    fireEvent.change(screen.getByPlaceholderText('recruiter@company.com'), {
-      target: { value: 'recruiter@techcorp.com' },
-    })
-    fireEvent.change(screen.getByPlaceholderText('Main role summary and responsibilities'), {
-      target: { value: 'Build web apps' },
-    })
-    fireEvent.change(screen.getByPlaceholderText('e.g. 25'), {
-      target: { value: '25' },
-    })
+    await vi.runAllTimersAsync()
 
-    const selectFields = screen.getAllByRole('combobox')
-    const paymentTypeSelect = selectFields[0]
-    fireEvent.change(paymentTypeSelect, {
-      target: { value: 'salary' },
-    })
-
-    fireEvent.change(screen.getByPlaceholderText('e.g. 25'), {
-      target: { value: '25.75' },
-    })
+    fillRequiredFields()
 
     fireEvent.click(screen.getByRole('button', { name: /Add Job/i }))
 
-    // Button should change to "Saving..." + disabled
-    const savingBtn = screen.getByRole('button', { name: /Saving/i })
-    expect(savingBtn).toBeTruthy()
-    expect((savingBtn as HTMLButtonElement).disabled).toBe(true)
+    await vi.advanceTimersByTimeAsync(1400)
 
-    expect(logSpy).toHaveBeenCalledWith(
-      'New job submitted: ',
+    expect(addDocMock).toHaveBeenCalledTimes(1)
+    expect(screen.getByText(/Job submitted\. Redirecting to Job Details/i)).toBeTruthy()
+    expect(screen.getByText(/Submitting job/i)).toBeTruthy()
+    expect(screen.getByText(/Redirecting you to the Job Details page/i)).toBeTruthy()
+
+    await vi.advanceTimersByTimeAsync(2000)
+    expect(navigation.push).toHaveBeenCalledWith('/recruiter/JobDetails/16')
+  })
+
+  it('generates the next numeric job id before saving', async () => {
+    getDocsMock.mockResolvedValue(createSnapshot([16, '22']))
+
+    render(<AddNewJobPage />)
+
+    await vi.runAllTimersAsync()
+
+    fillRequiredFields()
+
+    fireEvent.click(screen.getByRole('button', { name: /Add Job/i }))
+
+    await vi.runAllTimersAsync()
+
+    expect(addDocMock).toHaveBeenCalledTimes(1)
+    const savedPayload = addDocMock.mock.calls[0][1] as Record<string, unknown>
+
+    expect(savedPayload.id).toBe(23)
+    expect(typeof savedPayload.id).toBe('number')
+    expect(savedPayload).toEqual(
       expect.objectContaining({
-        paymentType: 'salary',
+        title: 'Software Engineer',
+        company: 'TechCorp',
+        recruiterEmail: 'profile@techcorp.com',
       })
     )
+  })
 
-    // Message + overlay
-    expect(screen.getByText(/Job submitted\. Redirecting to Available Jobs/i)).toBeTruthy()
-    expect(screen.getByText(/Submitting job/i)).toBeTruthy()
-    expect(screen.getByText(/Redirecting you to the Available Jobs page/i)).toBeTruthy()
+  it('navigates using the generated job id when higher ids already exist', async () => {
+    getDocsMock.mockResolvedValue(createSnapshot([16, '22']))
 
-    // Redirect after 2s
-    expect(window.location.hash).toBe('')
-    vi.advanceTimersByTime(2000)
-    expect(window.location.hash).toBe('#/jobs')
+    render(<AddNewJobPage />)
 
-    logSpy.mockRestore()
+    await vi.runAllTimersAsync()
+
+    fillRequiredFields()
+
+    fireEvent.click(screen.getByRole('button', { name: /Add Job/i }))
+
+    await vi.runAllTimersAsync()
+
+    expect(navigation.push).toHaveBeenCalledWith('/recruiter/JobDetails/23')
   })
 })

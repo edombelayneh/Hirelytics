@@ -146,7 +146,7 @@ describe('AvailableJobsList', () => {
     )
 
     const addJob = screen.getByRole('link', { name: /Add Job/i })
-    expect(addJob.getAttribute('href')).toBe('#/addNewJob')
+    expect(addJob.getAttribute('href')).toBe('/recruiter/addNewJob')
   })
 
   it('does not render Add Job link for applicants', () => {

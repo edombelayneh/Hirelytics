@@ -9,7 +9,7 @@ import type { UserProfile } from '../../../app/data/profileData'
 
 declare global {
   // keep it minimal and typed
-  // eslint-disable-next-line no-var
+// eslint-disable-next-line no-var
   var __mockCurrentUser: { uid: string } | null
 }
 
