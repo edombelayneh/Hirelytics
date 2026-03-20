@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
 import React from 'react'
 import AddExternalJobPage from '../../../app/applicant/addExternalJob/page'
 
@@ -12,15 +12,42 @@ vi.mock('next/navigation', () => ({
   }),
 }))
 
+vi.mock('@clerk/nextjs', () => ({
+  useAuth: () => ({
+    userId: 'user-123',
+    isLoaded: true,
+  }),
+}))
+
+const setDocMock = vi.fn()
+const docMock = vi.fn((_db, ...segments: string[]) => ({ path: segments.join('/') }))
+const serverTimestampMock = vi.fn(() => 'SERVER_TS')
+
+vi.mock('firebase/firestore', () => ({
+  setDoc: (...args: unknown[]) => setDocMock(...args),
+  doc: (...args: unknown[]) => docMock(...args),
+  serverTimestamp: () => serverTimestampMock(),
+}))
+
+vi.mock('../../../app/lib/firebaseClient', () => ({ db: {} }))
+
 describe('AddExternalJobPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useFakeTimers()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ scraped: {} }),
+      }))
+    )
   })
 
   afterEach(() => {
     vi.runOnlyPendingTimers()
     vi.useRealTimers()
+    vi.unstubAllGlobals()
     cleanup()
   })
 
@@ -34,7 +61,7 @@ describe('AddExternalJobPage', () => {
     expect(screen.getByRole('button', { name: /Next/i })).toBeTruthy()
   })
 
-  it('moves to Step 2 after entering a valid URL and clicking Next', () => {
+  it('moves to Step 2 after entering a valid URL and clicking Next', async () => {
     render(<AddExternalJobPage />)
 
     fireEvent.change(
@@ -47,11 +74,13 @@ describe('AddExternalJobPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /Next/i }))
 
     // Step 2 fields
-    expect(screen.getByPlaceholderText('Software Engineer')).toBeTruthy()
-    expect(screen.getByPlaceholderText('Company Name')).toBeTruthy()
-    expect(
-      screen.getByPlaceholderText('Main role summary and responsibilities')
-    ).toBeTruthy()
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Software Engineer')).toBeTruthy()
+      expect(screen.getByPlaceholderText('Company Name')).toBeTruthy()
+      expect(
+        screen.getByPlaceholderText('Main role summary and responsibilities')
+      ).toBeTruthy()
+    })
 
     // Step 2 buttons
     expect(screen.getByRole('button', { name: /Back/i })).toBeTruthy()
@@ -59,7 +88,7 @@ describe('AddExternalJobPage', () => {
     expect(screen.getByRole('button', { name: /^Save$/i })).toBeTruthy()
   })
 
-  it('shows error message when required fields are missing on Step 2', () => {
+  it('shows error message when required fields are missing on Step 2', async () => {
     render(<AddExternalJobPage />)
 
     fireEvent.change(
@@ -70,6 +99,10 @@ describe('AddExternalJobPage', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: /Next/i }))
 
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^Save$/i })).toBeTruthy()
+    })
+
     // Click save without filling required fields
     fireEvent.click(screen.getByRole('button', { name: /^Save$/i }))
 
@@ -78,9 +111,7 @@ describe('AddExternalJobPage', () => {
     ).toBeTruthy()
   })
 
-  it('saves successfully, shows overlay, then redirects to /applicant/applications after delay', () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
+  it('saves successfully, shows overlay, writes Firestore, then redirects after delay', async () => {
     render(<AddExternalJobPage />)
 
     // Step 1
@@ -91,6 +122,10 @@ describe('AddExternalJobPage', () => {
       }
     )
     fireEvent.click(screen.getByRole('button', { name: /Next/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^Save$/i })).toBeTruthy()
+    })
 
     // Step 2 required fields
     fireEvent.change(screen.getByPlaceholderText('Software Engineer'), {
@@ -120,13 +155,12 @@ describe('AddExternalJobPage', () => {
 
     // Router should not have pushed yet
     expect(pushMock).not.toHaveBeenCalled()
+    expect(setDocMock).toHaveBeenCalledTimes(1)
 
     // We used ~800ms in the component; advance past that
     vi.advanceTimersByTime(1000)
 
     expect(pushMock).toHaveBeenCalledWith('/applicant/applications')
-
-    logSpy.mockRestore()
   })
 
   it('Cancel on Step 1 redirects immediately using router.push', () => {

@@ -13,6 +13,9 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@clerk/nextjs'
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { db } from '../../lib/firebaseClient'
 
 // Controlled select fields types
 type VisaRequired = 'yes' | 'no' | ''
@@ -31,6 +34,21 @@ type JobSource =
   | ''
 type PaymentType = 'hourly' | 'salary' | ''
 
+type ScrapedJobPayload = {
+  title?: string
+  companyName?: string
+  description?: string
+  qualifications?: string
+  preferredSkills?: string
+  country?: string
+  state?: string
+  city?: string
+  employmentType?: string
+  workArrangement?: string
+  paymentAmount?: string
+  paymentType?: string
+}
+
 // Returns todays date, used as default value for applicationDate
 function safeToday() {
   const d = new Date()
@@ -46,14 +64,73 @@ function guessCompanyFromUrl(url: string) {
     const u = new URL(url)
     const host = u.hostname.replace('www.', '')
     const base = host.split('.')[0] || 'Unknown'
+    const normalized = base.toLowerCase()
+    const platformHosts = new Set([
+      'linkedin',
+      'indeed',
+      'glassdoor',
+      'google',
+      'greenhouse',
+      'lever',
+      'workday',
+      'ziprecruiter',
+      'monster',
+      'dice',
+      'builtin',
+      'wellfound',
+    ])
+
+    if (platformHosts.has(normalized)) return ''
+
     return base.charAt(0).toUpperCase() + base.slice(1)
   } catch {
-    return 'Unknown Company'
+    return ''
   }
+}
+
+function inferJobSource(url: string): JobSource {
+  try {
+    const host = new URL(url).hostname.toLowerCase()
+    if (host.includes('linkedin')) return 'LinkedIn'
+    if (host.includes('indeed')) return 'Indeed'
+    if (host.includes('handshake')) return 'Handshake'
+    if (host.includes('glassdoor')) return 'Glassdoor'
+    if (host.includes('google')) return 'Google Jobs'
+    return 'Company Career Page'
+  } catch {
+    return 'Other'
+  }
+}
+
+function normalizeEmploymentType(value: string): EmploymentType {
+  const lower = value.toLowerCase()
+  if (lower.includes('full')) return 'full-time'
+  if (lower.includes('part')) return 'part-time'
+  if (lower.includes('contract')) return 'contract'
+  if (lower.includes('intern')) return 'internship'
+  return ''
+}
+
+function normalizeWorkArrangement(value: string): WorkArrangement {
+  const lower = value.toLowerCase()
+  if (lower.includes('hybrid')) return 'hybrid'
+  if (lower.includes('remote')) return 'remote'
+  if (lower.includes('onsite') || lower.includes('on-site') || lower.includes('in person')) {
+    return 'onsite'
+  }
+  return ''
+}
+
+function normalizePaymentType(value: string): PaymentType {
+  const lower = value.toLowerCase()
+  if (lower.includes('hour')) return 'hourly'
+  if (lower.includes('salary') || lower.includes('year') || lower.includes('annual')) return 'salary'
+  return ''
 }
 
 export default function AddExternalJobPage() {
   const router = useRouter()
+  const { userId, isLoaded } = useAuth()
 
   // Step control
   const [step, setStep] = useState<1 | 2>(1)
@@ -84,6 +161,7 @@ export default function AddExternalJobPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
+  const [scraping, setScraping] = useState(false)
 
   // Enables next button only if URL is valid
   const canGoNext = useMemo(() => {
@@ -113,7 +191,7 @@ export default function AddExternalJobPage() {
     setJobName((prev) => prev || 'Unknown Position')
   }, [step, jobUrl])
 
-  const handleNext = () => {
+  const handleNext = async () => {
     setUrlError(null)
     setMessage(null)
 
@@ -132,7 +210,47 @@ export default function AddExternalJobPage() {
       return
     }
 
-    setStep(2)
+    setScraping(true)
+
+    try {
+      const response = await fetch('/api/scrape-job', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      })
+
+      if (response.ok) {
+        const data = (await response.json()) as { scraped?: ScrapedJobPayload }
+        const scraped = data.scraped
+
+        if (scraped) {
+          setJobName((prev) => prev || scraped.title || 'Unknown Position')
+          setCompanyName((prev) => prev || scraped.companyName || guessCompanyFromUrl(url))
+          setDescription((prev) => prev || scraped.description || '')
+          setQualifications((prev) => prev || scraped.qualifications || '')
+          setPreferredSkills((prev) => prev || scraped.preferredSkills || '')
+          setCountry((prev) => prev || scraped.country || '')
+          setStateValue((prev) => prev || scraped.state || '')
+          setCity((prev) => prev || scraped.city || '')
+          setEmploymentType(
+            (prev) => prev || normalizeEmploymentType(scraped.employmentType || '')
+          )
+          setWorkArrangement(
+            (prev) => prev || normalizeWorkArrangement(scraped.workArrangement || '')
+          )
+          setPaymentAmount((prev) => prev || scraped.paymentAmount || '')
+          setPaymentType((prev) => prev || normalizePaymentType(scraped.paymentType || ''))
+        }
+      } else {
+        setMessage('We could not fully scrape this page. Please confirm details manually.')
+      }
+    } catch {
+      setMessage('We could not fully scrape this page. Please confirm details manually.')
+    } finally {
+      setScraping(false)
+      setJobSource((prev) => (prev && prev !== 'Other' ? prev : inferJobSource(url)))
+      setStep(2)
+    }
   }
 
   const handleBack = () => {
@@ -155,16 +273,33 @@ export default function AddExternalJobPage() {
     setSaving(true)
 
     try {
+      if (!isLoaded || !userId) {
+        setMessage('Please sign in before saving an external job.')
+        return
+      }
+
+      const applicationId = `external-${Date.now()}`
+
       const trackedJob = {
-        id: `tracked-${Date.now()}`,
+        id: applicationId,
+        jobId: applicationId,
+        userId,
         jobLink: jobUrl.trim(),
-        jobSource,
+        jobSource: jobSource || inferJobSource(jobUrl.trim()),
         applicationDate,
-        jobName: jobName.trim(),
+        position: jobName.trim(),
+        title: jobName.trim(),
+        company: companyName.trim(),
         companyName: companyName.trim(),
+        contactPerson: companyContact.trim(),
         companyContact: companyContact.trim(),
         description: description.trim(),
+        generalDescription: description.trim(),
         qualifications: qualifications.trim(),
+        requirements: qualifications
+          .split(/\n|,|;/)
+          .map((item) => item.trim())
+          .filter(Boolean),
         preferredSkills: preferredSkills.trim(),
         country: country.trim(),
         state: stateValue.trim(),
@@ -178,11 +313,13 @@ export default function AddExternalJobPage() {
         status: 'Applied',
         outcome: 'Pending',
         notes: '',
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       }
 
-      // For now: just log
-      console.log('Tracked job saved:', trackedJob)
+      await setDoc(doc(db, 'users', userId, 'applications', applicationId), trackedJob, {
+        merge: true,
+      })
 
       setMessage('Saved. Redirecting to My Applications...')
       setRedirecting(true)
@@ -247,9 +384,9 @@ export default function AddExternalJobPage() {
                 type='button'
                 className='rounded bg-black text-white px-4 py-2 disabled:opacity-50'
                 onClick={handleNext}
-                disabled={!canGoNext}
+                disabled={!canGoNext || scraping}
               >
-                Next
+                {scraping ? 'Scraping...' : 'Next'}
               </button>
             </div>
           </div>
