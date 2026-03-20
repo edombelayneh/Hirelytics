@@ -282,4 +282,22 @@ describe('JobCard', () => {
     const button = within(card).getByRole('button', { name: /Applied/i })
     expect(button).toBeTruthy()
   })
+
+  // --- Test that Apply button is not shown when showApplyButton is false ---
+  it('does not render Apply button when showApplyButton is false', () => {
+    render(
+      <JobCard
+        job={mockJob}
+        onApply={mockOnApply}
+        isApplied={false}
+        showApplyButton={false}
+      />
+    )
+    const card = screen.getByTestId('job-card-1')
+    const applyButton = within(card).queryByRole('button', { name: /Apply Now/i })
+    expect(applyButton).toBeNull()
+    // View Details button should still be there and full width
+    const viewButton = within(card).getByRole('link', { name: /View Details/i })
+    expect(viewButton).toBeTruthy()
+  })
 })
