@@ -34,7 +34,6 @@ vi.mock('../../../app/lib/firebaseClient', () => ({ db: {} }))
 describe('AddExternalJobPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.useFakeTimers()
     vi.stubGlobal(
       'fetch',
       vi.fn(async () => ({
@@ -45,7 +44,6 @@ describe('AddExternalJobPage', () => {
   })
 
   afterEach(() => {
-    vi.runOnlyPendingTimers()
     vi.useRealTimers()
     vi.unstubAllGlobals()
     cleanup()
@@ -145,22 +143,22 @@ describe('AddExternalJobPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Save$/i }))
 
     // Message + overlay text
-    expect(
-      screen.getByText(/Saved\. Redirecting to My Applications\.\.\./i)
-    ).toBeTruthy()
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Saved\. Redirecting to My Applications\.\.\./i)
+      ).toBeTruthy()
+    })
     expect(screen.getByText(/Saving application\.\.\./i)).toBeTruthy()
-    expect(
-      screen.getByText(/Redirecting you to My Applications\./i)
-    ).toBeTruthy()
+    expect(screen.getByText(/Redirecting you to My Applications\./i)).toBeTruthy()
 
     // Router should not have pushed yet
     expect(pushMock).not.toHaveBeenCalled()
     expect(setDocMock).toHaveBeenCalledTimes(1)
 
-    // We used ~800ms in the component; advance past that
-    vi.advanceTimersByTime(1000)
-
-    expect(pushMock).toHaveBeenCalledWith('/applicant/applications')
+    // Redirect runs after an ~800ms timeout in the component.
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith('/applicant/applications')
+    })
   })
 
   it('Cancel on Step 1 redirects immediately using router.push', () => {

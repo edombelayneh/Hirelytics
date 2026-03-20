@@ -138,7 +138,8 @@ export function buildApplication({
 	const company = toText(mergedJob.company) || toText(mergedJob.companyName) || fallback.company
 	const location = toText(mergedJob.location) || fallback.location
 	const locationParts = parseLocation(location)
-	const city = toText(mergedJob.city) || locationParts.city
+	const hasExplicitCountry = Boolean(toText(mergedJob.country))
+	const city = toText(mergedJob.city) || (hasExplicitCountry ? location : locationParts.city)
 	const country = toText(mergedJob.country) || locationParts.country
 	const requirements =
 		toStringList(mergedJob.requirements).length > 0
@@ -181,11 +182,17 @@ export function buildApplication({
 
 export async function saveUserApplication(application: ApplicationPayload): Promise<void> {
 	const ref = doc(db, 'users', application.userId, 'applications', application.jobId)
+	const normalizedApplication = {
+		...application,
+		id: application.id || application.jobId,
+		status: application.status || 'Applied',
+		outcome: application.outcome || 'Pending',
+	}
 
 	await setDoc(
 		ref,
 		{
-			...application,
+			...normalizedApplication,
 			createdAt: serverTimestamp(),
 			updatedAt: serverTimestamp(),
 		},
