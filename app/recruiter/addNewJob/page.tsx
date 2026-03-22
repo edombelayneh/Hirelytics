@@ -57,14 +57,21 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
   const router = useRouter()
   const { user, isLoaded } = useUser()
 
+  // Returns the next available job ID by finding the highest existing ID.
+  // both the seeded static job list and all Firestore job postings, then adding 1.
   const getNextJobId = async () => {
+    // Find the highest ID in the local seeded jobs array
     const seededMaxId = availableJobs.reduce((maxId, job) => Math.max(maxId, job.id), 0)
+
+    // Fetch all job postings from Firestore to check for any higher IDs
     const snapshot = await getDocs(collection(db, 'jobPostings'))
 
     let maxPostedJobId = 0
 
     snapshot.forEach((jobDoc) => {
       const data = jobDoc.data() as { id?: unknown }
+
+      // Normalize the id field.
       const numericId =
         typeof data.id === 'number'
           ? data.id
@@ -72,11 +79,13 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
             ? Number(data.id)
             : Number.NaN
 
+      // Only track valid finite numbers.
       if (Number.isFinite(numericId)) {
         maxPostedJobId = Math.max(maxPostedJobId, numericId)
       }
     })
 
+    // Return one higher than the largest ID found across both sources.
     return Math.max(seededMaxId, maxPostedJobId) + 1
   }
 
@@ -112,35 +121,39 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
   const [userRole] = useState<'recruiter' | 'applicant'>(initialUserRole)
   const [hasEditedRecruiterEmail, setHasEditedRecruiterEmail] = useState(false)
 
+  // Redirects applicants away from this page.
   useEffect(() => {
     if (userRole !== 'recruiter') {
-      router.replace('/')
+      router.replace('/') // Send applicant users back to the home page.
     }
   }, [userRole, router])
 
+  // Pre-fill the recruiter email field.
+  // Prefers the email stored in the Firebase recruiter profile over the Clerk primary email.
+  // Skips the update if the user has already manually edited the field.
   useEffect(() => {
-    if (!isLoaded) return
+    if (!isLoaded) return // Wait until Clerk has finished loading the user.
 
     let isCancelled = false
 
     const hydrateRecruiterEmail = async () => {
-      const clerkEmail = user?.primaryEmailAddress?.emailAddress ?? ''
-      const uid = firebaseAuth.currentUser?.uid
+      const clerkEmail = user?.primaryEmailAddress?.emailAddress ?? '' // Fallback email from Clerk.
+      const uid = firebaseAuth.currentUser?.uid // Firebase UID for profile lookup.
 
-      let preferredEmail = clerkEmail
+      let preferredEmail = clerkEmail // Start with Clerk email as the default.
 
       if (uid) {
         try {
           const recruiterProfile = await getRecruiterProfile(uid)
-          preferredEmail = recruiterProfile?.recruiterEmail?.trim() || clerkEmail
+          preferredEmail = recruiterProfile?.recruiterEmail?.trim() || clerkEmail // Prefer Firebase profile email if available
         } catch (error) {
           console.error('Failed to load recruiter profile email:', error)
         }
       }
 
-      if (isCancelled || hasEditedRecruiterEmail || !preferredEmail) return
+      if (isCancelled || hasEditedRecruiterEmail || !preferredEmail) return // Bail if stale, user-edited, or empty.
 
-      setRecruiterEmail((currentEmail) => currentEmail || preferredEmail)
+      setRecruiterEmail((currentEmail) => currentEmail || preferredEmail) // Only set if field is still empty.
     }
 
     hydrateRecruiterEmail().catch((error) => {
@@ -148,7 +161,7 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
     })
 
     return () => {
-      isCancelled = true
+      isCancelled = true // Mark as cancelled on cleanup.
     }
   }, [isLoaded, user?.id, user?.primaryEmailAddress?.emailAddress, hasEditedRecruiterEmail])
 
@@ -293,7 +306,7 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
         </div>
       )}
 
-      <div className='px-6 pt-4'>
+      <div className='max-w-3xl mx-auto px-6 pt-4'>
         <Link
           href='/recruiter/myJobs'
           className='inline-flex items-center rounded border px-3 py-1.5 text-sm'
