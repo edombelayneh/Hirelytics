@@ -13,6 +13,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@clerk/nextjs'
+import { saveExternalJob } from '../../utils/applicationFirebase'
 
 // Controlled select fields types
 type VisaRequired = 'yes' | 'no' | ''
@@ -54,6 +56,7 @@ function guessCompanyFromUrl(url: string) {
 
 export default function AddExternalJobPage() {
   const router = useRouter()
+  const { userId, isLoaded } = useAuth()
 
   // Step control
   const [step, setStep] = useState<1 | 2>(1)
@@ -145,6 +148,12 @@ export default function AddExternalJobPage() {
     e.preventDefault()
     setMessage(null)
 
+    // Ensure user is authenticated
+    if (!isLoaded || !userId) {
+      setMessage('Please log in to save job applications.')
+      return
+    }
+
     // Basic validation
     if (!jobName.trim() || !companyName.trim() || !description.trim()) {
       setMessage('Please fill in Job Name, Company Name, and Description.')
@@ -155,11 +164,10 @@ export default function AddExternalJobPage() {
     setSaving(true)
 
     try {
-      const trackedJob = {
-        id: `tracked-${Date.now()}`,
-        jobLink: jobUrl.trim(),
-        jobSource,
-        applicationDate,
+      // Save to Firebase.
+      await saveExternalJob({
+        userId,
+        jobUrl: jobUrl.trim(),
         jobName: jobName.trim(),
         companyName: companyName.trim(),
         companyContact: companyContact.trim(),
@@ -175,14 +183,9 @@ export default function AddExternalJobPage() {
         workArrangement,
         employmentType,
         experienceLevel,
-        status: 'Applied',
-        outcome: 'Pending',
-        notes: '',
-        createdAt: new Date().toISOString(),
-      }
-
-      // For now: just log
-      console.log('Tracked job saved:', trackedJob)
+        applicationDate,
+        jobSource,
+      })
 
       setMessage('Saved. Redirecting to My Applications...')
       setRedirecting(true)

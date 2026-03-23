@@ -52,6 +52,8 @@ const mockApplications: JobApplication[] = [
   },
 ]
 
+let snapshotApplications: JobApplication[] = mockApplications
+
 /* -------------------------------------------------------------------------- */
 /*                               GLOBAL MOCKS                                 */
 /* -------------------------------------------------------------------------- */
@@ -91,7 +93,7 @@ vi.mock('firebase/firestore', () => ({
   onSnapshot: vi.fn(
     (_q: unknown, callback: (snap: Snapshot<JobApplication>) => void): Unsubscribe => {
       callback({
-        docs: mockApplications.map((a) => ({
+        docs: snapshotApplications.map((a) => ({
           id: a.id,
           data: () => a,
         })),
@@ -151,6 +153,7 @@ describe('MyApplicationsPage', () => {
   beforeEach(() => {
     // Clear mocks before each test to reset call counts and arguments
     vi.clearAllMocks()
+    snapshotApplications = mockApplications
   })
 
   afterEach(() => {
@@ -229,5 +232,36 @@ describe('MyApplicationsPage', () => {
 
     expect(screen.getByRole('heading', { name: /Dashboard Overview/i })).toBeTruthy()
     expect(screen.getByRole('heading', { name: /Key Metrics/i })).toBeTruthy()
+  })
+
+  it('displays external jobs alongside platform jobs on the applications page', () => {
+    // Create a mix of platform jobs and external jobs to verify they all show up
+    const externalJob: JobApplication = {
+      id: 'external-1234567890',
+      company: 'ExternalCorp',
+      country: 'USA',
+      city: 'Remote',
+      jobLink: 'https://www.linkedin.com/jobs/view/123',
+      position: 'Senior Backend Engineer',
+      applicationDate: '2026-03-20',
+      status: 'Applied',
+      contactPerson: 'recruiter@external.com',
+      notes: 'External job added via Add External Job feature',
+      jobSource: 'LinkedIn',
+      outcome: 'Pending',
+    }
+
+    const allApplicationsWithExternal: JobApplication[] = [...mockApplications, externalJob]
+
+    // Feed external + platform jobs through the global Firestore snapshot mock
+    snapshotApplications = allApplicationsWithExternal
+
+    render(<MyApplicationsPage />)
+
+    // Verify total count includes external job
+    expect(screen.getByTestId('applications-table').textContent).toContain('4 applications')
+
+    // Verify the external job is passed to ApplicationsTable
+    expect(screen.getByTestId('hero-panel').textContent).toContain('4 applications')
   })
 })
