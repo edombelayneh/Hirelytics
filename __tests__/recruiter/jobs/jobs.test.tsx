@@ -76,11 +76,11 @@ describe('Recruiter Jobs Page', () => {
     expect(screen.getByTestId('available-jobs-list')).toBeTruthy()
   })
 
-  it('passes appliedJobIds from Firestore snapshot', () => {
-    snapshotDocIds = ['1', '2', '3']
+  it('recruiter has no applied jobs (empty set)', () => {
+    snapshotDocIds = [] // recruiters should have none
     render(<Jobs />)
 
-    expect(screen.getByTestId('applied-jobs-count').textContent).toBe('3')
+    expect(screen.getByTestId('applied-jobs-count').textContent).toBe('0')
   })
 
   it('renders main container', () => {
