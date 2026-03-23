@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import JobDetailsPage from '../../../../app/recruiter/jobs/[jobId]/page'
+import JobDetailsPage from '../../../../app/applicant/jobs/[jobId]/page'
 
 // Router push spy used to assert back-button navigation behavior.
 const pushMock = vi.fn()

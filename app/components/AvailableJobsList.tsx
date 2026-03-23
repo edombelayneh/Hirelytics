@@ -137,6 +137,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
             onApply={onApply}
             isApplied={appliedJobIds.has(job.id)}
             showApplyButton={role !== 'recruiter'}
+            role={role === 'recruiter' ? 'recruiter' : 'applicant'}
           />
         ))}
       </div>
