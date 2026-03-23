@@ -120,7 +120,7 @@ export function buildApplicationFromAvailableJob(
     country: '',
     city: job.location ?? '',
     contactPerson: '',
-    jobSource: job.jobSource ?? 'Hirelytics',
+    jobSource: 'Hirelytics',
     jobLink: '',
     jobDetails: {
       id: jobId,
@@ -288,6 +288,113 @@ export async function saveUserApplication(input: SaveUserApplicationInput) {
       notes,
       jobLink,
       jobDetails,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  )
+}
+
+// Type for external job data from the Add External Job form.
+export type SaveExternalJobInput = {
+  userId: string
+  jobUrl: string
+  jobName: string
+  companyName: string
+  companyContact: string
+  description: string
+  qualifications: string
+  preferredSkills: string
+  country: string
+  state: string
+  city: string
+  paymentAmount: string
+  paymentType: 'hourly' | 'salary' | ''
+  visaRequired: 'yes' | 'no' | ''
+  workArrangement: 'onsite' | 'remote' | 'hybrid' | ''
+  employmentType: 'full-time' | 'part-time' | 'contract' | 'internship' | ''
+  experienceLevel: 'entry' | 'mid' | 'senior' | 'lead' | ''
+  applicationDate: string
+  jobSource: string
+}
+
+// Saves an externally-sourced job to user's applications.
+// Creates a unique document in Firestore at users/{userId}/applications/{jobId}.
+export async function saveExternalJob(input: SaveExternalJobInput) {
+  const {
+    userId,
+    jobUrl,
+    jobName,
+    companyName,
+    companyContact,
+    description,
+    qualifications,
+    preferredSkills,
+    country,
+    state,
+    city,
+    paymentAmount,
+    paymentType,
+    visaRequired,
+    workArrangement,
+    employmentType,
+    experienceLevel,
+    applicationDate,
+    jobSource,
+  } = input
+
+  // Generate a unique ID for this external job.
+  const jobId = `external-${Date.now()}`
+
+  // Build location string.
+  const locationParts = [city, state, country].filter(Boolean)
+  const location = locationParts.join(', ')
+
+  const ref = doc(db, 'users', userId, 'applications', jobId)
+
+  await setDoc(
+    ref,
+    {
+      id: jobId,
+      jobId,
+      company: companyName,
+      position: jobName,
+      country,
+      city,
+      applicationDate, // Use the form's application date.
+      status: 'Applied',
+      contactPerson: companyContact,
+      jobSource,
+      outcome: 'Pending',
+      notes: '',
+      jobLink: jobUrl,
+      isExternal: true, // Flag to identify external jobs.
+      jobDetails: {
+        id: jobId,
+        title: jobName,
+        company: companyName,
+        location,
+        type: employmentType || '',
+        postedDate: applicationDate,
+        salary: paymentAmount
+          ? `${paymentType === 'hourly' ? '$' : ''}${paymentAmount}${paymentType === 'hourly' ? '/hr' : '/year'}`
+          : '',
+        description,
+        requirements: qualifications ? qualifications.split('\n').filter(Boolean) : [],
+        status: 'Applied',
+        applyLink: jobUrl,
+        recruiterId: '',
+      },
+      externalJobMetadata: {
+        qualifications,
+        preferredSkills,
+        paymentType,
+        visaRequired,
+        workArrangement,
+        employmentType,
+        experienceLevel,
+        state,
+      },
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     },
