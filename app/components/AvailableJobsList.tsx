@@ -50,7 +50,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
   })
 
   // Extract unique job types dynamically for dropdown options
-  const uniqueTypes = Array.from(new Set(jobs.map((job) => job.type)))
+  const uniqueTypes = Array.from(new Set(jobs.map((job) => job.type))).filter(Boolean)
 
   return (
     <div className='space-y-6'>
