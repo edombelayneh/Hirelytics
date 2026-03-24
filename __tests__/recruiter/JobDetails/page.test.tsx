@@ -1,12 +1,61 @@
 // __tests__/recruiter/jobDetails/JobDetailsPage.test.tsx
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, waitFor } from '@testing-library/react'
 import React from 'react'
 import JobDetailsPage from '../../../app/recruiter/JobDetails/[jobId]/page'
 
 /* -------------------------------------------------------------------------- */
 /*                                   MOCKS                                    */
 /* -------------------------------------------------------------------------- */
+
+// Clerk: component uses useAuth to identify the signed-in recruiter
+vi.mock('@clerk/nextjs', () => ({
+  useAuth: vi.fn(() => ({ userId: 'recruiter-uid-1', isLoaded: true })),
+}))
+
+// Firebase client stub — avoids real SDK initialization in tests
+vi.mock('../../../app/lib/firebaseClient', () => ({ db: {} }))
+
+// Firestore mock:
+// - onSnapshot delivers job data synchronously (including 3 applicant uids)
+// - getDoc resolves with profile data for each applicant uid
+vi.mock('firebase/firestore', () => ({
+  doc: vi.fn((...args: unknown[]) => ({ path: args })),
+  onSnapshot: vi.fn(
+    (
+      _ref: unknown,
+      cb: (snap: { exists: () => boolean; id: string; data: () => Record<string, unknown> }) => void
+    ) => {
+      cb({
+        exists: () => true,
+        id: 'job-123',
+        data: () => ({
+          title: 'Software Engineer Intern',
+          company: 'Hirelytics',
+          location: 'Remote',
+          type: 'Full-time',
+          postedDate: '2025-10-20',
+          description: 'Build great things.',
+          applicantsId: ['a1', 'a2', 'a3'],
+        }),
+      })
+      return vi.fn()
+    }
+  ),
+  getDoc: vi.fn((ref: { path: unknown[] }) => {
+    const uid = ref.path[2] as string
+    const names: Record<string, { firstName: string; lastName: string }> = {
+      a1: { firstName: 'Edom', lastName: 'Belayneh' },
+      a2: { firstName: 'Jane', lastName: 'Smith' },
+      a3: { firstName: 'John', lastName: 'Doe' },
+    }
+    const profile = names[uid] ?? { firstName: 'Unknown', lastName: 'User' }
+    return Promise.resolve({
+      exists: () => true,
+      data: () => ({ profile }),
+    })
+  }),
+}))
 
 // next/link -> plain <a> so we can assert href
 vi.mock('next/link', () => ({
@@ -101,33 +150,34 @@ describe('JobDetailsPage', () => {
     cleanup()
   })
 
-  it('renders the return link to recruiter myJobs', () => {
-    // Just check that the link is there with the correct href - we can trust Next's Link component to handle the actual navigation
+  it('renders the return link to recruiter myJobs', async () => {
     render(<JobDetailsPage />)
 
-    // Check that the link with the expected text is rendered and has the correct href
-    const link = screen.getByRole('link', { name: /return to my jobs/i })
+    // Wait for the component to finish loading (exits loading state after getDoc resolves)
+    const link = await screen.findByRole('link', { name: /return to my jobs/i })
     expect(link.getAttribute('href')).toBe('/recruiter/myJobs')
   })
 
-  it('passes the route jobId into JobDetailsCard job prop', () => {
-    // Check that the JobDetailsCard receives the job prop with the expected id based on the route param
+  it('passes the route jobId into JobDetailsCard job prop', async () => {
     render(<JobDetailsPage />)
 
-    // We can check the id, title, and company to confirm the correct job data is being passed based on the route param
-    expect(screen.getByTestId('job-details-card')).toBeTruthy()
+    // Wait until Firestore data is loaded and JobDetailsCard is rendered
+    await screen.findByTestId('job-details-card')
+
     expect(screen.getByTestId('job-id').textContent).toBe('job-123')
     expect(screen.getByTestId('job-title').textContent).toBe('Software Engineer Intern')
     expect(screen.getByTestId('job-company').textContent).toBe('Hirelytics')
   })
 
-  it('renders ApplicantsTable with seeded applicants and correct profileHref builder', () => {
-    // Check that the ApplicantsTable receives the applicants array and that the profileHref function generates the expected URLs
+  it('renders ApplicantsTable with seeded applicants and correct profileHref builder', async () => {
     render(<JobDetailsPage />)
 
-    // Check that the applicants data is rendered correctly
+    // Wait until all getDoc calls resolve and ApplicantsTable receives final applicants list
+    await waitFor(async () => {
+      expect(screen.getByTestId('applicant-count').textContent).toBe('3')
+    })
+
     expect(screen.getByTestId('applicants-table')).toBeTruthy()
-    expect(screen.getByTestId('applicant-count').textContent).toBe('3')
     expect(screen.getByTestId('first-applicant-name').textContent).toContain('Edom Belayneh')
     expect(screen.getByTestId('profile-href-a1').textContent).toBe('/recruiter/applicants/a1')
   })

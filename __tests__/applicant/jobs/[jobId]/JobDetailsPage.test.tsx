@@ -60,7 +60,8 @@ let applicationSnapshotData: Record<string, unknown> = defaultApplicationSnapsho
 vi.mock('firebase/firestore', () => ({
   doc: (...path: unknown[]) => ({ path }),
   onSnapshot: (ref: MockRef, cb: (snapshot: Snapshot) => void) => {
-    if (ref.path[1] === 'jobs') {
+    // `jobPostings/{jobId}` listener payload.
+    if (ref.path[1] === 'jobPostings') {
       cb({
         id: String(ref.path[2]),
         exists: () => jobSnapshotExists,

@@ -370,7 +370,7 @@ describe('ApplicationsTable', () => {
     fireEvent.click(detailButtons[0])
 
     expect(pushMock).toHaveBeenCalledTimes(1)
-    expect(pushMock).toHaveBeenCalledWith('/applicant/jobs/1?from=applications')
+    expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1')
   })
 
   // --- Edge Case Tests ---
