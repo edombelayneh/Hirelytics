@@ -205,7 +205,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                       variant='ghost'
                       size='sm'
                       aria-label='View application details'
-                      onClick={() => router.push(`/applicant/jobs/${app.id}?from=applications`)}
+                      onClick={() => router.push(`/applicant/applications/${app.id}`)}
                     >
                       <ExternalLink className='h-4 w-4' />
                     </Button>

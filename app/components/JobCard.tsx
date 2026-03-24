@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
-import { Briefcase, MapPin, Clock, DollarSign, CheckCircle2 } from 'lucide-react'
+import { Briefcase, MapPin, Clock, DollarSign, CheckCircle2, Users } from 'lucide-react'
 import { AvailableJob } from '../data/availableJobs'
 
 // Props for JobCard: job data, apply handler, and applied state
@@ -63,6 +63,11 @@ export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCar
           <div className='flex items-center gap-1'>
             <Clock className='h-4 w-4' />
             {daysSincePosted === 0 ? 'Today' : `${daysSincePosted}d ago`}
+          </div>
+          {/* Applicant count */}
+          <div className='flex items-center gap-1'>
+            <Users className='h-4 w-4' />
+            {job.applicantsId?.length ?? 0} applied
           </div>
         </div>
 
