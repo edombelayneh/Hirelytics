@@ -6,10 +6,12 @@ import { JobCard } from './JobCard'
 import { Input } from './ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Search, Filter } from 'lucide-react'
-import { AvailableJob, availableJobs } from '../data/availableJobs'
+import { AvailableJob } from '../data/availableJobs'
 import type { Role } from '../utils/userRole'
 
 interface AvailableJobsListProps {
+  // Jobs fetched from Firestore
+  jobs: AvailableJob[]
   // Called when a user clicks Apply on a job
   onApply: (job: AvailableJob) => void
   // Set of job IDs already applied to (controls disabled state)
@@ -20,6 +22,7 @@ interface AvailableJobsListProps {
 
 // Memoized to prevent unnecessary re-renders when props don’t change
 export const AvailableJobsList = memo(function AvailableJobsList({
+  jobs,
   onApply,
   appliedJobIds,
   role,
@@ -29,7 +32,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
   const [locationFilter, setLocationFilter] = useState<string>('all') // Location filter (Remote vs On-site)
 
   // Derived list: filters jobs based on search + type + location
-  const filteredJobs = availableJobs.filter((job) => {
+  const filteredJobs = jobs.filter((job) => {
     // Search matches title, company, location, or description
     const matchesSearch =
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -48,7 +51,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
   })
 
   // Extract unique job types dynamically for dropdown options
-  const uniqueTypes = Array.from(new Set(availableJobs.map((job) => job.type)))
+  const uniqueTypes = Array.from(new Set(jobs.map((job) => job.type))).filter(Boolean)
 
   return (
     <div className='space-y-6'>
@@ -56,9 +59,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
       <div className='flex items-center justify-between mb-4'>
         <div>
           <h2 className='text-2xl font-bold mb-1'>Available Jobs</h2>
-          <p className='text-muted-foreground'>
-            Browse and apply to {availableJobs.length} open positions
-          </p>
+          <p className='text-muted-foreground'>Browse and apply to {jobs.length} open positions</p>
         </div>
         {/* Recruiter-only: Add Job button */}
         {role === 'recruiter' && (
@@ -126,7 +127,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
 
       {/* Results count */}
       <div className='text-sm text-muted-foreground'>
-        Showing {filteredJobs.length} of {availableJobs.length} jobs
+        Showing {filteredJobs.length} of {jobs.length} jobs
       </div>
 
       {/* Job Cards Grid */}

@@ -48,55 +48,54 @@ vi.mock('./ui/select', () => ({
   ),
 }))
 
-// --- Mock availableJobs so results are predictable ---
-// Added recruiterId field to match the updated AvailableJob interface
-vi.mock('../data/availableJobs', () => {
-  const availableJobs = [
-    {
-      id: 1,
-      title: 'Software Engineer',
-      company: 'TechCorp',
-      location: 'Remote',
-      type: 'Full-time',
-      postedDate: '2025-10-20',
-      salary: '$100k',
-      description: 'Build web apps',
-      requirements: [],
-      status: 'Open',
-      applyLink: '#',
-      recruiterId: 'recruiter-uid-1', // Mock recruiter UID for testing
-    },
-    {
-      id: 2,
-      title: 'Data Analyst',
-      company: 'DataCo',
-      location: 'New York, NY',
-      type: 'Part-time',
-      postedDate: '2025-10-19',
-      salary: '$70k',
-      description: 'Analyze data',
-      requirements: [],
-      status: 'Open',
-      applyLink: '#',
-      recruiterId: 'recruiter-uid-1',
-    },
-    {
-      id: 3,
-      title: 'QA Engineer',
-      company: 'Quality Inc.',
-      location: 'Chicago, IL',
-      type: 'Contract',
-      postedDate: '2025-10-18',
-      salary: '$80k',
-      description: 'Test software',
-      requirements: [],
-      status: 'Open',
-      applyLink: '#',
-      recruiterId: 'recruiter-uid-1',
-    },
-  ]
-  return { availableJobs }
-})
+// Shared mock jobs passed as the `jobs` prop (component no longer reads availableJobs directly)
+const mockJobs = [
+  {
+    id: 1,
+    title: 'Software Engineer',
+    company: 'TechCorp',
+    location: 'Remote',
+    type: 'Full-time',
+    postedDate: '2025-10-20',
+    salary: '$100k',
+    description: 'Build web apps',
+    requirements: [],
+    status: 'Open',
+    applyLink: '#',
+    recruiterId: 'recruiter-uid-1',
+    applicantsId: [],
+  },
+  {
+    id: 2,
+    title: 'Data Analyst',
+    company: 'DataCo',
+    location: 'New York, NY',
+    type: 'Part-time',
+    postedDate: '2025-10-19',
+    salary: '$70k',
+    description: 'Analyze data',
+    requirements: [],
+    status: 'Open',
+    applyLink: '#',
+    recruiterId: 'recruiter-uid-1',
+    applicantsId: [],
+  },
+  {
+    id: 3,
+    title: 'QA Engineer',
+    company: 'Quality Inc.',
+    location: 'Chicago, IL',
+    type: 'Contract',
+    postedDate: '2025-10-18',
+    salary: '$80k',
+    description: 'Test software',
+    requirements: [],
+    status: 'Open',
+    applyLink: '#',
+    recruiterId: 'recruiter-uid-1',
+    applicantsId: [],
+  },
+]
 
 // --- Mock recruiter cache to prevent Firebase initialization during tests ---
 // This prevents the component from trying to fetch real recruiters from Firebase
@@ -126,6 +125,7 @@ describe('AvailableJobsList', () => {
   it('renders header and counts', () => {
     render(
       <AvailableJobsList
+        jobs={mockJobs}
         onApply={mockOnApply}
         appliedJobIds={new Set()}
       />
@@ -139,6 +139,7 @@ describe('AvailableJobsList', () => {
   it('renders Add Job link to correct page for recruiters', () => {
     render(
       <AvailableJobsList
+        jobs={mockJobs}
         onApply={mockOnApply}
         appliedJobIds={new Set()}
         role='recruiter'
@@ -153,6 +154,7 @@ describe('AvailableJobsList', () => {
     // Applicants should not see recruiter-only UI
     render(
       <AvailableJobsList
+        jobs={mockJobs}
         onApply={mockOnApply}
         appliedJobIds={new Set()}
         role='applicant'
@@ -166,6 +168,7 @@ describe('AvailableJobsList', () => {
     // Sanity check: all mocked jobs render on initial load
     render(
       <AvailableJobsList
+        jobs={mockJobs}
         onApply={mockOnApply}
         appliedJobIds={new Set()}
       />
@@ -182,6 +185,7 @@ describe('AvailableJobsList', () => {
     // Typing into search should reduce visible job cards
     render(
       <AvailableJobsList
+        jobs={mockJobs}
         onApply={mockOnApply}
         appliedJobIds={new Set()}
       />
@@ -201,6 +205,7 @@ describe('AvailableJobsList', () => {
     // Type dropdown should filter down to matching job types
     render(
       <AvailableJobsList
+        jobs={mockJobs}
         onApply={mockOnApply}
         appliedJobIds={new Set()}
       />
@@ -222,6 +227,7 @@ describe('AvailableJobsList', () => {
     // Location dropdown should support “remote” filtering
     render(
       <AvailableJobsList
+        jobs={mockJobs}
         onApply={mockOnApply}
         appliedJobIds={new Set()}
       />
@@ -243,6 +249,7 @@ describe('AvailableJobsList', () => {
     // When filters return nothing, component should show an empty state
     render(
       <AvailableJobsList
+        jobs={mockJobs}
         onApply={mockOnApply}
         appliedJobIds={new Set()}
       />
