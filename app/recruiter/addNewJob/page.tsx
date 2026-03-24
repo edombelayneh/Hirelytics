@@ -309,7 +309,7 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
       <div className='max-w-3xl mx-auto px-6 pt-4'>
         <Link
           href='/recruiter/myJobs'
-          className='inline-flex items-center rounded border px-3 py-1.5 text-sm'
+          className='-ml-[120px] inline-flex items-center rounded border px-3 py-1.5 text-sm'
         >
           Back to My Jobs
         </Link>
