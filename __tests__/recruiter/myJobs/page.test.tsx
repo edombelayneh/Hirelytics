@@ -129,42 +129,42 @@ describe('RecruiterMyJobsPage', () => {
     cleanup()
   })
 
-  it("renders page header and description", () => {
+  it('renders page header and description', () => {
     render(<RecruiterMyJobsPage />)
 
-    expect(screen.getByText("My Jobs")).toBeTruthy()
+    expect(screen.getByText('My Jobs')).toBeTruthy()
     expect(screen.getByText(/manage the jobs you/i)).toBeTruthy()
   })
 
-  it("renders Post new job link with correct href", () => {
+  it('renders Post new job link with correct href', () => {
     render(<RecruiterMyJobsPage />)
 
-    const link = screen.getByRole("link", { name: /post new job/i })
-    expect(link.getAttribute("href")).toBe("/recruiter/addNewJob")
+    const link = screen.getByRole('link', { name: /post new job/i })
+    expect(link.getAttribute('href')).toBe('/recruiter/addNewJob')
   })
 
-  it("renders one RecruiterJobCard per job (jobs length > 0)", async () => {
+  it('renders one RecruiterJobCard per job (jobs length > 0)', async () => {
     render(<RecruiterMyJobsPage />)
 
     // Wait for Firestore snapshot to populate the job list
-    const cards = await screen.findAllByTestId("job-card")
+    const cards = await screen.findAllByTestId('job-card')
     expect(cards.length).toBe(2)
 
     // sanity check first job info (from seeded data)
-    expect(screen.getAllByTestId("job-id")[0].textContent).toBe("job-1")
-    expect(screen.getAllByTestId("job-title")[0].textContent).toBe("Software Engineer Intern")
-    expect(screen.getAllByTestId("job-status")[0].textContent).toBe("Open")
+    expect(screen.getAllByTestId('job-id')[0].textContent).toBe('job-1')
+    expect(screen.getAllByTestId('job-title')[0].textContent).toBe('Software Engineer Intern')
+    expect(screen.getAllByTestId('job-status')[0].textContent).toBe('Open')
 
     // and second job
-    expect(screen.getAllByTestId("job-id")[1].textContent).toBe("job-2")
-    expect(screen.getAllByTestId("job-status")[1].textContent).toBe("Paused")
+    expect(screen.getAllByTestId('job-id')[1].textContent).toBe('job-2')
+    expect(screen.getAllByTestId('job-status')[1].textContent).toBe('Paused')
   })
 
-  it("does not render EmptyMyJobs when jobs exist", async () => {
+  it('does not render EmptyMyJobs when jobs exist', async () => {
     render(<RecruiterMyJobsPage />)
 
     // Wait for jobs to load before asserting empty state is absent
-    await screen.findAllByTestId("job-card")
-    await waitFor(() => expect(screen.queryByTestId("empty-myjobs")).toBeNull())
+    await screen.findAllByTestId('job-card')
+    await waitFor(() => expect(screen.queryByTestId('empty-myjobs')).toBeNull())
   })
 })
