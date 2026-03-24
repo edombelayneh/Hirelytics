@@ -67,7 +67,7 @@ describe('AddNewJobPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useFakeTimers()
-    addDocMock.mockResolvedValue(undefined)
+    addDocMock.mockResolvedValue({ id: 'job-doc-123' })
     getDocsMock.mockResolvedValue(createSnapshot([]))
     getRecruiterProfileMock.mockResolvedValue({ recruiterEmail: 'profile@techcorp.com' })
     useUserMock.mockReturnValue({
@@ -151,7 +151,7 @@ describe('AddNewJobPage', () => {
     expect(screen.getByText(/Redirecting you to the Job Details page/i)).toBeTruthy()
 
     await vi.advanceTimersByTimeAsync(2000)
-    expect(navigation.push).toHaveBeenCalledWith('/recruiter/JobDetails/16')
+    expect(navigation.push).toHaveBeenCalledWith('/recruiter/JobDetails/job-doc-123')
   })
 
   it('generates the next numeric job id before saving', async () => {
@@ -177,12 +177,15 @@ describe('AddNewJobPage', () => {
         title: 'Software Engineer',
         company: 'TechCorp',
         recruiterEmail: 'profile@techcorp.com',
+        recruiterId: 'user_123',
+        applicantsId: [],
       })
     )
   })
 
   it('navigates using the generated job id when higher ids already exist', async () => {
     getDocsMock.mockResolvedValue(createSnapshot([16, '22']))
+    addDocMock.mockResolvedValue({ id: 'job-doc-xyz' })
 
     render(<AddNewJobPage />)
 
@@ -194,6 +197,6 @@ describe('AddNewJobPage', () => {
 
     await vi.runAllTimersAsync()
 
-    expect(navigation.push).toHaveBeenCalledWith('/recruiter/JobDetails/23')
+    expect(navigation.push).toHaveBeenCalledWith('/recruiter/JobDetails/job-doc-xyz')
   })
 })

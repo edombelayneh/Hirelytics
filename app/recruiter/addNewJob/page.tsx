@@ -34,6 +34,7 @@ type RecruiterJobPayload = {
   status: 'Open'
   applyLink: string
   recruiterId: string
+  applicantsId: string[]
   // Extra fields from the form
   recruiterEmail: string
   preferredSkills: string
@@ -185,6 +186,13 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
       return
     }
 
+    const currentRecruiterId = user?.id?.trim()
+
+    if (!currentRecruiterId) {
+      setMessage('Unable to identify recruiter account. Please sign in again.')
+      return
+    }
+
     setSubmitting(true)
 
     // Build location string from individual fields
@@ -228,7 +236,8 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
       requirements,
       status: 'Open',
       applyLink: '#',
-      recruiterId: 'recruiter',
+      recruiterId: currentRecruiterId,
+      applicantsId: [],
       // Extra fields
       recruiterEmail,
       preferredSkills,
@@ -247,8 +256,11 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
       createdAt: new Date().toISOString(),
     }
 
+    let createdJobDocId = ''
+
     try {
-      await addDoc(collection(db, 'jobPostings'), jobData)
+      const createdDocRef = await addDoc(collection(db, 'jobPostings'), jobData)
+      createdJobDocId = createdDocRef.id
     } catch (error) {
       console.error('Failed to save job:', error)
       setMessage('Failed to save job. Please try again.')
@@ -267,7 +279,8 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
 
     // Small delay so user sees toast and overlay before navigation
     setTimeout(() => {
-      router.push(`/recruiter/JobDetails/${nextJobId}`)
+      const detailsJobId = createdJobDocId || String(nextJobId)
+      router.push(`/recruiter/JobDetails/${detailsJobId}`)
     }, 3400)
   }
 
