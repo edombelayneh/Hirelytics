@@ -89,15 +89,19 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
     <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8'>
       <div className='space-y-8'>
         {/* Dashboard overview section */}
-        <section>
-          <h1 className='text-2xl font-bold mb-1'>Dashboard Overview</h1>
+        <section className='space-y-4'>
+          <div>
+            <h2 className='text-2xl font-bold mb-1'>Dashboard Overview</h2>
+          </div>
           <HeroPanel applications={liveApplications} />
         </section>
 
 
         {/* Summary metrics section */}
-        <section>
-          <h2 className='text-2xl font-bold mb-1'>Key Metrics</h2>
+        <section className='space-y-4'>
+          <div>
+            <h2 className='text-2xl font-bold mb-1'>Key Metrics</h2>
+          </div>
           <SummaryCards applications={liveApplications} />
         </section>
 
