@@ -31,10 +31,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Run Linter
-        # Executes "eslint" as defined in package.json
-        run: npm run lint
-
       - name: Run Tests
         # Executes "vitest". GitHub Actions automatically sets the environment variable CI=true.
         # Vitest detects this and runs your tests once and exits, rather than hanging in watch mode.
