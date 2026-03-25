@@ -123,7 +123,16 @@ describe('AddNewJobPage', () => {
   })
 
   it('shows unauthorized access message for non-recruiter submit attempt', () => {
-    const { container } = render(<AddNewJobPage initialUserRole='applicant' />)
+    useUserMock.mockReturnValue({
+      isLoaded: true,
+      user: {
+        id: 'user_123',
+        unsafeMetadata: { role: 'applicant' },
+        primaryEmailAddress: { emailAddress: 'clerk@techcorp.com' },
+      },
+    })
+
+    const { container } = render(<AddNewJobPage />)
 
     const form = container.querySelector('form')
     expect(form).toBeTruthy()

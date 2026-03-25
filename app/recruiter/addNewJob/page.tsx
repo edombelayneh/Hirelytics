@@ -14,10 +14,6 @@ import { db, firebaseAuth } from '../../lib/firebaseClient'
 import { availableJobs } from '../../data/availableJobs'
 import { getRecruiterProfile } from '../../utils/userProfiles'
 
-type AddNewJobPageProps = {
-  initialUserRole?: 'recruiter' | 'applicant'
-}
-
 // Matches the AvailableJob interface shape so the document is readable by the applicant job list,
 // plus extra recruiter-only fields saved alongside it.
 type RecruiterJobPayload = {
@@ -54,9 +50,15 @@ type RecruiterJobPayload = {
 }
 
 // Page for recruiters to create a new job
-export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJobPageProps) {
+export default function AddNewJobPage() {
   const router = useRouter()
   const { user, isLoaded } = useUser()
+  const metadataRole =
+    user?.unsafeMetadata && typeof user.unsafeMetadata === 'object'
+      ? (user.unsafeMetadata as { role?: unknown }).role
+      : undefined
+  const userRole: 'recruiter' | 'applicant' =
+    metadataRole === 'applicant' ? 'applicant' : 'recruiter'
 
   // Returns the next available job ID by finding the highest existing ID.
   // both the seeded static job list and all Firestore job postings, then adding 1.
@@ -119,7 +121,6 @@ export default function AddNewJobPage({ initialUserRole = 'recruiter' }: AddNewJ
   const [submitting, setSubmitting] = useState(false)
   const [showSuccessToast, setShowSuccessToast] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
-  const [userRole] = useState<'recruiter' | 'applicant'>(initialUserRole)
   const [hasEditedRecruiterEmail, setHasEditedRecruiterEmail] = useState(false)
 
   // Redirects applicants away from this page.
