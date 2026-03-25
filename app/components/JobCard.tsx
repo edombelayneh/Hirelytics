@@ -1,10 +1,11 @@
 // Import React memo for performance optimization
 import { memo } from 'react'
+import Link from 'next/link'
 // Import UI components and icons
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
-import { Briefcase, MapPin, Clock, DollarSign, CheckCircle2 } from 'lucide-react'
+import { Briefcase, MapPin, Clock, DollarSign, CheckCircle2, Users } from 'lucide-react'
 import { AvailableJob } from '../data/availableJobs'
 
 // Props for JobCard: job data, apply handler, and applied state
@@ -63,6 +64,11 @@ export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCar
             <Clock className='h-4 w-4' />
             {daysSincePosted === 0 ? 'Today' : `${daysSincePosted}d ago`}
           </div>
+          {/* Applicant count */}
+          <div className='flex items-center gap-1'>
+            <Users className='h-4 w-4' />
+            {job.applicantsId?.length ?? 0} applied
+          </div>
         </div>
 
         {/* Job description */}
@@ -86,9 +92,16 @@ export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCar
       </CardContent>
 
       {/* Footer: Apply button (disabled if already applied) */}
-      <CardFooter>
+      <CardFooter className='flex gap-2'>
         <Button
-          className='w-full'
+          asChild
+          variant='outline'
+          className='flex-1'
+        >
+          <Link href={`/applicant/jobs/${job.id}`}>View Details</Link>
+        </Button>
+        <Button
+          className='flex-1'
           onClick={() => onApply(job)}
           disabled={isApplied}
           variant={isApplied ? 'secondary' : 'default'}

@@ -57,6 +57,19 @@ describe('AddNewJobPage', () => {
     fireEvent.change(screen.getByPlaceholderText('Main role summary and responsibilities'), {
       target: { value: 'Build web apps' },
     })
+    fireEvent.change(screen.getByPlaceholderText('e.g. 25'), {
+      target: { value: '25' },
+    })
+
+    const selectFields = screen.getAllByRole('combobox')
+    const paymentTypeSelect = selectFields[0]
+    fireEvent.change(paymentTypeSelect, {
+      target: { value: 'salary' },
+    })
+
+    fireEvent.change(screen.getByPlaceholderText('e.g. 25'), {
+      target: { value: '25.75' },
+    })
 
     fireEvent.click(screen.getByRole('button', { name: /Add Job/i }))
 
@@ -64,6 +77,13 @@ describe('AddNewJobPage', () => {
     const savingBtn = screen.getByRole('button', { name: /Saving/i })
     expect(savingBtn).toBeTruthy()
     expect((savingBtn as HTMLButtonElement).disabled).toBe(true)
+
+    expect(logSpy).toHaveBeenCalledWith(
+      'New job submitted: ',
+      expect.objectContaining({
+        paymentType: 'salary',
+      })
+    )
 
     // Message + overlay
     expect(screen.getByText(/Job submitted\. Redirecting to Available Jobs/i)).toBeTruthy()

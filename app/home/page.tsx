@@ -39,9 +39,9 @@ function HomePage() {
   const features = [
     {
       icon: Brain,
-      title: 'AI Feedback Engine',
+      title: 'Feedback That Guides Growth',
       description:
-        'Turns recruiter notes into constructive guidance so applicants learn exactly how to improve the next time.',
+        'Provide applicants with clear, actionable feedback based on recruiter notes—no more silence or confusion.',
       color: 'gold',
     },
     {
@@ -129,13 +129,14 @@ function HomePage() {
             <img
               src='/Hirelytics_Logo.png'
               alt='Hirelytics'
-              className='mx-auto mb-6 h-20 w-auto'
+              className='mx-auto mb-6 h-25 w-auto'
             />
 
             <p className='mx-auto mb-10 max-w-2xl text-xl text-muted-foreground'>
-              Hirelytics bridges recruiters and applicants with real-time status updates, automated
-              AI feedback, and a shared view of progress—so everyone knows what&apos;s happening and
-              why.
+              Hirelytics connects recruiters and applicants with real-time updates and a shared view
+              of application progress. Applicants can track all their applications, even from
+              external job boards, while recruiters manage candidates and feedback in one
+              centralized system.
             </p>
             <div className='mb-12 flex flex-col items-center justify-center gap-4 sm:flex-row'>
               <Button
@@ -274,7 +275,7 @@ function HomePage() {
               },
               {
                 step: '03',
-                title: 'AI Feedback',
+                title: 'Feedback',
                 description:
                   'Applicants receive structured, constructive feedback generated from recruiter notes.',
                 icon: Brain,
@@ -337,8 +338,8 @@ function HomePage() {
             <div className='relative p-12 text-center'>
               <h2 className='mb-4 text-4xl font-bold'>Start Building a Better Hiring Experience</h2>
               <p className='mx-auto mb-8 max-w-2xl text-xl text-muted-foreground'>
-                Bring transparency to applicants and efficiency to recruiters—with AI that clarifies
-                each step.
+                Bring transparency to applicants and efficiency to recruiters—with Hirelytics as
+                your shared hiring hub.
               </p>
               <div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
                 <Button

@@ -2,10 +2,11 @@
 
 // A form page that lets recruiters submit new jobs.
 // - Collect job information
-// - Shows a redirecting overlay and then sends the user to the "Available Jobs" page using hash navigation.
+// - Shows a redirecting overlay and then sends the user to the "Job Details" page using hash navigation.
+// - Saves job data to Firebase and checks user role (recruiter only)
 
 import { useState } from 'react'
-// Page for recruiters to create a new job
+
 export default function AddNewJobPage() {
   // Form field state
   const [jobName, setJobName] = useState('')
@@ -18,6 +19,8 @@ export default function AddNewJobPage() {
   const [stateValue, setStateValue] = useState('')
   const [city, setCity] = useState('')
   const [hourlyRate, setHourlyRate] = useState('')
+  const [paymentType, setPaymentType] = useState<'hourly' | 'salary'>('hourly')
+  const [paymentAmount, setPaymentAmount] = useState<number | ''>('')
   const [visaRequired, setVisaRequired] = useState<'yes' | 'no' | ''>('')
   const [jobType, setJobType] = useState<'onsite' | 'remote' | 'hybrid' | ''>('')
   const [generalDescription, setGeneralDescription] = useState('')
@@ -59,7 +62,9 @@ export default function AddNewJobPage() {
       country,
       state: stateValue,
       city,
-      hourlyRate,
+      hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
+      paymentType,
+      paymentAmount: paymentAmount === '' ? null : paymentAmount,
       visaRequired,
       jobType,
       employmentType,
@@ -155,17 +160,42 @@ export default function AddNewJobPage() {
             />
           </div>
 
-          <div>
-            <label className='block text-sm mb-1'>Pay per hour (USD)</label>
-            <input
-              type='number'
-              value={hourlyRate}
-              onChange={(e) => setHourlyRate(e.target.value)}
-              placeholder='e.g. 25.00'
-              step='0.01'
-              min='0'
-              className='w-full border rounded p-2'
-            />
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div>
+              <label className='block text-sm mb-1'>Payment Amount (USD)</label>
+              <input
+                type='number'
+                value={paymentAmount}
+                onChange={(e) => {
+                  const value = e.target.value
+                  if (value === '') {
+                    setPaymentAmount('')
+                    return
+                  }
+
+                  const parsedValue = parseInt(value, 10)
+                  if (!Number.isNaN(parsedValue)) {
+                    setPaymentAmount(parsedValue)
+                  }
+                }}
+                placeholder='e.g. 25'
+                step='1'
+                min='0'
+                className='w-full border rounded p-2'
+              />
+            </div>
+
+            <div>
+              <label className='block text-sm mb-1'>Payment Type</label>
+              <select
+                value={paymentType}
+                onChange={(e) => setPaymentType(e.target.value as 'hourly' | 'salary')}
+                className='w-full border rounded p-2'
+              >
+                <option value='hourly'>Hourly</option>
+                <option value='salary'>Salary</option>
+              </select>
+            </div>
           </div>
 
           <div>
@@ -282,7 +312,6 @@ export default function AddNewJobPage() {
               />
             </div>
           </div>
-
           <div>
             <label className='block text-sm mb-1'>Visa Sponsorship Available?</label>
             <select

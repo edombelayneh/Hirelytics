@@ -1,7 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import type { ReactNode } from 'react'
 import { render, screen, fireEvent, within, cleanup } from '@testing-library/react'
 import { JobCard } from './JobCard'
 import { AvailableJob } from '../data/availableJobs'
+
+vi.mock('next/link', () => ({
+  default: ({ href, children }: { href: string; children: ReactNode }) => (
+    <a href={href}>{children}</a>
+  ),
+}))
 
 describe('JobCard', () => {
   // --- Mock job data for testing ---
@@ -23,6 +30,7 @@ describe('JobCard', () => {
     ],
     status: 'Open',
     applyLink: '#',
+    recruiterId: 'recruiter-uid-1',
   }
 
   // --- Mock function for the Apply button ---
@@ -182,6 +190,19 @@ describe('JobCard', () => {
     const button = within(card).getByRole('button', { name: /Apply Now/i })
     expect(button).toBeTruthy()
     expect(button.hasAttribute('disabled')).toBe(false)
+  })
+
+  it('renders "View Details" link to the job details page', () => {
+    render(
+      <JobCard
+        job={mockJob}
+        onApply={mockOnApply}
+        isApplied={false}
+      />
+    )
+
+    const detailsLink = screen.getByRole('link', { name: /View Details/i })
+    expect(detailsLink.getAttribute('href')).toBe('/applicant/jobs/1')
   })
 
   // --- Test rendering of Applied button for jobs already applied ---

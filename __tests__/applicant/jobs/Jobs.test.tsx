@@ -26,7 +26,6 @@ vi.mock('../../../app/lib/firebaseClient', () => ({
 }))
 
 // Firestore spies
-type DocPath = { __docPath: unknown[] }
 type CollectionPath = { __collection: unknown[] }
 type Unsubscribe = () => void
 
@@ -34,9 +33,6 @@ type SnapshotDoc = { id: string }
 type Snapshot = { docs: SnapshotDoc[] }
 
 const collectionMock = vi.fn((...args: unknown[]): CollectionPath => ({ __collection: args }))
-const docMock = vi.fn((...args: unknown[]): DocPath => ({ __docPath: args }))
-const setDocMock = vi.fn()
-const serverTimestampMock = vi.fn(() => 'SERVER_TS')
 
 // Default: no applied jobs
 let snapshotDocIds: string[] = []
@@ -44,9 +40,7 @@ let snapshotDocIds: string[] = []
 // Mock the entire Firestore module
 vi.mock('firebase/firestore', () => ({
   collection: (...args: unknown[]) => collectionMock(...args),
-  doc: (...args: unknown[]) => docMock(...args),
-  setDoc: (...args: unknown[]) => setDocMock(...args),
-  serverTimestamp: () => serverTimestampMock(),
+  getDocs: vi.fn(() => Promise.resolve({ docs: [] })),
 
   onSnapshot: vi.fn((_ref: unknown, callback: (snap: Snapshot) => void): Unsubscribe => {
     callback({
@@ -54,6 +48,12 @@ vi.mock('firebase/firestore', () => ({
     })
     return vi.fn() as Unsubscribe
   }),
+}))
+
+// Mock applyToAvailableJob so we assert it's called with the right args
+const applyToAvailableJobMock = vi.fn()
+vi.mock('../../../app/utils/applicationFirebase', () => ({
+  applyToAvailableJob: (...args: unknown[]) => applyToAvailableJobMock(...args),
 }))
 
 /* -------------------------------------------------------------------------- */
@@ -87,6 +87,8 @@ vi.mock('../../../app/components/AvailableJobsList', () => ({
             requirements: ['Req 1'],
             status: 'Open',
             applyLink: 'https://example.com/apply',
+            recruiterId: 'recruiter-uid-1',
+            applicantsId: [],
           })
         }
       >
@@ -126,42 +128,26 @@ describe('Jobs Page', () => {
     expect(screen.getByTestId('applied-jobs-count').textContent).toBe('3')
   })
 
-  it('calls setDoc when Apply is triggered', async () => {
-    // This tests the handleApply logic, including the Firestore write
+  it('calls applyToAvailableJob when Apply is triggered', async () => {
+    // This tests the handleApply logic — it should delegate to the shared utility
     render(<Jobs />)
 
     // Simulate user clicking the Apply button in the mocked AvailableJobsList
     fireEvent.click(screen.getByTestId('apply-button'))
 
-    // doc(db, 'users', userId, 'applications', String(job.id))
-    expect(docMock).toHaveBeenCalledWith(
-      expect.any(Object),
-      'users',
-      'test-user-id-123',
-      'applications',
-      '1'
-    )
-
-    // setDoc(ref, data, { merge: true })
-    expect(setDocMock).toHaveBeenCalledTimes(1)
-    expect(setDocMock).toHaveBeenCalledWith(
-      expect.any(Object),
-      expect.objectContaining({
-        id: '1',
+    expect(applyToAvailableJobMock).toHaveBeenCalledTimes(1)
+    expect(applyToAvailableJobMock).toHaveBeenCalledWith({
+      userId: 'test-user-id-123',
+      job: expect.objectContaining({
+        id: 1,
         company: 'Test Company',
-        position: 'Test Job',
-        city: 'Test City',
-        status: 'Applied',
-        jobSource: 'Available Jobs',
-        outcome: 'Pending',
-        createdAt: 'SERVER_TS',
-        updatedAt: 'SERVER_TS',
+        title: 'Test Job',
+        location: 'Test City',
       }),
-      { merge: true } // Prevent overwriting existing data
-    )
+    })
   })
 
-  it('does not call setDoc if job already applied (id exists in appliedJobIds)', () => {
+  it('does not call applyToAvailableJob if job already applied (id exists in appliedJobIds)', () => {
     // This tests that the handleApply function correctly prevents duplicate applications
     snapshotDocIds = ['1'] // applied already
     render(<Jobs />)
@@ -169,7 +155,7 @@ describe('Jobs Page', () => {
     // Simulate user clicking the Apply button in the mocked AvailableJobsList
     fireEvent.click(screen.getByTestId('apply-button'))
 
-    expect(setDocMock).not.toHaveBeenCalled()
+    expect(applyToAvailableJobMock).not.toHaveBeenCalled()
   })
 
   it('renders main content container', () => {

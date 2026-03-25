@@ -1,12 +1,60 @@
 // __tests__/recruiter/myJobs/RecruiterMyJobsPage.test.tsx
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, waitFor } from '@testing-library/react'
 import React from 'react'
 import RecruiterMyJobsPage from '../../../app/recruiter/myJobs/page'
 
 /* -------------------------------------------------------------------------- */
 /*                                   MOCKS                                    */
 /* -------------------------------------------------------------------------- */
+
+// Clerk: component uses useAuth to get the current recruiter's userId
+vi.mock('@clerk/nextjs', () => ({
+  useAuth: vi.fn(() => ({ userId: 'recruiter-uid-1', isLoaded: true })),
+}))
+
+// Firebase client stub — avoids real SDK initialization in tests
+vi.mock('../../../app/lib/firebaseClient', () => ({ db: {} }))
+
+// Firestore mock: onSnapshot calls its callback synchronously with 2 seeded jobs
+vi.mock('firebase/firestore', () => ({
+  collection: vi.fn(),
+  query: vi.fn(),
+  where: vi.fn(),
+  onSnapshot: vi.fn((_q: unknown, cb: (snap: { docs: unknown[] }) => void) => {
+    cb({
+      docs: [
+        {
+          id: 'job-1',
+          data: () => ({
+            title: 'Software Engineer Intern',
+            company: 'Hirelytics',
+            location: 'Remote',
+            type: 'Full-time',
+            postedDate: '2025-10-20',
+            status: 'Open',
+            applicantsId: [],
+            description: 'Build great things.',
+          }),
+        },
+        {
+          id: 'job-2',
+          data: () => ({
+            title: 'Product Manager',
+            company: 'Hirelytics',
+            location: 'New York, NY',
+            type: 'Full-time',
+            postedDate: '2025-10-21',
+            status: 'Paused',
+            applicantsId: [],
+            description: 'Drive product strategy.',
+          }),
+        },
+      ],
+    })
+    return vi.fn() // unsubscribe no-op
+  }),
+}))
 
 // next/link -> plain <a> so we can assert href
 vi.mock('next/link', () => ({
@@ -85,20 +133,21 @@ describe('RecruiterMyJobsPage', () => {
     render(<RecruiterMyJobsPage />)
 
     expect(screen.getByText('My Jobs')).toBeTruthy()
-    expect(screen.getByText(/manage the jobs you’ve posted/i)).toBeTruthy()
+    expect(screen.getByText(/manage the jobs you/i)).toBeTruthy()
   })
 
-  it('renders "Post new job" link with correct href', () => {
+  it('renders Post new job link with correct href', () => {
     render(<RecruiterMyJobsPage />)
 
     const link = screen.getByRole('link', { name: /post new job/i })
     expect(link.getAttribute('href')).toBe('/recruiter/addNewJob')
   })
 
-  it('renders one RecruiterJobCard per job (jobs length > 0)', () => {
+  it('renders one RecruiterJobCard per job (jobs length > 0)', async () => {
     render(<RecruiterMyJobsPage />)
 
-    const cards = screen.getAllByTestId('job-card')
+    // Wait for Firestore snapshot to populate the job list
+    const cards = await screen.findAllByTestId('job-card')
     expect(cards.length).toBe(2)
 
     // sanity check first job info (from seeded data)
@@ -111,8 +160,11 @@ describe('RecruiterMyJobsPage', () => {
     expect(screen.getAllByTestId('job-status')[1].textContent).toBe('Paused')
   })
 
-  it('does not render EmptyMyJobs when jobs exist', () => {
+  it('does not render EmptyMyJobs when jobs exist', async () => {
     render(<RecruiterMyJobsPage />)
-    expect(screen.queryByTestId('empty-myjobs')).toBeNull()
+
+    // Wait for jobs to load before asserting empty state is absent
+    await screen.findAllByTestId('job-card')
+    await waitFor(() => expect(screen.queryByTestId('empty-myjobs')).toBeNull())
   })
 })

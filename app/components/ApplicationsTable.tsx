@@ -10,10 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { ExternalLink, Search, Filter } from 'lucide-react'
 import { JobApplication } from '../data/mockData'
 import { formatDate } from '../utils/dateFormatter'
-import { getStatusColor, getOutcomeColor } from '../utils/badgeColors'
+import { getOutcomeColor } from '../utils/badgeColors'
 import { useRouter } from 'next/navigation'
 
-const STATUS_STYLES: Record<string, string> ={
+const STATUS_STYLES: Record<string, string> = {
   Applied: '!bg-yellow-200',
   Interview: '!bg-blue-200',
   Offer: '!bg-green-200',
@@ -62,7 +62,9 @@ export const ApplicationsTable = memo(function ApplicationsTable({
         <div className='flex items-center justify-between'>
           <div>
             <CardTitle>Job Applications</CardTitle>
-            <CardDescription>Track and manage all your job applications in one place</CardDescription>
+            <CardDescription>
+              Track and manage all your job applications in one place
+            </CardDescription>
           </div>
           <button
             className='rounded bg-black text-white px-4 py-1'
@@ -122,7 +124,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                 <TableHead>Job Source</TableHead>
                 <TableHead>Outcome</TableHead>
                 <TableHead>Notes</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Job Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -145,16 +147,40 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                         onStatusChange?.(app.id, status as JobApplication['status'])
                       }
                     >
-                      <SelectTrigger className={`w-[120px] ${STATUS_STYLES[app.status] ?? ''}`}
-                      >
+                      <SelectTrigger className={`w-[120px] ${STATUS_STYLES[app.status] ?? ''}`}>
                         <SelectValue placeholder='Status' />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value='Applied' className={STATUS_STYLES.Applied}>Applied</SelectItem>
-                        <SelectItem value='Interview' className={STATUS_STYLES.Interview}>Interview</SelectItem>
-                        <SelectItem value='Offer' className={STATUS_STYLES.Offer}>Offer</SelectItem>
-                        <SelectItem value='Rejected' className={STATUS_STYLES.Rejected}>Rejected</SelectItem>
-                        <SelectItem value='Withdrawn' className={STATUS_STYLES.Withdrawn}>Withdrawn</SelectItem>
+                        <SelectItem
+                          value='Applied'
+                          className={STATUS_STYLES.Applied}
+                        >
+                          Applied
+                        </SelectItem>
+                        <SelectItem
+                          value='Interview'
+                          className={STATUS_STYLES.Interview}
+                        >
+                          Interview
+                        </SelectItem>
+                        <SelectItem
+                          value='Offer'
+                          className={STATUS_STYLES.Offer}
+                        >
+                          Offer
+                        </SelectItem>
+                        <SelectItem
+                          value='Rejected'
+                          className={STATUS_STYLES.Rejected}
+                        >
+                          Rejected
+                        </SelectItem>
+                        <SelectItem
+                          value='Withdrawn'
+                          className={STATUS_STYLES.Withdrawn}
+                        >
+                          Withdrawn
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
