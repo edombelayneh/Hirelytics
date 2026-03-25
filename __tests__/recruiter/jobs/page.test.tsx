@@ -27,6 +27,11 @@ vi.mock('firebase/firestore', () => ({
     callback({ docs: [] })
     return vi.fn()
   }),
+  getDocs: vi.fn(() =>
+    Promise.resolve({
+      docs: [],
+    })
+  ),
 }))
 
 vi.mock('../../../app/components/AvailableJobsList', () => ({

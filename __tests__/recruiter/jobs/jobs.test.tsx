@@ -37,6 +37,14 @@ vi.mock('firebase/firestore', () => ({
     })
     return vi.fn()
   }),
+  getDocs: vi.fn(() =>
+    Promise.resolve({
+      docs: snapshotDocIds.map((id) => ({
+        id,
+        data: vi.fn(() => ({})),
+      })),
+    })
+  ),
 }))
 
 /* -------------------------------------------------------------------------- */

@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from './app/components/ui/dialog'
 import { Input } from './app/components/ui/input'
-import { AvailableJob } from './app/data/availableJobs'
+import { AvailableJob, availableJobs } from './app/data/availableJobs'
 import { JobApplication } from './app/data/mockData'
 import { parseLocation } from './app/utils/locationParser'
 import { getCurrentDateString } from './app/utils/dateFormatter'
@@ -142,6 +142,7 @@ function Jobs({ onAddApplication }: { onAddApplication?: (app: JobApplication) =
       <main className='container mx-auto px-6 py-8 space-y-8'>
         <section>
           <AvailableJobsList
+            jobs={availableJobs}
             onApply={handleApply}
             appliedJobIds={appliedJobIds}
           />
