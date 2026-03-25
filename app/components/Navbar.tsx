@@ -53,16 +53,13 @@ export function Navbar() {
   ]
   // Recruiter navigation items
   const recruiterNav: NavItem[] = [
-    // Home route (shared)
     { label: 'Home', href: '/home', icon: Home, match: (p) => p === '/home' },
-    // Recruiters can still view available jobs (as implemented) FIXME - later sprint task
     {
       label: 'Available Jobs',
-      href: '/applicant/jobs',
+      href: '/recruiter/jobs',
       icon: Briefcase,
-      match: (p) => p.startsWith('/applicant/jobs'),
+      match: (p) => p.startsWith('/recruiter/jobs'),
     },
-    // Recruiter job management routes
     {
       label: 'My Jobs',
       href: '/recruiter/myJobs',

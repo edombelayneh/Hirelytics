@@ -33,6 +33,7 @@ type Page =
 function pageFromPathname(pathname: string): Page {
   if (pathname.startsWith('/applicant/applications')) return 'applications'
   if (pathname.startsWith('/applicant/jobs')) return 'available'
+  if (pathname.startsWith('/recruiter/jobs')) return 'available'
   if (pathname.startsWith('/recruiter/addNewJob')) return 'addNewJob'
   if (pathname.startsWith('/applicant/addExternalJob')) return 'addExternalJob'
   if (pathname.startsWith('/recruiter/myJobs')) return 'recruiterHome'
