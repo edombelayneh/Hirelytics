@@ -44,6 +44,7 @@ describe('app/utils/applicationFirebase', () => {
         status: 'Open',
         applyLink: 'https://example.com/apply',
         recruiterId: 'recruiter-1',
+        applicantsId: [],
       },
     })
 
@@ -174,7 +175,6 @@ describe('app/utils/applicationFirebase', () => {
         jobId: '9',
         company: 'Fabrikam',
         status: 'Applied',
-        outcome: 'Pending',
         createdAt: 'SERVER_TS',
         updatedAt: 'SERVER_TS',
       }),

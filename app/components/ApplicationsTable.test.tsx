@@ -13,13 +13,6 @@ vi.mock('../utils/dateFormatter', () => ({
   formatDate: (date: string) => new Date(date).toLocaleDateString(),
 }))
 
-// Badge color utilities
-vi.mock('../utils/badgeColors', () => ({
-  getStatusColor: (status: string) => `status-${String(status).toLowerCase().replace(/\s+/g, '-')}`,
-  getOutcomeColor: (outcome: string) =>
-    `outcome-${String(outcome).toLowerCase().replace(/\s+/g, '-')}`,
-}))
-
 // Next.js router
 const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
@@ -80,7 +73,6 @@ describe('ApplicationsTable', () => {
       contactPerson: 'John Doe',
       notes: 'Great company culture',
       jobSource: 'LinkedIn',
-      outcome: 'Pending',
     },
     {
       id: '2',
@@ -94,7 +86,6 @@ describe('ApplicationsTable', () => {
       contactPerson: 'Jane Smith',
       notes: 'Second round scheduled',
       jobSource: 'Indeed',
-      outcome: 'In Progress',
     },
     {
       id: '3',
@@ -108,7 +99,6 @@ describe('ApplicationsTable', () => {
       contactPerson: 'Bob Johnson',
       notes: 'Not a good fit',
       jobSource: 'Company Website',
-      outcome: 'Unsuccessful',
     },
   ]
   // Callback spies used to assert row-level edits trigger parent handlers
@@ -150,7 +140,6 @@ describe('ApplicationsTable', () => {
       'Status',
       'Contact Person',
       'Job Source',
-      'Outcome',
       'Notes',
       'Job Details',
     ].forEach((h) => expect(headerScope.getByText(h)).toBeTruthy())
@@ -392,19 +381,14 @@ describe('ApplicationsTable', () => {
     expect(screen.getByText('Showing 1 of 1 applications')).toBeTruthy()
   })
 
-  it('shows job sources and outcomes in their cells', () => {
-    // Confirms key fields render in table cells (source + outcome columns)
+  it('shows job sources in its cell', () => {
+    // Confirms key fields render in source column)
     render(<ApplicationsTable applications={mockApplications} />)
 
     // Job sources
     expect(screen.getByText('LinkedIn')).toBeTruthy()
     expect(screen.getByText('Indeed')).toBeTruthy()
     expect(screen.getByText('Company Website')).toBeTruthy()
-
-    // Outcomes
-    expect(screen.getByText('Pending')).toBeTruthy()
-    expect(screen.getByText('In Progress')).toBeTruthy()
-    expect(screen.getByText('Unsuccessful')).toBeTruthy()
   })
 
   // --- Memoization Test ---
@@ -421,19 +405,5 @@ describe('ApplicationsTable', () => {
 
     // Elements should be the same (component memoized)
     expect(initialCompanyElement).toBe(afterRerenderCompanyElement)
-  })
-
-  // --- Graph and status color styling ---
-  it('applies the correct background color class for each outcome', () => {
-    render(<ApplicationsTable applications={mockApplications} />)
-
-    const pendingBadge = screen.getByText('Pending')
-    const inProgressBadge = screen.getByText('In Progress')
-    const unsuccessfulBadge = screen.getByText('Unsuccessful')
-
-    // className is a big string, just check it contains our mocked class
-    expect(pendingBadge.className).toContain('outcome-pending')
-    expect(inProgressBadge.className).toContain('outcome-in-progress')
-    expect(unsuccessfulBadge.className).toContain('outcome-unsuccessful')
   })
 })
