@@ -19,17 +19,17 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm ci
-
       # Caches the .next/cache directory to significantly speed up your Next.js builds on subsequent runs
       - name: Cache Next.js build
         uses: actions/cache@v4
         with:
           path: .next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.[jt]s', '**/*.[jt]sx') }}
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ hashFiles('app/**/*.[jt]s', 'app/**/*.[jt]sx', '__tests__/**/*.[jt]s', '__tests__/**/*.[jt]sx', 'components/**/*.[jt]s', 'components/**/*.[jt]sx', 'lib/**/*.[jt]s', 'lib/**/*.[jt]sx', 'utils/**/*.[jt]s', 'utils/**/*.[jt]sx', 'types/**/*.[jt]s', 'types/**/*.[jt]sx', 'data/**/*.[jt]s', 'data/**/*.[jt]sx', 'middleware.ts', 'next.config.ts', 'tailwind.config.ts', 'eslint.config.mjs', 'tsconfig.json', 'postcss.config.mjs', 'vitest.config.mts') }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-
+
+      - name: Install Dependencies
+        run: npm ci
 
       - name: Run Linter
         # Executes "eslint" as defined in package.json
