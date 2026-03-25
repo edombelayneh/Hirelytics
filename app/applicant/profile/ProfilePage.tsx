@@ -36,25 +36,56 @@ import { toast } from '../../components/ui/sonner'
 
 type RequiredFields = 'firstName' | 'lastName' | 'email'
 
+interface JobHistoryItem {
+  id: string
+  company: string
+  title: string
+  roleDescription: string
+  startDate: string
+  endDate: string
+}
+
 interface ProfilePageProps {
   profile: UserProfile
   onUpdateProfile: (profile: UserProfile) => Promise<void>
+  jobHistory: JobHistoryItem[]
+  jobHistoryLoading: boolean
+  onAddJobHistory: (item: {
+    company: string
+    title: string
+    roleDescription: string
+    startDate: string
+    endDate: string
+  }) => Promise<void>
+  onDeleteJobHistory: (jobHistoryId: string) => Promise<void>
 }
 
 export const ProfilePage = memo(function ProfilePage({
   profile,
   onUpdateProfile,
+  jobHistory = [],
+  jobHistoryLoading = false,
+  onAddJobHistory,
+  onDeleteJobHistory,
 }: ProfilePageProps) {
   const { user, isLoaded } = useUser()
 
   const [formData, setFormData] = useState<UserProfile>(profile)
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [jobCompany, setJobCompany] = useState('')
+  const [jobTitle, setJobTitle] = useState('')
+  const [jobRoleDescription, setJobRoleDescription] = useState('')
+  const [jobStartDate, setJobStartDate] = useState('')
+  const [jobEndDate, setJobEndDate] = useState('')
+  const [jobHistorySaving, setJobHistorySaving] = useState(false)
+  const [jobHistorySuccessMessage, setJobHistorySuccessMessage] = useState('')
 
   const profilePicInputRef = useRef<HTMLInputElement>(null)
   const resumeInputRef = useRef<HTMLInputElement>(null)
 
   const [errors, setErrors] = useState<Partial<Record<RequiredFields, string>>>({})
+  const safeJobHistory = jobHistory ?? []
 
   // Sync Firestore -> form + Clerk autofill for missing fields
   useEffect(() => {
@@ -185,6 +216,51 @@ export const ProfilePage = memo(function ProfilePage({
       toast.error('Save failed', { description: 'Please try again.' })
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleAddJobHistorySubmit = async () => {
+    if (
+      !jobCompany.trim() ||
+      !jobTitle.trim() ||
+      !jobRoleDescription.trim() ||
+      !jobStartDate ||
+      !jobEndDate
+    ) {
+      toast.error('Missing job history fields', {
+        description: 'Please fill in company, title, role description, start date, and end date.',
+      })
+      return
+    }
+
+    setJobHistorySaving(true)
+    setJobHistorySuccessMessage('')
+
+    try {
+      await onAddJobHistory({
+        company: jobCompany.trim(),
+        title: jobTitle.trim(),
+        roleDescription: jobRoleDescription.trim(),
+        startDate: jobStartDate,
+        endDate: jobEndDate,
+      })
+
+      //Clear form so user can enter another job right away
+      setJobCompany('')
+      setJobTitle('')
+      setJobRoleDescription('')
+      setJobStartDate('')
+      setJobEndDate('')
+
+      setJobHistorySuccessMessage('Job history saved. You can add another one.')
+      toast.success('Job history added successfully')
+    } catch (err) {
+      console.error('Add job history error:', err)
+      toast.error('Failed to add job history', {
+        description: 'Please try again.',
+      })
+    } finally {
+      setJobHistorySaving(false)
     }
   }
 
@@ -491,6 +567,119 @@ export const ProfilePage = memo(function ProfilePage({
             className='resize-none'
           />
           <p className='text-sm text-muted-foreground'>{formData.bio.length} / 1000 characters</p>
+        </div>
+      </Card>
+
+      {/* Job History */}
+      {jobHistorySuccessMessage && (
+        <div className='rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700'>
+          {jobHistorySuccessMessage}
+        </div>
+      )}
+      <Card className='p-6'>
+        <h2 className='mb-6'>Job History</h2>
+        <p className='text-sm text-muted-foreground'>
+          Add one past job at a time. After saving, the form will reset so you can add another.
+        </p>
+
+        <div className='space-y-6'>
+          <div className='grid md:grid-cols-2 gap-6'>
+            <div className='space-y-2'>
+              <Label htmlFor='jobCompany'>Company</Label>
+              <Input
+                id='jobCompany'
+                placeholder='TechCorp'
+                value={jobCompany}
+                onChange={(e) => setJobCompany(e.target.value)}
+              />
+            </div>
+
+            <div className='space-y-2'>
+              <Label htmlFor='jobTitle'>Title</Label>
+              <Input
+                id='jobTitle'
+                placeholder='Software Engineer Intern'
+                value={jobTitle}
+                onChange={(e) => setJobTitle(e.target.value)}
+              />
+            </div>
+
+            <div className='space-y-2 md:col-span-2'>
+              <Label htmlFor='jobRoleDescription'>Role Description</Label>
+              <Textarea
+                id='jobRoleDescription'
+                placeholder='Describe what you did in this role...'
+                value={jobRoleDescription}
+                onChange={(e) => setJobRoleDescription(e.target.value)}
+                rows={4}
+              />
+            </div>
+
+            <div className='space-y-2'>
+              <Label htmlFor='jobStartDate'>Start Date</Label>
+              <Input
+                id='jobStartDate'
+                type='date'
+                value={jobStartDate}
+                onChange={(e) => setJobStartDate(e.target.value)}
+              />
+            </div>
+
+            <div className='space-y-2'>
+              <Label htmlFor='jobEndDate'>End Date</Label>
+              <Input
+                id='jobEndDate'
+                type='date'
+                value={jobEndDate}
+                onChange={(e) => setJobEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <Button
+            type='button'
+            onClick={handleAddJobHistorySubmit}
+            disabled={jobHistorySaving}
+          >
+            {jobHistorySaving ? 'Saving...' : 'Save and Add Another'}
+          </Button>
+
+          <div className='space-y-4'>
+            {jobHistoryLoading && safeJobHistory.length === 0 ? (
+              <p className='text-sm text-muted-foreground'>Loading job history...</p>
+            ) : safeJobHistory.length === 0 ? (
+              <p className='text-sm text-muted-foreground'>No job history added yet.</p>
+            ) : (
+              safeJobHistory.map((item) => (
+                <div
+                  key={item.id}
+                  className='rounded-lg border p-4 flex flex-col gap-3'
+                >
+                  <div className='flex items-start justify-between gap-4'>
+                    <div>
+                      <h3 className='font-semibold'>{item.title}</h3>
+                      <p className='text-sm text-muted-foreground'>{item.company}</p>
+                    </div>
+
+                    <Button
+                      type='button'
+                      variant='outline'
+                      size='sm'
+                      onClick={() => onDeleteJobHistory(item.id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+
+                  <p className='text-sm'>{item.roleDescription}</p>
+
+                  <p className='text-sm text-muted-foreground'>
+                    {item.startDate} - {item.endDate}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </Card>
 
