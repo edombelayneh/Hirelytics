@@ -382,7 +382,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('shows job sources in its cell', () => {
-    // Confirms key fields render in source column)
+    // Confirms key fields render in source column
     render(<ApplicationsTable applications={mockApplications} />)
 
     // Job sources
