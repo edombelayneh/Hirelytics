@@ -21,6 +21,13 @@ type ApplicantsTableProps = {
   profileHref?: (applicantId: string) => string
 }
 
+// Utility: ensure URL has an absolute protocol so it doesn't resolve as a relative path
+function safeHref(url?: string) {
+  if (!url) return ''
+  if (/^https?:\/\//i.test(url)) return url
+  return `https://${url}`
+}
+
 // Utility: extract clean label from URL
 function safeLabelFromUrl(url?: string) {
   if (!url) return '' // No URL provided
@@ -101,7 +108,7 @@ export function ApplicantsTable({
                     <TableCell>
                       {a.linkedinUrl ? (
                         <a
-                          href={a.linkedinUrl}
+                          href={safeHref(a.linkedinUrl)}
                           target='_blank'
                           rel='noreferrer'
                           className='underline underline-offset-4 hover:opacity-80 text-sm'
@@ -117,7 +124,7 @@ export function ApplicantsTable({
                     <TableCell>
                       {a.portfolioUrl ? (
                         <a
-                          href={a.portfolioUrl}
+                          href={safeHref(a.portfolioUrl)}
                           target='_blank'
                           rel='noreferrer'
                           className='underline underline-offset-4 hover:opacity-80 text-sm'
