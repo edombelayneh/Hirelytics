@@ -90,14 +90,14 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
       <div className='space-y-8'>
         {/* Dashboard overview section */}
         <section>
-          <h1 className='text-2xl font-bold tracking-tight mb-4'>Dashboard Overview</h1>
+          <h1 className='text-2xl font-bold mb-1'>Dashboard Overview</h1>
           <HeroPanel applications={liveApplications} />
         </section>
 
 
         {/* Summary metrics section */}
         <section>
-          <h2 className='text-2xl font-bold tracking-tight mb-4'>Key Metrics</h2>
+          <h2 className='text-2xl font-bold mb-1'>Key Metrics</h2>
           <SummaryCards applications={liveApplications} />
         </section>
 
