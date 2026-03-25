@@ -58,9 +58,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
       <div className='flex items-center justify-between mb-4'>
         <div>
           <h2 className='text-2xl font-bold mb-1'>Available Jobs</h2>
-          <p className='text-muted-foreground'>
-            Browse and apply to {jobs.length} open positions
-          </p>
+          <p className='text-muted-foreground'>Browse and apply to {jobs.length} open positions</p>
         </div>
         {/* Recruiter-only: Add Job button */}
         {role === 'recruiter' && (
@@ -139,6 +137,8 @@ export const AvailableJobsList = memo(function AvailableJobsList({
             job={job}
             onApply={onApply}
             isApplied={appliedJobIds.has(job.id)}
+            showApplyButton={role !== 'recruiter'}
+            role={role === 'recruiter' ? 'recruiter' : 'applicant'}
           />
         ))}
       </div>

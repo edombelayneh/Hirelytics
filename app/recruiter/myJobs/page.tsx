@@ -20,10 +20,7 @@ export default function RecruiterMyJobsPage() {
     if (!isLoaded || !userId) return
 
     // Only fetch jobs where recruiterId matches the logged-in user
-    const q = query(
-      collection(db, 'jobPostings'),
-      where('recruiterId', '==', userId)
-    )
+    const q = query(collection(db, 'jobPostings'), where('recruiterId', '==', userId))
 
     const unsub = onSnapshot(q, (snap) => {
       const fetched = snap.docs.map((doc) => {

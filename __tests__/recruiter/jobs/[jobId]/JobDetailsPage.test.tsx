@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import JobDetailsPage from '../../../../app/applicant/jobs/[jobId]/page'
+import JobDetailsPage from '../../../../app/recruiter/jobs/[jobId]/page'
 
 // Router push spy used to assert back-button navigation behavior.
 const pushMock = vi.fn()
@@ -60,8 +60,7 @@ let applicationSnapshotData: Record<string, unknown> = defaultApplicationSnapsho
 vi.mock('firebase/firestore', () => ({
   doc: (...path: unknown[]) => ({ path }),
   onSnapshot: (ref: MockRef, cb: (snapshot: Snapshot) => void) => {
-    // `jobPostings/{jobId}` listener payload.
-    if (ref.path[1] === 'jobPostings') {
+    if (ref.path[1] === 'jobs') {
       cb({
         id: String(ref.path[2]),
         exists: () => jobSnapshotExists,
@@ -102,11 +101,7 @@ describe('Applicant Job Details Page', () => {
     expect(screen.getByText(/React/i)).toBeTruthy()
     expect(screen.getByText(/TypeScript/i)).toBeTruthy()
     expect(screen.getByText(/Firebase experience/i)).toBeTruthy()
-
-    // Back button still exists
-    expect(screen.getByRole('button', { name: /Back to My Applications/i })).toBeTruthy()
   })
-
   it('hides internal ids and renders posted/updated as date-only at the bottom', () => {
     render(<JobDetailsPage />)
 
@@ -124,8 +119,8 @@ describe('Applicant Job Details Page', () => {
     // Confirms context-aware back button uses applications route.
     render(<JobDetailsPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Back to My Applications/i }))
-    expect(pushMock).toHaveBeenCalledWith('/applicant/applications')
+    fireEvent.click(screen.getByRole('button', { name: /Back to Available Jobs/i }))
+    expect(pushMock).toHaveBeenCalledWith('/recruiter/jobs')
   })
 
   it('renders fallback details when Firebase documents are partial', () => {
