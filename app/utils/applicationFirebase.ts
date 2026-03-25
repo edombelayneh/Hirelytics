@@ -362,6 +362,13 @@ export async function saveExternalJob(input: SaveExternalJobInput) {
   // Build location string.
   const locationParts = [city, state, country].filter(Boolean)
   const location = locationParts.join(', ')
+  const cityDisplay = [city, state].filter(Boolean).join(', ')
+
+  // Normalize date-only form input to explicit UTC midnight for stable ordering
+  // and consistent parsing across clients in different timezones.
+  const applicationDateISO = /^\d{4}-\d{2}-\d{2}$/.test(applicationDate)
+    ? `${applicationDate}T00:00:00.000Z`
+    : new Date(applicationDate).toISOString()
 
   const ref = doc(db, 'users', userId, 'applications', jobId)
 
@@ -373,8 +380,8 @@ export async function saveExternalJob(input: SaveExternalJobInput) {
       company: companyName,
       position: jobName,
       country,
-      city,
-      applicationDate, // Use the form's application date.
+      city: cityDisplay || city,
+      applicationDate: applicationDateISO,
       status: 'Applied',
       contactPerson: companyContact,
       jobSource,
@@ -388,9 +395,9 @@ export async function saveExternalJob(input: SaveExternalJobInput) {
         company: companyName,
         location,
         type: employmentType || '',
-        postedDate: applicationDate,
+        postedDate: applicationDateISO,
         salary: paymentAmount
-          ? `${paymentType === 'hourly' ? '$' : ''}${paymentAmount}${paymentType === 'hourly' ? '/hr' : '/year'}`
+          ? `$${paymentAmount}${paymentType === 'hourly' ? '/hr' : paymentType === 'salary' ? '/year' : ''}`
           : '',
         description,
         requirements: qualifications ? qualifications.split('\n').filter(Boolean) : [],

@@ -44,6 +44,7 @@ describe('app/utils/applicationFirebase', () => {
         status: 'Open',
         applyLink: 'https://example.com/apply',
         recruiterId: 'recruiter-1',
+        applicantsId: [],
       },
     })
 
@@ -177,6 +178,47 @@ describe('app/utils/applicationFirebase', () => {
         outcome: 'Pending',
         createdAt: 'SERVER_TS',
         updatedAt: 'SERVER_TS',
+      }),
+      { merge: true }
+    )
+  })
+
+  it('saveExternalJob stores city with state and normalizes dates to ISO', async () => {
+    const { saveExternalJob } = await import('@/app/utils/applicationFirebase')
+
+    await saveExternalJob({
+      userId: 'user-9',
+      jobUrl: 'https://example.com/external-job',
+      jobName: 'QA Engineer',
+      companyName: 'Tailspin',
+      companyContact: 'Alex Recruiter',
+      description: 'Test platform features',
+      qualifications: 'Playwright\nTypeScript',
+      preferredSkills: 'CI/CD',
+      country: 'United States',
+      state: 'Michigan',
+      city: 'Mount Pleasant',
+      paymentAmount: '100000',
+      paymentType: 'salary',
+      visaRequired: 'no',
+      workArrangement: 'hybrid',
+      employmentType: 'full-time',
+      experienceLevel: 'mid',
+      applicationDate: '2026-03-25',
+      jobSource: 'Other',
+    })
+
+    expect(setDocMock).toHaveBeenCalledTimes(1)
+    expect(setDocMock).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({
+        country: 'United States',
+        city: 'Mount Pleasant, Michigan',
+        applicationDate: '2026-03-25T00:00:00.000Z',
+        jobDetails: expect.objectContaining({
+          location: 'Mount Pleasant, Michigan, United States',
+          postedDate: '2026-03-25T00:00:00.000Z',
+        }),
       }),
       { merge: true }
     )
