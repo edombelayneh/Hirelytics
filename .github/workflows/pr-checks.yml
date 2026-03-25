@@ -39,4 +39,8 @@ jobs:
       - name: Run Build
         # Executes "next build --webpack" to ensure your Next.js app compiles successfully.
         # Note: Next.js will automatically run ESLint again during this step via eslint-config-next.
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
         run: npm run build
