@@ -15,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          # Ensure this matches the "@types/node": __ dependency
+          # Use Node 20 in CI; keep this in sync with the project's configured Node version (e.g., engines.node or .nvmrc)
           node-version: '20'
           cache: 'npm'
 
