@@ -237,7 +237,7 @@ describe('MyApplicationsPage', () => {
   it('displays external jobs alongside platform jobs on the applications page', () => {
     // Create a mix of platform jobs and external jobs to verify they all show up
     const externalJob: JobApplication = {
-      id: 'external-1234567890',
+      id: 'x7Pq9Lm2RtA4bN8kY1cD',
       company: 'ExternalCorp',
       country: 'USA',
       city: 'Remote',

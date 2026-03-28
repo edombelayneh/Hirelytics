@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-type MockRef = { __docPath: unknown[] }
+type MockRef = { __docPath: unknown[]; id: string }
+type CollectionPath = { __collection: unknown[] }
 
 // Firestore call spies used to verify persistence behavior without hitting real Firebase.
-const docMock = vi.fn((...args: unknown[]): MockRef => ({ __docPath: args }))
+const docMock = vi.fn((...args: unknown[]): MockRef => ({ __docPath: args, id: 'mock-doc-id-123' }))
 const setDocMock = vi.fn()
 const serverTimestampMock = vi.fn(() => 'SERVER_TS')
 
@@ -14,6 +15,7 @@ vi.mock('../../app/lib/firebaseClient', () => ({
 
 // Mock only the Firestore APIs used by `applicationFirebase.ts`.
 vi.mock('firebase/firestore', () => ({
+  collection: vi.fn((...args: unknown[]): CollectionPath => ({ __collection: args })),
   doc: (...args: unknown[]) => docMock(...args),
   setDoc: (...args: unknown[]) => setDocMock(...args),
   serverTimestamp: () => serverTimestampMock(),
@@ -209,6 +211,9 @@ describe('app/utils/applicationFirebase', () => {
     })
 
     expect(setDocMock).toHaveBeenCalledTimes(1)
+    const savedPayload = setDocMock.mock.calls[0][1] as Record<string, unknown>
+    expect(savedPayload).toEqual(expect.objectContaining({ id: 'mock-doc-id-123' }))
+    expect(savedPayload).not.toHaveProperty('jobId')
     expect(setDocMock).toHaveBeenCalledWith(
       expect.any(Object),
       expect.objectContaining({

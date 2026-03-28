@@ -27,12 +27,15 @@ vi.mock('../../../app/utils/applicationFirebase', () => ({
 }))
 
 describe('AddExternalJobPage', () => {
+  // Setup: Reset all mocks and timers before each test
   beforeEach(() => {
     vi.resetAllMocks()
     vi.useFakeTimers()
+    // Mock the Firebase save function to resolve successfully by default
     vi.mocked(applicationFirebase.saveExternalJob).mockResolvedValue(undefined)
   })
 
+  // Cleanup: Ensure all pending timers are flushed and real timers are restored
   afterEach(() => {
     vi.runOnlyPendingTimers()
     vi.useRealTimers()
@@ -40,28 +43,34 @@ describe('AddExternalJobPage', () => {
   })
 
   it('renders Step 1 with job link input and Next/Cancel buttons', () => {
+    // Render the page component
     render(<AddExternalJobPage />)
 
+    // Verify the URL input field is present
     expect(screen.getByPlaceholderText('https://www.linkedin.com/jobs/view/...')).toBeTruthy()
+    // Verify Cancel button is present (for returning to applications)
     expect(screen.getByRole('button', { name: /Cancel/i })).toBeTruthy()
+    // Verify Next button is present (for proceeding to Step 2)
     expect(screen.getByRole('button', { name: /Next/i })).toBeTruthy()
   })
 
   it('moves to Step 2 after entering a valid URL and clicking Next', () => {
     render(<AddExternalJobPage />)
 
+    // Enter a valid job URL
     fireEvent.change(screen.getByPlaceholderText('https://www.linkedin.com/jobs/view/...'), {
       target: { value: 'https://example.com/job/123' },
     })
 
+    // Click Next to proceed to the job details confirmation step
     fireEvent.click(screen.getByRole('button', { name: /Next/i }))
 
-    // Step 2 fields
+    // Verify Step 2 fields are now visible (job details form)
     expect(screen.getByPlaceholderText('Software Engineer')).toBeTruthy()
     expect(screen.getByPlaceholderText('Company Name')).toBeTruthy()
     expect(screen.getByPlaceholderText('Main role summary and responsibilities')).toBeTruthy()
 
-    // Step 2 buttons
+    // Verify Step 2 buttons are present
     expect(screen.getByRole('button', { name: /Back/i })).toBeTruthy()
     expect(screen.getByRole('button', { name: /Cancel/i })).toBeTruthy()
     expect(screen.getByRole('button', { name: /^Save$/i })).toBeTruthy()
@@ -70,14 +79,16 @@ describe('AddExternalJobPage', () => {
   it('shows error message when required fields are missing on Step 2', () => {
     render(<AddExternalJobPage />)
 
+    // Proceed to Step 2 with a valid URL
     fireEvent.change(screen.getByPlaceholderText('https://www.linkedin.com/jobs/view/...'), {
       target: { value: 'https://example.com/job/123' },
     })
     fireEvent.click(screen.getByRole('button', { name: /Next/i }))
 
-    // Click save without filling required fields
+    // Try to save without filling in any required fields
     fireEvent.click(screen.getByRole('button', { name: /^Save$/i }))
 
+    // Verify error message is displayed
     expect(screen.getByText('Please fill in Job Name, Company Name, and Description.')).toBeTruthy()
   })
 
@@ -87,13 +98,14 @@ describe('AddExternalJobPage', () => {
 
     render(<AddExternalJobPage />)
 
-    // Step 1
+    // Step 1: Enter a valid job URL
     fireEvent.change(screen.getByPlaceholderText('https://www.linkedin.com/jobs/view/...'), {
       target: { value: 'https://example.com/job/123' },
     })
+    // Click Next to proceed to Step 2 (job details confirmation)
     fireEvent.click(screen.getByRole('button', { name: /Next/i }))
 
-    // Step 2 required fields
+    // Step 2: Fill in all required fields (Job Name, Company Name, Description)
     fireEvent.change(screen.getByPlaceholderText('Software Engineer'), {
       target: { value: 'Software Engineer' },
     })
@@ -104,25 +116,29 @@ describe('AddExternalJobPage', () => {
       target: { value: 'Build web apps' },
     })
 
-    // Submit
+    // Submit the form to save the external job
     fireEvent.click(screen.getByRole('button', { name: /^Save$/i }))
 
+    // Verify the save function was called
     expect(saveExternalJobMock).toHaveBeenCalled()
 
-    // Router should not have pushed yet
+    // Router should not navigate yet (redirect is delayed)
     expect(pushMock).not.toHaveBeenCalled()
 
-    // Flush pending timers (including the redirect timeout)
+    // Flush all pending timers to trigger the delayed redirect
     await vi.runAllTimersAsync()
 
+    // Verify the user was redirected to their applications page
     expect(pushMock).toHaveBeenCalledWith('/applicant/applications')
   })
 
   it('Cancel on Step 1 redirects immediately using router.push', () => {
     render(<AddExternalJobPage />)
 
+    // Click the Cancel button on Step 1 (before entering any URL)
     fireEvent.click(screen.getByRole('button', { name: /Cancel/i }))
 
+    // Verify the user is redirected back to the applications page immediately
     expect(pushMock).toHaveBeenCalledWith('/applicant/applications')
   })
 
@@ -132,13 +148,13 @@ describe('AddExternalJobPage', () => {
 
     render(<AddExternalJobPage />)
 
-    // Step 1: Enter URL
+    // Step 1: Enter a job URL
     fireEvent.change(screen.getByPlaceholderText('https://www.linkedin.com/jobs/view/...'), {
       target: { value: 'https://www.linkedin.com/jobs/view/123' },
     })
     fireEvent.click(screen.getByRole('button', { name: /Next/i }))
 
-    // Step 2: Fill in all required fields
+    // Step 2: Fill in all required and optional fields to test complete data capture
     fireEvent.change(screen.getByPlaceholderText('Software Engineer'), {
       target: { value: 'Senior Software Engineer' },
     })
@@ -149,7 +165,7 @@ describe('AddExternalJobPage', () => {
       target: { value: 'Lead backend development and architect scalable systems' },
     })
 
-    // Fill in additional fields for complete data
+    // Fill in additional fields for complete data validation
     fireEvent.change(screen.getByPlaceholderText('Required skills, experience, or education'), {
       target: { value: '5+ years experience\nProficiency in TypeScript\nExperience with Node.js' },
     })
@@ -157,19 +173,17 @@ describe('AddExternalJobPage', () => {
       target: { value: 'AWS\nDocker\nKubernetes' },
     })
 
-    // Set job source
+    // Set categorical fields
     const jobSourceSelect = screen.getByDisplayValue('Other')
     fireEvent.change(jobSourceSelect, { target: { value: 'LinkedIn' } })
 
-    // Set employment type
     const employmentSelect = screen.getAllByDisplayValue('Select type')[0]
     fireEvent.change(employmentSelect, { target: { value: 'full-time' } })
 
-    // Set work arrangement
     const workArrangementSelect = screen.getAllByDisplayValue('Select job type')[0]
     fireEvent.change(workArrangementSelect, { target: { value: 'remote' } })
 
-    // Set location
+    // Set location fields
     fireEvent.change(screen.getByPlaceholderText('United States'), {
       target: { value: 'United States' },
     })
@@ -180,10 +194,10 @@ describe('AddExternalJobPage', () => {
       target: { value: 'Mount Pleasant' },
     })
 
-    // Submit
+    // Submit the form
     fireEvent.click(screen.getByRole('button', { name: /^Save$/i }))
 
-    // Verify saveExternalJob was called with the correct data
+    // Verify saveExternalJob was called with all the expected data fields
     expect(saveExternalJobMock).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'test-user-123',
@@ -207,13 +221,13 @@ describe('AddExternalJobPage', () => {
 
     render(<AddExternalJobPage />)
 
-    // Step 1
+    // Step 1: Enter a valid URL and proceed to Step 2
     fireEvent.change(screen.getByPlaceholderText('https://www.linkedin.com/jobs/view/...'), {
       target: { value: 'https://example.com/job/123' },
     })
     fireEvent.click(screen.getByRole('button', { name: /Next/i }))
 
-    // Step 2: Fill required fields
+    // Step 2: Fill in only the required fields (minimal save test)
     fireEvent.change(screen.getByPlaceholderText('Software Engineer'), {
       target: { value: 'Test Engineer' },
     })
@@ -226,27 +240,29 @@ describe('AddExternalJobPage', () => {
 
     // Submit and verify Firebase was called
     fireEvent.click(screen.getByRole('button', { name: /^Save$/i }))
-
     expect(saveExternalJobMock).toHaveBeenCalled()
 
-    // Flush pending timers (including the redirect timeout)
+    // Flush pending timers to trigger the delayed redirect
     await vi.runAllTimersAsync()
+
+    // Verify the user was redirected to their applications page
     expect(pushMock).toHaveBeenCalledWith('/applicant/applications')
   })
 
   it('shows error when Firebase save fails', async () => {
     const saveExternalJobMock = vi.mocked(applicationFirebase.saveExternalJob)
+    // Mock the save function to reject with an error
     saveExternalJobMock.mockRejectedValueOnce(new Error('Firebase error'))
 
     render(<AddExternalJobPage />)
 
-    // Step 1
+    // Step 1: Enter a valid URL and proceed to Step 2
     fireEvent.change(screen.getByPlaceholderText('https://www.linkedin.com/jobs/view/...'), {
       target: { value: 'https://example.com/job/123' },
     })
     fireEvent.click(screen.getByRole('button', { name: /Next/i }))
 
-    // Step 2: Fill required fields
+    // Step 2: Fill in required fields
     fireEvent.change(screen.getByPlaceholderText('Software Engineer'), {
       target: { value: 'Test Engineer' },
     })
@@ -257,13 +273,16 @@ describe('AddExternalJobPage', () => {
       target: { value: 'QA testing' },
     })
 
-    // Submit
+    // Submit the form (which will fail in Firebase)
     fireEvent.click(screen.getByRole('button', { name: /^Save$/i }))
 
+    // Verify the save was attempted
     expect(saveExternalJobMock).toHaveBeenCalled()
 
-    // Should NOT redirect
+    // Flush all timers
     await vi.runAllTimersAsync()
+
+    // Verify the user was NOT redirected (because save failed)
     expect(pushMock).not.toHaveBeenCalledWith('/applicant/applications')
   })
 })

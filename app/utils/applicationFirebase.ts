@@ -1,11 +1,11 @@
-import { arrayUnion, doc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { arrayUnion, doc, collection, serverTimestamp, setDoc } from 'firebase/firestore'
 import { db } from '../lib/firebaseClient'
 import type { AvailableJob } from '../data/availableJobs'
 
 // Canonical shape persisted in each user's `applications/{jobId}` document.
 // Keeping this centralized prevents subtle field drift across different apply entry points.
 type JobDetailsPayload = {
-  id: string
+  id?: string
   title: string
   company: string
   location: string
@@ -333,6 +333,7 @@ export type SaveExternalJobInput = {
 
 // Saves an externally-sourced job to user's applications.
 // Creates a unique document in Firestore at users/{userId}/applications/{jobId}.
+// Uses Firebase's auto-generated document ID for both the document path and the id field.
 export async function saveExternalJob(input: SaveExternalJobInput) {
   const {
     userId,
@@ -356,8 +357,10 @@ export async function saveExternalJob(input: SaveExternalJobInput) {
     jobSource,
   } = input
 
-  // Generate a unique ID for this external job.
-  const jobId = `external-${Date.now()}`
+  // Pre-generate the Firestore doc reference so its auto-generated ID can be stored
+  // inside the document itself — no timestamp-based IDs, no race condition.
+  const newDocRef = doc(collection(db, 'users', userId, 'applications'))
+  const jobId = newDocRef.id
 
   // Build location string.
   const locationParts = [city, state, country].filter(Boolean)
@@ -370,13 +373,12 @@ export async function saveExternalJob(input: SaveExternalJobInput) {
     ? `${applicationDate}T00:00:00.000Z`
     : new Date(applicationDate).toISOString()
 
-  const ref = doc(db, 'users', userId, 'applications', jobId)
+  const ref = newDocRef
 
   await setDoc(
     ref,
     {
       id: jobId,
-      jobId,
       company: companyName,
       position: jobName,
       country,
@@ -390,7 +392,6 @@ export async function saveExternalJob(input: SaveExternalJobInput) {
       jobLink: jobUrl,
       isExternal: true, // Flag to identify external jobs.
       jobDetails: {
-        id: jobId,
         title: jobName,
         company: companyName,
         location,
