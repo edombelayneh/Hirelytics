@@ -9,22 +9,12 @@ const navigation = vi.hoisted(() => ({
 }))
 
 type CollectionPath = { __collection: unknown[] }
-type SavedJobData = { id?: number | string }
-type MockQuerySnapshot = {
-  forEach: (callback: (doc: { data: () => SavedJobData }) => void) => void
-}
 
 const collectionMock = vi.fn((...args: unknown[]): CollectionPath => ({ __collection: args }))
-const addDocMock = vi.fn()
-const getDocsMock = vi.fn<(...args: unknown[]) => Promise<MockQuerySnapshot>>()
+const docMock = vi.fn()
+const setDocMock = vi.fn()
 const getRecruiterProfileMock = vi.fn()
 const useUserMock = vi.fn()
-
-const createSnapshot = (ids: Array<number | string>): MockQuerySnapshot => ({
-  forEach: (callback) => {
-    ids.forEach((id) => callback({ data: () => ({ id }) }))
-  },
-})
 
 vi.mock('next/navigation', () => ({
   useRouter: () => navigation,
@@ -47,8 +37,8 @@ vi.mock('../../../app/utils/userProfiles', () => ({
 
 vi.mock('firebase/firestore', () => ({
   collection: (...args: unknown[]) => collectionMock(...args),
-  addDoc: (...args: unknown[]) => addDocMock(...args),
-  getDocs: (...args: unknown[]) => getDocsMock(...args),
+  doc: (...args: unknown[]) => docMock(...args),
+  setDoc: (...args: unknown[]) => setDocMock(...args),
 }))
 
 function fillRequiredFields() {
@@ -67,8 +57,8 @@ describe('AddNewJobPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useFakeTimers()
-    addDocMock.mockResolvedValue({ id: 'job-doc-123' })
-    getDocsMock.mockResolvedValue(createSnapshot([]))
+    docMock.mockReturnValue({ id: 'job-doc-123' })
+    setDocMock.mockResolvedValue(undefined)
     getRecruiterProfileMock.mockResolvedValue({ recruiterEmail: 'profile@techcorp.com' })
     useUserMock.mockReturnValue({
       isLoaded: true,
@@ -154,7 +144,7 @@ describe('AddNewJobPage', () => {
 
     await vi.advanceTimersByTimeAsync(1400)
 
-    expect(addDocMock).toHaveBeenCalledTimes(1)
+    expect(setDocMock).toHaveBeenCalledTimes(1)
     expect(screen.getByText(/Job submitted\. Redirecting to Job Details/i)).toBeTruthy()
     expect(screen.getByText(/Submitting job/i)).toBeTruthy()
     expect(screen.getByText(/Redirecting you to the Job Details page/i)).toBeTruthy()
@@ -163,9 +153,7 @@ describe('AddNewJobPage', () => {
     expect(navigation.push).toHaveBeenCalledWith('/recruiter/JobDetails/job-doc-123')
   })
 
-  it('generates the next numeric job id before saving', async () => {
-    getDocsMock.mockResolvedValue(createSnapshot([16, '22']))
-
+  it('saves job with id matching the firestore doc id', async () => {
     render(<AddNewJobPage />)
 
     await vi.runAllTimersAsync()
@@ -176,11 +164,11 @@ describe('AddNewJobPage', () => {
 
     await vi.runAllTimersAsync()
 
-    expect(addDocMock).toHaveBeenCalledTimes(1)
-    const savedPayload = addDocMock.mock.calls[0][1] as Record<string, unknown>
+    expect(setDocMock).toHaveBeenCalledTimes(1)
+    const savedPayload = setDocMock.mock.calls[0][1] as Record<string, unknown>
 
-    expect(savedPayload.id).toBe(23)
-    expect(typeof savedPayload.id).toBe('number')
+    expect(savedPayload.id).toBe('job-doc-123')
+    expect(typeof savedPayload.id).toBe('string')
     expect(savedPayload).toEqual(
       expect.objectContaining({
         title: 'Software Engineer',
@@ -192,9 +180,8 @@ describe('AddNewJobPage', () => {
     )
   })
 
-  it('navigates using the generated job id when higher ids already exist', async () => {
-    getDocsMock.mockResolvedValue(createSnapshot([16, '22']))
-    addDocMock.mockResolvedValue({ id: 'job-doc-xyz' })
+  it('navigates using the firestore doc id', async () => {
+    docMock.mockReturnValue({ id: 'job-doc-xyz' })
 
     render(<AddNewJobPage />)
 

@@ -9,15 +9,14 @@ import { type FormEvent, useEffect, useState } from 'react'
 import { useUser } from '@clerk/nextjs'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { addDoc, collection, getDocs } from 'firebase/firestore'
+import { collection, doc, setDoc } from 'firebase/firestore'
 import { db, firebaseAuth } from '../../lib/firebaseClient'
-import { availableJobs } from '../../data/availableJobs'
 import { getRecruiterProfile } from '../../utils/userProfiles'
 
 // Matches the AvailableJob interface shape so the document is readable by the applicant job list,
 // plus extra recruiter-only fields saved alongside it.
 type RecruiterJobPayload = {
-  id: number
+  id: string
   // AvailableJob fields
   title: string
   company: string
@@ -59,38 +58,6 @@ export default function AddNewJobPage() {
       : undefined
   const userRole: 'recruiter' | 'applicant' =
     metadataRole === 'applicant' ? 'applicant' : 'recruiter'
-
-  // Returns the next available job ID by finding the highest existing ID.
-  // both the seeded static job list and all Firestore job postings, then adding 1.
-  const getNextJobId = async () => {
-    // Find the highest ID in the local seeded jobs array
-    const seededMaxId = availableJobs.reduce((maxId, job) => Math.max(maxId, job.id), 0)
-
-    // Fetch all job postings from Firestore to check for any higher IDs
-    const snapshot = await getDocs(collection(db, 'jobPostings'))
-
-    let maxPostedJobId = 0
-
-    snapshot.forEach((jobDoc) => {
-      const data = jobDoc.data() as { id?: unknown }
-
-      // Normalize the id field.
-      const numericId =
-        typeof data.id === 'number'
-          ? data.id
-          : typeof data.id === 'string'
-            ? Number(data.id)
-            : Number.NaN
-
-      // Only track valid finite numbers.
-      if (Number.isFinite(numericId)) {
-        maxPostedJobId = Math.max(maxPostedJobId, numericId)
-      }
-    })
-
-    // Return one higher than the largest ID found across both sources.
-    return Math.max(seededMaxId, maxPostedJobId) + 1
-  }
 
   // Form field state
   const [jobName, setJobName] = useState('')
@@ -213,19 +180,12 @@ export default function AddNewJobPage() {
       .map((s) => s.trim())
       .filter(Boolean)
 
-    let nextJobId: number
-
-    try {
-      nextJobId = await getNextJobId()
-    } catch (error) {
-      console.error('Failed to generate job id:', error)
-      setMessage('Failed to generate job id. Please try again.')
-      setSubmitting(false)
-      return
-    }
+    // Pre-generate the Firestore doc reference so its ID can be stored
+    // inside the document itself — no max-ID calculation, no race condition.
+    const newDocRef = doc(collection(db, 'jobPostings'))
 
     const jobData: RecruiterJobPayload = {
-      id: nextJobId,
+      id: newDocRef.id,
       // AvailableJob fields
       title: jobName,
       company: companyName,
@@ -257,11 +217,8 @@ export default function AddNewJobPage() {
       createdAt: new Date().toISOString(),
     }
 
-    let createdJobDocId = ''
-
     try {
-      const createdDocRef = await addDoc(collection(db, 'jobPostings'), jobData)
-      createdJobDocId = createdDocRef.id
+      await setDoc(newDocRef, jobData)
     } catch (error) {
       console.error('Failed to save job:', error)
       setMessage('Failed to save job. Please try again.')
@@ -280,8 +237,7 @@ export default function AddNewJobPage() {
 
     // Small delay so user sees toast and overlay before navigation
     setTimeout(() => {
-      const detailsJobId = createdJobDocId || String(nextJobId)
-      router.push(`/recruiter/JobDetails/${detailsJobId}`)
+      router.push(`/recruiter/JobDetails/${newDocRef.id}`)
     }, 3400)
   }
 
