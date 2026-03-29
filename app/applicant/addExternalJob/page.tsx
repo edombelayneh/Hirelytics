@@ -34,21 +34,6 @@ type JobSource =
   | ''
 type PaymentType = 'hourly' | 'salary' | ''
 
-type ScrapedJobPayload = {
-  title?: string
-  companyName?: string
-  description?: string
-  qualifications?: string
-  preferredSkills?: string
-  country?: string
-  state?: string
-  city?: string
-  employmentType?: string
-  workArrangement?: string
-  paymentAmount?: string
-  paymentType?: string
-}
-
 // Returns todays date, used as default value for applicationDate
 function safeToday() {
   const d = new Date()
@@ -63,7 +48,12 @@ function guessCompanyFromUrl(url: string) {
   try {
     const u = new URL(url)
     const host = u.hostname.replace('www.', '')
-    const base = host.split('.')[0] || 'Unknown'
+    const parts = host.split('.')
+    const genericHostLabels = new Set(['careers', 'jobs', 'job', 'apply'])
+    const base =
+      genericHostLabels.has((parts[0] || '').toLowerCase()) && parts[1]
+        ? parts[1]
+        : parts[0] || 'Unknown'
     const normalized = base.toLowerCase()
     const platformHosts = new Set([
       'linkedin',
@@ -81,7 +71,6 @@ function guessCompanyFromUrl(url: string) {
     ])
 
     if (platformHosts.has(normalized)) return ''
-
     return base.charAt(0).toUpperCase() + base.slice(1)
   } catch {
     return ''
@@ -124,10 +113,44 @@ function normalizeWorkArrangement(value: string): WorkArrangement {
 function normalizePaymentType(value: string): PaymentType {
   const lower = value.toLowerCase()
   if (lower.includes('hour')) return 'hourly'
-  if (lower.includes('salary') || lower.includes('year') || lower.includes('annual')) return 'salary'
+  if (lower.includes('salary') || lower.includes('year') || lower.includes('annual'))
+    return 'salary'
   return ''
 }
 
+function sanitizeParsedText(value: unknown) {
+  if (typeof value !== 'string') return ''
+  return value
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function inferFromJobUrl(url: string): { jobName: string; city: string } {
+  try {
+    const parsed = new URL(url)
+    const slug = parsed.pathname.split('/').filter(Boolean).pop() || ''
+    const segments = slug.split('--').filter(Boolean)
+    const genericTitleSlugs = new Set(['jobdetail', 'job', 'jobs', 'posting', 'viewjob'])
+    const rawTitlePart = segments[0] || ''
+    const titlePart = genericTitleSlugs.has(rawTitlePart.toLowerCase()) ? '' : rawTitlePart
+    const cityPart = segments[1] || ''
+
+    const toTitleCase = (value: string) =>
+      value
+        .split('-')
+        .filter(Boolean)
+        .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+        .join(' ')
+
+    return {
+      jobName: titlePart ? toTitleCase(titlePart) : '',
+      city: cityPart ? toTitleCase(cityPart) : '',
+    }
+  } catch {
+    return { jobName: '', city: '' }
+  }
+}
 export default function AddExternalJobPage() {
   const router = useRouter()
   const { userId, isLoaded } = useAuth()
@@ -161,7 +184,7 @@ export default function AddExternalJobPage() {
   const [message, setMessage] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
-  const [scraping, setScraping] = useState(false)
+  const [parsing, setParsing] = useState(false)
 
   // Enables next button only if URL is valid
   const canGoNext = useMemo(() => {
@@ -182,13 +205,140 @@ export default function AddExternalJobPage() {
     router.push('/applicant/applications')
   }
 
-  // When step becomes 2, autofill without scraper for now
+  // When step becomes 2, attempt to autofill by parsing the job URL
   useEffect(() => {
     if (step !== 2) return
-    const url = jobUrl.trim()
 
+    const url = jobUrl.trim()
+    setParsing(true)
+    setMessage(null)
+
+    // First, set defaults while we fetch
     setCompanyName((prev) => prev || guessCompanyFromUrl(url))
     setJobName((prev) => prev || 'Unknown Position')
+
+    // Then try to parse the URL
+    const parseJobUrl = async () => {
+      try {
+        const response = await fetch('/api/jobs/parse-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          console.warn('Parse error:', error)
+          setParsing(false)
+          return
+        }
+
+        const parsed = await response.json()
+        const inferred = inferFromJobUrl(url)
+        const blockedBySource = Boolean(parsed?.blocked)
+
+        const parsedJobName = sanitizeParsedText(parsed.jobName)
+        const parsedCompanyName = sanitizeParsedText(parsed.companyName)
+        const parsedDescription = sanitizeParsedText(parsed.description)
+        const parsedQualifications = sanitizeParsedText(parsed.qualifications)
+        const parsedPreferredSkills = sanitizeParsedText(parsed.preferredSkills)
+        const parsedCity = sanitizeParsedText(parsed.city)
+        const parsedCountry = sanitizeParsedText(parsed.country)
+        const parsedEmploymentType = sanitizeParsedText(parsed.employmentType) as EmploymentType
+        const parsedWorkArrangement = sanitizeParsedText(parsed.workArrangement) as WorkArrangement
+        const fallbackCompanyName = guessCompanyFromUrl(url)
+        const fallbackBlockedDescription =
+          'Auto-extraction was blocked by the source site. Paste or summarize the job description here before saving.'
+
+        const hasCoreAutofillData =
+          (parsedJobName && parsedJobName.toLowerCase() !== 'unknown position') ||
+          parsedDescription.length > 40 ||
+          parsedQualifications.length > 40
+
+        if (
+          !blockedBySource &&
+          parsedJobName &&
+          parsedJobName.toLowerCase() !== 'unknown position'
+        ) {
+          setJobName(parsedJobName)
+        } else if (inferred.jobName) {
+          setJobName(inferred.jobName)
+        }
+        if (
+          !blockedBySource &&
+          parsedCompanyName &&
+          parsedCompanyName.toLowerCase() !== 'unknown company'
+        ) {
+          setCompanyName(parsedCompanyName)
+        }
+        if (!blockedBySource && parsedDescription) {
+          setDescription(parsedDescription)
+        }
+        if (!blockedBySource && parsedQualifications) {
+          setQualifications(parsedQualifications)
+        }
+        if (!blockedBySource && parsedPreferredSkills) {
+          setPreferredSkills(parsedPreferredSkills)
+        }
+        if (!blockedBySource && parsedCity) {
+          setCity(parsedCity)
+        } else if (inferred.city) {
+          setCity(inferred.city)
+        }
+        if (!blockedBySource && parsedCountry) {
+          setCountry(parsedCountry)
+        }
+        if (
+          !blockedBySource &&
+          (parsedEmploymentType === 'full-time' ||
+            parsedEmploymentType === 'part-time' ||
+            parsedEmploymentType === 'contract' ||
+            parsedEmploymentType === 'internship')
+        ) {
+          setEmploymentType(parsedEmploymentType)
+        }
+        if (
+          !blockedBySource &&
+          (parsedWorkArrangement === 'onsite' ||
+            parsedWorkArrangement === 'remote' ||
+            parsedWorkArrangement === 'hybrid')
+        ) {
+          setWorkArrangement(parsedWorkArrangement)
+        }
+
+        if (blockedBySource) {
+          const unusableBlockedTitle = new Set(['unknown position', 'jobdetail', 'job', 'jobs'])
+          if (!parsedJobName || unusableBlockedTitle.has(parsedJobName.toLowerCase())) {
+            setJobName((prev) => prev || inferred.jobName || 'External Job Posting')
+          }
+
+          if (!parsedCompanyName || parsedCompanyName.toLowerCase() === 'unknown company') {
+            setCompanyName((prev) => prev || fallbackCompanyName)
+          }
+
+          if (!parsedDescription) {
+            setDescription((prev) => prev || fallbackBlockedDescription)
+          }
+
+          setMessage(
+            parsed?.blockedReason ||
+              'This site blocked auto-parsing. Please paste the details manually.'
+          )
+        } else if (hasCoreAutofillData) {
+          setMessage('Job information extracted successfully!')
+        } else {
+          setMessage('Could not auto-fill this posting. Please fill in details manually.')
+        }
+
+        setParsing(false)
+      } catch (err) {
+        console.error('Failed to parse job URL:', err)
+        setParsing(false)
+        // Silently fail - user can manually fill in the fields
+      }
+    }
+
+    parseJobUrl()
   }, [step, jobUrl])
 
   const handleNext = async () => {
@@ -210,47 +360,9 @@ export default function AddExternalJobPage() {
       return
     }
 
-    setScraping(true)
-
-    try {
-      const response = await fetch('/api/scrape-job', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      })
-
-      if (response.ok) {
-        const data = (await response.json()) as { scraped?: ScrapedJobPayload }
-        const scraped = data.scraped
-
-        if (scraped) {
-          setJobName((prev) => prev || scraped.title || 'Unknown Position')
-          setCompanyName((prev) => prev || scraped.companyName || guessCompanyFromUrl(url))
-          setDescription((prev) => prev || scraped.description || '')
-          setQualifications((prev) => prev || scraped.qualifications || '')
-          setPreferredSkills((prev) => prev || scraped.preferredSkills || '')
-          setCountry((prev) => prev || scraped.country || '')
-          setStateValue((prev) => prev || scraped.state || '')
-          setCity((prev) => prev || scraped.city || '')
-          setEmploymentType(
-            (prev) => prev || normalizeEmploymentType(scraped.employmentType || '')
-          )
-          setWorkArrangement(
-            (prev) => prev || normalizeWorkArrangement(scraped.workArrangement || '')
-          )
-          setPaymentAmount((prev) => prev || scraped.paymentAmount || '')
-          setPaymentType((prev) => prev || normalizePaymentType(scraped.paymentType || ''))
-        }
-      } else {
-        setMessage('We could not fully scrape this page. Please confirm details manually.')
-      }
-    } catch {
-      setMessage('We could not fully scrape this page. Please confirm details manually.')
-    } finally {
-      setScraping(false)
-      setJobSource((prev) => (prev && prev !== 'Other' ? prev : inferJobSource(url)))
-      setStep(2)
-    }
+    setParsing(true)
+    setJobSource((prev) => (prev && prev !== 'Other' ? prev : inferJobSource(url)))
+    setStep(2)
   }
 
   const handleBack = () => {
@@ -321,7 +433,7 @@ export default function AddExternalJobPage() {
         merge: true,
       })
 
-      setMessage('Saved. Redirecting to My Applications...')
+      setMessage('Saved! Redirecting to My Applications...')
       setRedirecting(true)
 
       // Small delay so user sees the message, then navigate
@@ -384,9 +496,9 @@ export default function AddExternalJobPage() {
                 type='button'
                 className='rounded bg-black text-white px-4 py-2 disabled:opacity-50'
                 onClick={handleNext}
-                disabled={!canGoNext || scraping}
+                disabled={!canGoNext || parsing}
               >
-                {scraping ? 'Scraping...' : 'Next'}
+                {parsing ? 'Parsing...' : 'Next'}
               </button>
             </div>
           </div>
