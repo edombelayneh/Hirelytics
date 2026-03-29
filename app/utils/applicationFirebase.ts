@@ -27,6 +27,7 @@ type ApplicationPayload = {
 	position: string
 	country: string
 	city: string
+	state?: string
 	contactPerson: string
 	jobSource: string
 	jobLink: string
@@ -35,6 +36,11 @@ type ApplicationPayload = {
 	outcome: 'Pending'
 	notes: string
 	recruiterId?: string
+	visaRequired?: string
+	experienceLevel?: string
+	preferredSkills?: string
+	workArrangement?: string
+	paymentType?: string
 	createdAt?: unknown
 	updatedAt?: unknown
 	jobDetails: ApplicationJobDetails
@@ -83,9 +89,10 @@ function parseLocation(location: string): { city: string; country: string } {
 	if (!location) return { city: '', country: '' }
 	if (location.toLowerCase() === 'remote') return { city: 'Remote', country: 'Remote' }
 
-	const [first = '', second = ''] = location.split(',').map((part) => part.trim())
-	if (!second) return { city: first, country: first }
-	return { city: first, country: second }
+	// Keep the full location string as `city` and leave `country` empty,
+	// since location values may be in formats like "New York, NY" where
+	// the suffix is a state abbreviation, not a country.
+	return { city: location.trim(), country: '' }
 }
 
 export function buildApplicationFromAvailableJob({
@@ -145,6 +152,14 @@ export function buildApplication({
 			? toStringList(mergedJob.requirements)
 			: fallback.requirements
 
+	const state = toText(mergedJob.state) || undefined
+	const visaRequired = toText(mergedJob.visaRequired) || undefined
+	const experienceLevel = toText(mergedJob.experienceLevel) || undefined
+	const preferredSkills = toText(mergedJob.preferredSkills) || undefined
+	const workArrangement = toText(mergedJob.workArrangement) || undefined
+	const paymentType = toText(mergedJob.paymentType) || undefined
+	const jobLink = toText(mergedJob.applyLink) || toText(mergedJob.jobLink)
+
 	return {
 		id: jobId,
 		jobId,
@@ -153,14 +168,20 @@ export function buildApplication({
 		position: title,
 		country,
 		city,
+		...(state ? { state } : {}),
 		contactPerson: toText(mergedJob.contactPerson),
 		jobSource: toText(mergedJob.jobSource) || 'Hirelytics',
-		jobLink: toText(mergedJob.applyLink),
+		jobLink,
 		applicationDate: new Date().toISOString().slice(0, 10),
 		status: 'Applied',
 		outcome: 'Pending',
 		notes: '',
 		recruiterId: toText(mergedJob.recruiterId) || undefined,
+		...(visaRequired ? { visaRequired } : {}),
+		...(experienceLevel ? { experienceLevel } : {}),
+		...(preferredSkills ? { preferredSkills } : {}),
+		...(workArrangement ? { workArrangement } : {}),
+		...(paymentType ? { paymentType } : {}),
 		jobDetails: {
 			id: jobId,
 			title,
@@ -173,7 +194,7 @@ export function buildApplication({
 				toText(mergedJob.description) || toText(mergedJob.generalDescription) || fallback.description,
 			requirements,
 			status: toText(mergedJob.status) || 'Open',
-			applyLink: toText(mergedJob.applyLink),
+			applyLink: jobLink,
 			recruiterId: toText(mergedJob.recruiterId) || undefined,
 		},
 	}

@@ -14,8 +14,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@clerk/nextjs'
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore'
-import { db } from '../../lib/firebaseClient'
+import { buildApplication, saveUserApplication } from '../../utils/applicationFirebase'
 
 // Controlled select fields types
 type VisaRequired = 'yes' | 'no' | ''
@@ -278,21 +277,18 @@ export default function AddExternalJobPage() {
         return
       }
 
-      const applicationId = `external-${Date.now()}`
+      const applicationId = crypto.randomUUID()
 
-      const trackedJob = {
-        id: applicationId,
+      const mergedJob = {
         jobId: applicationId,
-        userId,
         jobLink: jobUrl.trim(),
+        applyLink: jobUrl.trim(),
         jobSource: jobSource || inferJobSource(jobUrl.trim()),
         applicationDate,
-        position: jobName.trim(),
         title: jobName.trim(),
         company: companyName.trim(),
         companyName: companyName.trim(),
         contactPerson: companyContact.trim(),
-        companyContact: companyContact.trim(),
         description: description.trim(),
         generalDescription: description.trim(),
         qualifications: qualifications.trim(),
@@ -311,15 +307,23 @@ export default function AddExternalJobPage() {
         employmentType,
         experienceLevel,
         status: 'Applied',
-        outcome: 'Pending',
-        notes: '',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
       }
 
-      await setDoc(doc(db, 'users', userId, 'applications', applicationId), trackedJob, {
-        merge: true,
+      const application = buildApplication({
+        userId,
+        jobId: applicationId,
+        mergedJob,
+        fallback: {
+          title: jobName.trim(),
+          company: companyName.trim(),
+          location: city.trim(),
+          description: description.trim(),
+          requirements: [],
+          postedDate: applicationDate,
+        },
       })
+
+      await saveUserApplication(application)
 
       setMessage('Saved. Redirecting to My Applications...')
       setRedirecting(true)

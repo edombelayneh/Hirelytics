@@ -1,6 +1,69 @@
 import { NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 
 export const runtime = 'nodejs'
+
+const MAX_RESPONSE_BYTES = 5 * 1024 * 1024 // 5 MB
+const FETCH_TIMEOUT_MS = 15_000 // 15 seconds
+
+function isPrivateHostname(hostname: string): boolean {
+  // Strip IPv6 brackets
+  const host = hostname.replace(/^\[|\]$/g, '').toLowerCase()
+
+  if (host === 'localhost' || host === '::1' || host === '0.0.0.0') return true
+  if (host === 'metadata.google.internal') return true
+
+  // IPv4 loopback (127.0.0.0/8)
+  if (/^127\./.test(host)) return true
+
+  // Link-local / AWS metadata (169.254.0.0/16)
+  if (/^169\.254\./.test(host)) return true
+
+  // Private ranges
+  if (/^10\./.test(host)) return true
+  if (/^192\.168\./.test(host)) return true
+
+  // 172.16.0.0/12
+  const parts = host.split('.')
+  if (parts.length === 4 && parts[0] === '172') {
+    const second = parseInt(parts[1] ?? '', 10)
+    if (second >= 16 && second <= 31) return true
+  }
+
+  // IPv6 unique-local and link-local
+  if (/^fc[0-9a-f]{2}:/.test(host) || /^fd[0-9a-f]{2}:/.test(host)) return true
+  if (/^fe80:/.test(host)) return true
+
+  return false
+}
+
+async function readBodyWithSizeLimit(response: Response, maxBytes: number): Promise<string> {
+  const reader = response.body?.getReader()
+  if (!reader) throw new Error('No response body')
+
+  const chunks: Uint8Array[] = []
+  let totalBytes = 0
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done || !value) break
+      totalBytes += value.length
+      if (totalBytes > maxBytes) break
+      chunks.push(value)
+    }
+  } finally {
+    reader.cancel().catch(() => {})
+  }
+
+  const combined = new Uint8Array(chunks.reduce((acc, c) => acc + c.length, 0))
+  let offset = 0
+  for (const chunk of chunks) {
+    combined.set(chunk, offset)
+    offset += chunk.length
+  }
+  return new TextDecoder().decode(combined)
+}
 
 type ScrapedJob = {
   title: string
@@ -255,7 +318,7 @@ function inferCompanyName(html: string, pageUrl: string, title: string): string 
 
   const fromScriptRegex = extractFromHtmlByRegex(html, [
     /"hiringOrganization"\s*:\s*\{[\s\S]*?"name"\s*:\s*"([^"]+)"/i,
-    /"company(Name)?"\s*:\s*"([^"]+)"/i,
+    /"company(?:Name)?"\s*:\s*"([^"]+)"/i,
     /"organization"\s*:\s*\{[\s\S]*?"name"\s*:\s*"([^"]+)"/i,
   ])
 
@@ -420,6 +483,11 @@ function scrapeJobFromHtml(html: string, pageUrl: string): ScrapedJob {
 
 export async function POST(req: Request) {
   try {
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = (await req.json()) as { url?: string }
     const url = body.url?.trim()
 
@@ -438,15 +506,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Only HTTP(S) URLs are supported.' }, { status: 400 })
     }
 
-    const response = await fetch(parsedUrl.toString(), {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      },
-      redirect: 'follow',
-      cache: 'no-store',
-    })
+    if (isPrivateHostname(parsedUrl.hostname)) {
+      return NextResponse.json(
+        { error: 'Requests to private or internal addresses are not allowed.' },
+        { status: 400 }
+      )
+    }
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+
+    let response: Response
+    try {
+      response = await fetch(parsedUrl.toString(), {
+        signal: controller.signal,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        },
+        redirect: 'follow',
+        cache: 'no-store',
+      })
+    } finally {
+      clearTimeout(timeoutId)
+    }
 
     if (!response.ok) {
       return NextResponse.json(
@@ -455,7 +539,16 @@ export async function POST(req: Request) {
       )
     }
 
-    const html = await response.text()
+    const contentType = response.headers.get('content-type') ?? ''
+    const mimeType = contentType.split(';')[0]?.trim().toLowerCase() ?? ''
+    if (mimeType !== 'text/html' && mimeType !== 'application/xhtml+xml') {
+      return NextResponse.json(
+        { error: 'URL does not point to an HTML page.' },
+        { status: 400 }
+      )
+    }
+
+    const html = await readBodyWithSizeLimit(response, MAX_RESPONSE_BYTES)
     const scraped = scrapeJobFromHtml(html, parsedUrl.toString())
 
     return NextResponse.json({
