@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup, act } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, act, waitFor } from '@testing-library/react'
 import React from 'react'
 import AddExternalJobPage from '../../../app/applicant/addExternalJob/page'
 
@@ -122,7 +122,7 @@ describe('AddExternalJobPage', () => {
 
     // Message + overlay text
     await waitFor(() => {
-      expect(screen.getByText(/Saved\. Redirecting to My Applications\.\.\./i)).toBeTruthy()
+      expect(screen.getByText(/Saved! Redirecting to My Applications\.\.\./i)).toBeTruthy()
     })
     expect(screen.getByText(/Saving application\.\.\./i)).toBeTruthy()
     expect(screen.getByText(/Redirecting you to My Applications\./i)).toBeTruthy()

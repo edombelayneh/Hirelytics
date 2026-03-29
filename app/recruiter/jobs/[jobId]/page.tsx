@@ -95,10 +95,9 @@ export default function JobDetailsPage() {
 
   // FIXME(TODO - remove after Firebase init): Temporary JSON fallback for local testing only.
   const jsonFallbackJob = useMemo(() => {
-    // Route param is a string; map it to the numeric ID used in availableJobs.
-    const numericJobId = Number(jobId)
-    if (Number.isNaN(numericJobId)) return null
-    return availableJobs.find((job) => job.id === numericJobId) ?? null
+    // jobId is a string route param; match against availableJobs string IDs.
+    if (!jobId) return null
+    return availableJobs.find((job) => job.id === jobId) ?? null
   }, [jobId])
 
   useEffect(() => {
