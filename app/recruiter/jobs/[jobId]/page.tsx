@@ -8,7 +8,6 @@ import { db } from '../../../lib/firebaseClient'
 import { Button } from '../../../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card'
 import { formatDateWithYear } from '../../../utils/dateFormatter'
-import { applyToJobFromDetails } from '../../../utils/applicationFirebase'
 // Fixme(TODO - remove after Firebase init): Temporary JSON fallback for local testing only.
 import { availableJobs } from '../../../data/availableJobs'
 
@@ -107,7 +106,7 @@ export default function JobDetailsPage() {
     if (!jobId) return
 
     const unsub = onSnapshot(
-      doc(db, 'jobPostings', jobId),
+      doc(db, 'jobs', jobId),
       (snapshot) => {
         if (!snapshot.exists()) {
           setJobSnapshotState({ key: jobId, data: null })
@@ -235,26 +234,6 @@ export default function JobDetailsPage() {
   const postedDate = toDateOnly(mergedJob.postedAt ?? mergedJob.postedDate ?? mergedJob.createdAt)
   const updatedDate = toDateOnly(mergedJob.updatedAt)
 
-  const hasApplied = Boolean(applicationDocData)
-
-  const handleApplyNow = async () => {
-    if (!isLoaded || !userId || !jobId || hasApplied) return
-
-    await applyToJobFromDetails({
-      userId,
-      jobId: String(jobId),
-      mergedJob,
-      fallback: {
-        title,
-        company,
-        location,
-        description: jobDetailsText,
-        requirements,
-        postedDate: postedDate !== '—' ? postedDate : '',
-      },
-    })
-  }
-
   const applicantInfoFields: Array<[label: string, value: string]> = [
     ['Employment Type', formatValue(mergedJob.employmentType ?? mergedJob.type)],
     ['Work Arrangement', formatValue(mergedJob.workArrangement ?? mergedJob.jobType)],
@@ -268,12 +247,6 @@ export default function JobDetailsPage() {
     ['Contact Person', formatValue(mergedJob.contactPerson)],
     ...(fromApplications ? [['Job Source', normalizeJobSource(mergedJob.jobSource)] as const] : []),
     ['Application Status', formatValue(mergedJob.status)],
-    [
-      'People Applied',
-      Array.isArray(mergedJob.applicantsId)
-        ? String((mergedJob.applicantsId as unknown[]).length)
-        : '0',
-    ],
   ].filter((entry): entry is [string, string] => entry[1] !== '—')
 
   return (
@@ -281,28 +254,11 @@ export default function JobDetailsPage() {
       <main className='container mx-auto max-w-6xl px-6 py-8 space-y-6'>
         <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
           {/* Context-aware back navigation based on source page. */}
-          {fromApplications ? (
-            <Button
-              variant='outline'
-              onClick={() => router.push('/applicant/applications')}
-            >
-              Back to My Applications
-            </Button>
-          ) : (
-            <Button
-              variant='outline'
-              onClick={() => router.push('/applicant/jobs')}
-            >
-              Back to Available Jobs
-            </Button>
-          )}
-
           <Button
-            onClick={handleApplyNow}
-            disabled={hasApplied}
-            variant={hasApplied ? 'secondary' : 'default'}
+            variant='outline'
+            onClick={() => router.push('/recruiter/jobs')}
           >
-            {hasApplied ? 'Applied' : 'Apply Now'}
+            Back to Available Jobs
           </Button>
         </div>
 
