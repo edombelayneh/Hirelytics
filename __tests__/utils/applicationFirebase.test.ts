@@ -140,6 +140,7 @@ describe('app/utils/applicationFirebase', () => {
     const { saveUserApplication } = await import('@/app/utils/applicationFirebase')
 
     await saveUserApplication({
+      id: '9',
       userId: 'user-3',
       jobId: '9',
       company: 'Fabrikam',
@@ -149,6 +150,10 @@ describe('app/utils/applicationFirebase', () => {
       contactPerson: 'Jane Doe',
       jobSource: 'Hirelytics',
       jobLink: 'https://example.com/jobs/9',
+      applicationDate: '2026-02-28',
+      status: 'Applied',
+      outcome: 'Pending',
+      notes: '',
       jobDetails: {
         id: '9',
         title: 'Backend Engineer',

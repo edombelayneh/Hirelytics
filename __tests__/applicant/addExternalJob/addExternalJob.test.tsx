@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, act } from '@testing-library/react'
 import React from 'react'
 import AddExternalJobPage from '../../../app/applicant/addExternalJob/page'
 
@@ -19,17 +19,30 @@ vi.mock('@clerk/nextjs', () => ({
   }),
 }))
 
-const setDocMock = vi.fn()
-const docMock = vi.fn((_db, ...segments: string[]) => ({ path: segments.join('/') }))
-const serverTimestampMock = vi.fn(() => 'SERVER_TS')
-
-vi.mock('firebase/firestore', () => ({
-  setDoc: (...args: unknown[]) => setDocMock(...args),
-  doc: (...args: unknown[]) => docMock(...args),
-  serverTimestamp: () => serverTimestampMock(),
+// vi.hoisted ensures these are available inside the vi.mock factory (which is hoisted to top)
+const { saveUserApplicationMock, buildApplicationMock } = vi.hoisted(() => ({
+  saveUserApplicationMock: vi.fn<[], Promise<void>>().mockResolvedValue(undefined),
+  buildApplicationMock: vi.fn().mockReturnValue({
+    id: 'mock-id',
+    jobId: 'mock-id',
+    userId: 'user-123',
+  }),
 }))
 
-vi.mock('../../../app/lib/firebaseClient', () => ({ db: {} }))
+vi.mock('../../../app/utils/applicationFirebase', () => ({
+  buildApplication: buildApplicationMock,
+  saveUserApplication: saveUserApplicationMock,
+}))
+
+/** Helper: advances to Step 2 by setting URL and clicking Next */
+async function goToStep2() {
+  fireEvent.change(screen.getByPlaceholderText('https://www.linkedin.com/jobs/view/...'), {
+    target: { value: 'https://example.com/job/123' },
+  })
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /Next/i }))
+  })
+}
 
 describe('AddExternalJobPage', () => {
   beforeEach(() => {
@@ -41,6 +54,8 @@ describe('AddExternalJobPage', () => {
         json: async () => ({ scraped: {} }),
       }))
     )
+    saveUserApplicationMock.mockResolvedValue(undefined)
+    buildApplicationMock.mockReturnValue({ id: 'mock-id', jobId: 'mock-id', userId: 'user-123' })
   })
 
   afterEach(() => {
@@ -52,9 +67,7 @@ describe('AddExternalJobPage', () => {
   it('renders Step 1 with job link input and Next/Cancel buttons', () => {
     render(<AddExternalJobPage />)
 
-    expect(
-      screen.getByPlaceholderText('https://www.linkedin.com/jobs/view/...')
-    ).toBeTruthy()
+    expect(screen.getByPlaceholderText('https://www.linkedin.com/jobs/view/...')).toBeTruthy()
     expect(screen.getByRole('button', { name: /Cancel/i })).toBeTruthy()
     expect(screen.getByRole('button', { name: /Next/i })).toBeTruthy()
   })
@@ -62,23 +75,12 @@ describe('AddExternalJobPage', () => {
   it('moves to Step 2 after entering a valid URL and clicking Next', async () => {
     render(<AddExternalJobPage />)
 
-    fireEvent.change(
-      screen.getByPlaceholderText('https://www.linkedin.com/jobs/view/...'),
-      {
-        target: { value: 'https://example.com/job/123' },
-      }
-    )
-
-    fireEvent.click(screen.getByRole('button', { name: /Next/i }))
+    await goToStep2()
 
     // Step 2 fields
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText('Software Engineer')).toBeTruthy()
-      expect(screen.getByPlaceholderText('Company Name')).toBeTruthy()
-      expect(
-        screen.getByPlaceholderText('Main role summary and responsibilities')
-      ).toBeTruthy()
-    })
+    expect(screen.getByPlaceholderText('Software Engineer')).toBeTruthy()
+    expect(screen.getByPlaceholderText('Company Name')).toBeTruthy()
+    expect(screen.getByPlaceholderText('Main role summary and responsibilities')).toBeTruthy()
 
     // Step 2 buttons
     expect(screen.getByRole('button', { name: /Back/i })).toBeTruthy()
@@ -89,41 +91,18 @@ describe('AddExternalJobPage', () => {
   it('shows error message when required fields are missing on Step 2', async () => {
     render(<AddExternalJobPage />)
 
-    fireEvent.change(
-      screen.getByPlaceholderText('https://www.linkedin.com/jobs/view/...'),
-      {
-        target: { value: 'https://example.com/job/123' },
-      }
-    )
-    fireEvent.click(screen.getByRole('button', { name: /Next/i }))
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /^Save$/i })).toBeTruthy()
-    })
+    await goToStep2()
 
     // Click save without filling required fields
     fireEvent.click(screen.getByRole('button', { name: /^Save$/i }))
 
-    expect(
-      screen.getByText('Please fill in Job Name, Company Name, and Description.')
-    ).toBeTruthy()
+    expect(screen.getByText('Please fill in Job Name, Company Name, and Description.')).toBeTruthy()
   })
 
-  it('saves successfully, shows overlay, writes Firestore, then redirects after delay', async () => {
+  it('saves successfully, shows overlay, calls saveUserApplication, then redirects after delay', async () => {
     render(<AddExternalJobPage />)
 
-    // Step 1
-    fireEvent.change(
-      screen.getByPlaceholderText('https://www.linkedin.com/jobs/view/...'),
-      {
-        target: { value: 'https://example.com/job/123' },
-      }
-    )
-    fireEvent.click(screen.getByRole('button', { name: /Next/i }))
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /^Save$/i })).toBeTruthy()
-    })
+    await goToStep2()
 
     // Step 2 required fields
     fireEvent.change(screen.getByPlaceholderText('Software Engineer'), {
@@ -132,28 +111,25 @@ describe('AddExternalJobPage', () => {
     fireEvent.change(screen.getByPlaceholderText('Company Name'), {
       target: { value: 'TechCorp' },
     })
-    fireEvent.change(
-      screen.getByPlaceholderText('Main role summary and responsibilities'),
-      {
-        target: { value: 'Build web apps' },
-      }
-    )
+    fireEvent.change(screen.getByPlaceholderText('Main role summary and responsibilities'), {
+      target: { value: 'Build web apps' },
+    })
 
     // Submit
-    fireEvent.click(screen.getByRole('button', { name: /^Save$/i }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /^Save$/i }))
+    })
 
     // Message + overlay text
     await waitFor(() => {
-      expect(
-        screen.getByText(/Saved\. Redirecting to My Applications\.\.\./i)
-      ).toBeTruthy()
+      expect(screen.getByText(/Saved\. Redirecting to My Applications\.\.\./i)).toBeTruthy()
     })
     expect(screen.getByText(/Saving application\.\.\./i)).toBeTruthy()
     expect(screen.getByText(/Redirecting you to My Applications\./i)).toBeTruthy()
 
     // Router should not have pushed yet
     expect(pushMock).not.toHaveBeenCalled()
-    expect(setDocMock).toHaveBeenCalledTimes(1)
+    expect(saveUserApplicationMock).toHaveBeenCalledTimes(1)
 
     // Redirect runs after an ~800ms timeout in the component.
     await waitFor(() => {
