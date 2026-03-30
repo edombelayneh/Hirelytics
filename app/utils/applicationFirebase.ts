@@ -20,6 +20,7 @@ type ApplicationJobDetails = {
 }
 
 type ApplicationPayload = {
+  id: string
   jobId: string
   userId: string
   company: string
@@ -80,7 +81,7 @@ type BuildFromJobDetailsInput = {
   salary: string
   description: string
   requirements: string[]
-  status: string
+  jobPostingStatus: string
   applyLink: string
   recruiterId?: string
   state?: string
@@ -127,6 +128,7 @@ export function buildApplicationFromAvailableJob({
   const jobId = String(job.id)
 
   return {
+    id: jobId,
     jobId,
     userId,
     company: job.company,
@@ -200,7 +202,7 @@ export function buildApplication({
     description:
       toText(mergedJob.description) || toText(mergedJob.generalDescription) || fallback.description,
     requirements,
-    status: toText(mergedJob.status) || 'Open',
+    jobPostingStatus: toText(mergedJob.status) || 'Open',
     applyLink: jobLink,
     recruiterId: toText(mergedJob.recruiterId) || undefined,
     ...(state ? { state } : {}),
@@ -229,7 +231,7 @@ export function buildApplicationFromJobDetails({
   salary,
   description,
   requirements,
-  status,
+  jobPostingStatus,
   applyLink,
   recruiterId,
   state,
@@ -242,6 +244,7 @@ export function buildApplicationFromJobDetails({
   const normalizedSource = normalizeJobSource(jobSource)
 
   return {
+    id: jobId,
     jobId,
     userId,
     company,
@@ -270,7 +273,7 @@ export function buildApplicationFromJobDetails({
       salary,
       description,
       requirements,
-      status,
+      status: jobPostingStatus,
       applyLink: jobLink,
     },
   }
@@ -280,6 +283,7 @@ export async function saveUserApplication(application: ApplicationPayload): Prom
   const ref = doc(db, 'users', application.userId, 'applications', application.jobId)
   const normalizedApplication = {
     ...application,
+    id: application.id || application.jobId,
     status: application.status || 'Applied',
   }
 

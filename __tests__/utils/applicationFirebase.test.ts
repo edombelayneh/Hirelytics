@@ -49,6 +49,7 @@ describe('app/utils/applicationFirebase', () => {
     })
 
     expect(payload).toMatchObject({
+      id: '7',
       userId: 'user-1',
       jobId: '7',
       company: 'Acme',
@@ -89,6 +90,7 @@ describe('app/utils/applicationFirebase', () => {
     })
 
     expect(payload).toMatchObject({
+      id: '44',
       userId: 'user-2',
       jobId: '44',
       company: 'Contoso',
@@ -139,6 +141,7 @@ describe('app/utils/applicationFirebase', () => {
     const { saveUserApplication } = await import('@/app/utils/applicationFirebase')
 
     await saveUserApplication({
+      id: '9',
       userId: 'user-3',
       jobId: '9',
       company: 'Fabrikam',
@@ -170,6 +173,7 @@ describe('app/utils/applicationFirebase', () => {
     expect(setDocMock).toHaveBeenCalledWith(
       expect.any(Object),
       expect.objectContaining({
+        id: '9',
         jobId: '9',
         company: 'Fabrikam',
         status: 'Applied',
