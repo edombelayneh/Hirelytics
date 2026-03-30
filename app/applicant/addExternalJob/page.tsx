@@ -418,6 +418,8 @@ export default function AddExternalJobPage() {
         employmentType,
         experienceLevel,
         status: 'Applied',
+        notes: '',
+        createdAt: new Date().toISOString(),
       }
 
       const application = buildApplication({

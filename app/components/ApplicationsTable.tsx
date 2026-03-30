@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { ExternalLink, Search, Filter } from 'lucide-react'
 import { JobApplication } from '../data/mockData'
 import { formatDate } from '../utils/dateFormatter'
-import { getOutcomeColor } from '../utils/badgeColors'
 import { useRouter } from 'next/navigation'
 
 const STATUS_STYLES: Record<string, string> = {
@@ -122,7 +121,6 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                 <TableHead>Status</TableHead>
                 <TableHead>Contact Person</TableHead>
                 <TableHead>Job Source</TableHead>
-                <TableHead>Outcome</TableHead>
                 <TableHead>Notes</TableHead>
                 <TableHead>Job Details</TableHead>
               </TableRow>
@@ -188,9 +186,6 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                   <TableCell>
                     <Badge variant='outline'>{app.jobSource}</Badge>
                   </TableCell>
-                  <TableCell>
-                    <Badge className={getOutcomeColor(app.outcome)}>{app.outcome}</Badge>
-                  </TableCell>
                   <TableCell className='max-w-[200px]'>
                     <input
                       type='text'
@@ -216,7 +211,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
               {filteredApplications.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={10}
+                    colSpan={9}
                     className='text-center py-8 text-muted-foreground'
                   >
                     No applications found matching your criteria

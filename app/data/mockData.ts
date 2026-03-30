@@ -12,8 +12,7 @@ export interface JobApplication {
   status: 'Applied' | 'Interview' | 'Rejected' | 'Offer' | 'Withdrawn'
   contactPerson: string
   notes: string
-  jobSource: JobSource
-  outcome: 'Pending' | 'Successful' | 'Unsuccessful' | 'In Progress'
+  jobSource: 'LinkedIn' | 'Company Website' | 'Indeed' | 'Glassdoor' | 'Referral' | 'Other'
   // Stores the Firebase UID of the recruiter who posted the job the user applied to
   recruiterId?: string
 }

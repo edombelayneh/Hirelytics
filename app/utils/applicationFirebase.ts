@@ -31,7 +31,8 @@ type ApplicationPayload = {
   city: string
   state?: string
   contactPerson: string
-  jobSource: JobSource
+  jobSource: string
+  notes?: string
   jobLink: string
   applicationDate: string
   status: 'Applied'
@@ -204,19 +205,100 @@ export function buildApplication({
   }
 }
 
-export async function saveUserApplication(application: ApplicationPayload): Promise<void> {
-  const ref = doc(db, 'users', application.userId, 'applications', application.jobId)
-  const normalizedApplication = {
-    ...application,
-    id: application.id || application.jobId,
-    status: application.status || 'Applied',
-    outcome: application.outcome || 'Pending',
-  }
+// High-level builder for the job-details page where values may come from multiple merged sources.
+// It resolves aliases/fallbacks, then delegates to `buildApplicationFromJobDetails`.
+export function buildApplication(input: BuildFromJobDetailsRecordInput): SaveUserApplicationInput {
+  const { userId, jobId, mergedJob, fallback, jobSource = 'Hirelytics' } = input
+
+  const company = firstNonEmpty(mergedJob.company, mergedJob.companyName, fallback.company)
+  const position = firstNonEmpty(mergedJob.title, mergedJob.position, fallback.title)
+  const country = firstNonEmpty(mergedJob.country)
+  const city = firstNonEmpty(mergedJob.city, mergedJob.location, fallback.location)
+  const contactPerson = firstNonEmpty(mergedJob.contactPerson)
+  const jobLink = firstNonEmpty(mergedJob.jobLink, mergedJob.applyLink)
+  const type = firstNonEmpty(mergedJob.type)
+  const salary = firstNonEmpty(mergedJob.salary, mergedJob.hourlyRate, mergedJob.paymentAmount)
+  const description = firstNonEmpty(
+    mergedJob.description,
+    mergedJob.generalDescription,
+    fallback.description
+  )
+  const requirements = toStringList(mergedJob.requirements)
+  const status = firstNonEmpty(mergedJob.status)
+  const resolvedJobSource = firstNonEmpty(mergedJob.jobSource, jobSource)
+  const applyLink = firstNonEmpty(mergedJob.applyLink, mergedJob.jobLink)
+  const recruiterId = firstNonEmpty(mergedJob.recruiterId)
+
+  return buildApplicationFromJobDetails({
+    userId,
+    jobId,
+    company,
+    position,
+    country,
+    city,
+    contactPerson,
+    jobSource: resolvedJobSource,
+    jobLink,
+    title: position || fallback.title,
+    location: firstNonEmpty(mergedJob.location, fallback.location),
+    type,
+    postedDate: fallback.postedDate,
+    salary,
+    description,
+    requirements: requirements.length > 0 ? requirements : fallback.requirements,
+    status,
+    applyLink,
+    recruiterId,
+  })
+}
+
+// One-call details-page helper: normalize merged record -> persist to Firestore.
+// Also appends the applicant's userId to the job's applicantsId array in jobPostings.
+export async function applyToJobFromDetails(input: BuildFromJobDetailsRecordInput) {
+  const { userId, jobId } = input
+
+  await saveUserApplication(buildApplication(input))
+
+  const jobRef = doc(db, 'jobPostings', jobId)
+  await setDoc(jobRef, { applicantsId: arrayUnion(userId) }, { merge: true })
+}
+
+// Persists the canonical application document using merge semantics.
+// Merge keeps any unrelated existing fields while updating the normalized application payload.
+export async function saveUserApplication(input: SaveUserApplicationInput) {
+  const {
+    userId,
+    jobId,
+    company,
+    position,
+    country,
+    city,
+    status = 'Applied',
+    contactPerson,
+    jobSource,
+    notes = '',
+    jobLink,
+    jobDetails,
+  } = input
+
+  const ref = doc(db, 'users', userId, 'applications', jobId)
 
   await setDoc(
     ref,
     {
-      ...normalizedApplication,
+      id: jobId,
+      jobId,
+      company,
+      position,
+      country,
+      city,
+      applicationDate: new Date().toISOString(),
+      status,
+      contactPerson,
+      jobSource,
+      notes,
+      jobLink,
+      jobDetails,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     },
