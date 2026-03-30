@@ -436,6 +436,7 @@ describe('ApplicationsTable', () => {
       />
     )
 
-    // Assert disabled combobox/select based on your current test select mock
+    const statusControl = screen.getByRole('combobox', { name: /status/i })
+    expect(statusControl).toBeDisabled()
   })
 })
