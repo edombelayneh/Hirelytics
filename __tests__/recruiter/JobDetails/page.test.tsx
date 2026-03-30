@@ -16,10 +16,15 @@ vi.mock('@clerk/nextjs', () => ({
 // Firebase client stub — avoids real SDK initialization in tests
 vi.mock('../../../app/lib/firebaseClient', () => ({ db: {} }))
 
+const updateDocMock = vi.fn()
+const serverTimestampMock = vi.fn(() => 'SERVER_TS')
+
 // Firestore mock:
 // - onSnapshot delivers job data synchronously (including 3 applicant uids)
 // - getDoc resolves with profile data for each applicant uid
 vi.mock('firebase/firestore', () => ({
+  updateDoc: (...args: unknown[]) => updateDocMock(...args),
+  serverTimestamp: () => serverTimestampMock(),
   doc: vi.fn((...args: unknown[]) => ({ path: args })),
   onSnapshot: vi.fn(
     (
@@ -50,6 +55,12 @@ vi.mock('firebase/firestore', () => ({
       a3: { firstName: 'John', lastName: 'Doe' },
     }
     const profile = names[uid] ?? { firstName: 'Unknown', lastName: 'User' }
+    if (ref.path[0] === 'users' && ref.path[2] === 'applications') {
+      return Promise.resolve({
+        exists: () => true,
+        data: () => ({ status: 'Interview', jobSource: 'Hirelytics' }),
+      })
+    }
     return Promise.resolve({
       exists: () => true,
       data: () => ({ profile }),

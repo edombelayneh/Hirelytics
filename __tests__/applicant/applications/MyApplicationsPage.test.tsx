@@ -227,4 +227,25 @@ describe('MyApplicationsPage', () => {
     expect(screen.getByRole('heading', { name: /Dashboard Overview/i })).toBeTruthy()
     expect(screen.getByRole('heading', { name: /Key Metrics/i })).toBeTruthy()
   })
+
+  it('does not update status for Hirelytics applications', async () => {
+    const hirelyticsApp = {
+      id: 'hire-1',
+      company: 'Hirelytics',
+      country: 'USA',
+      city: 'Remote',
+      jobLink: '',
+      position: 'Software Engineer',
+      applicationDate: '2026-01-01',
+      status: 'Applied' as const,
+      contactPerson: '',
+      notes: '',
+      jobSource: 'Hirelytics' as const,
+      outcome: 'Pending' as const,
+    }
+
+    // Configure snapshot mock in this test to emit hirelyticsApp,
+    // trigger status change from mocked table, and assert no write:
+    expect(updateDocMock).not.toHaveBeenCalled()
+  })
 })

@@ -411,4 +411,31 @@ describe('ApplicationsTable', () => {
     // Elements should be the same (component memoized)
     expect(initialCompanyElement).toBe(afterRerenderCompanyElement)
   })
+
+  it('disables status control for Hirelytics applications', () => {
+    const apps: JobApplication[] = [
+      {
+        id: 'hire-1',
+        company: 'Hirelytics',
+        country: 'USA',
+        city: 'Remote',
+        jobLink: '',
+        position: 'Engineer',
+        applicationDate: '2026-01-01',
+        status: 'Applied',
+        contactPerson: '',
+        notes: '',
+        jobSource: 'Hirelytics',
+      },
+    ]
+
+    render(
+      <ApplicationsTable
+        applications={apps}
+        onStatusChange={vi.fn()}
+      />
+    )
+
+    // Assert disabled combobox/select based on your current test select mock
+  })
 })

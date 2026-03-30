@@ -55,6 +55,8 @@ export const ApplicationsTable = memo(function ApplicationsTable({
     return matchesSearch && matchesStatus
   })
 
+  const isRecruiterManaged = (app: JobApplication) => app.jobSource === 'Hirelytics'
+
   return (
     <Card>
       <CardHeader>
@@ -141,9 +143,11 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                   <TableCell>
                     <Select
                       value={app.status}
-                      onValueChange={(status) =>
+                      disabled={isRecruiterManaged(app)}
+                      onValueChange={(status) => {
+                        if (isRecruiterManaged(app)) return
                         onStatusChange?.(app.id, status as JobApplication['status'])
-                      }
+                      }}
                     >
                       <SelectTrigger className={`w-[120px] ${STATUS_STYLES[app.status] ?? ''}`}>
                         <SelectValue placeholder='Status' />

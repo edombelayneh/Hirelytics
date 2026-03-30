@@ -4,12 +4,27 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 
-import { doc, getDoc, onSnapshot } from 'firebase/firestore'
+import { doc, getDoc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../../../lib/firebaseClient'
 import { Button } from '../../../components/ui/button'
 import { JobDetailsCard } from '../../../components/job/JobDetailsCard'
 import { ApplicantsTable } from '../../../components/job/ApplicantsTable'
-import type { Applicant, Job } from '../../../types/job'
+import type { Applicant, Job, ApplicationStatus } from '../../../types/job'
+
+//status for user applications
+const VALID_STATUSES: ApplicationStatus[] = [
+  'Applied',
+  'Interview',
+  'Offer',
+  'Rejected',
+  'Withdrawn',
+]
+
+function toApplicationStatus(value: unknown): ApplicationStatus {
+  return VALID_STATUSES.includes(value as ApplicationStatus)
+    ? (value as ApplicationStatus)
+    : 'Applied'
+}
 
 export default function JobDetailsPage() {
   const { jobId } = useParams<{ jobId: string }>()
@@ -48,8 +63,14 @@ export default function JobDetailsPage() {
       // Fetch each applicant's profile from users/{uid}.profile in parallel
       const profiles = await Promise.all(
         applicantIds.map(async (uid) => {
-          const userSnap = await getDoc(doc(db, 'users', uid))
+          const [userSnap, applicationSnap] = await Promise.all([
+            getDoc(doc(db, 'users', uid)),
+            getDoc(doc(db, 'users', uid, 'applications', jobId)),
+          ])
+
           const profile = userSnap.exists() ? (userSnap.data()?.profile ?? {}) : {}
+          const applicationData = applicationSnap.exists() ? (applicationSnap.data() ?? {}) : {}
+
           return {
             id: uid,
             firstName: profile.firstName ?? '',
@@ -58,6 +79,11 @@ export default function JobDetailsPage() {
             resumeFileName: profile.resumeFileName,
             linkedinUrl: profile.linkedinUrl,
             portfolioUrl: profile.portfolioUrl,
+            applicationStatus: toApplicationStatus(applicationData.status),
+            jobSource:
+              typeof applicationData.jobSource === 'string'
+                ? applicationData.jobSource
+                : 'Hirelytics',
           } as Applicant
         })
       )
@@ -84,7 +110,25 @@ export default function JobDetailsPage() {
       </div>
     )
   }
+  const handleApplicantStatusChange = async (applicantId: string, status: ApplicationStatus) => {
+    if (!jobId) return
 
+    await updateDoc(doc(db, 'users', applicantId, 'applications', jobId), {
+      status,
+      updatedAt: serverTimestamp(),
+    })
+
+    setApplicants((prev) =>
+      prev.map((applicant) =>
+        applicant.id === applicantId
+          ? {
+              ...applicant,
+              applicationStatus: status,
+            }
+          : applicant
+      )
+    )
+  }
   return (
     <div className='min-h-screen bg-background'>
       <main className='mx-auto max-w-6xl px-6 py-6 space-y-6'>
@@ -103,6 +147,7 @@ export default function JobDetailsPage() {
           <ApplicantsTable
             applicants={applicants}
             profileHref={(applicantId) => `/recruiter/applicants/${applicantId}`}
+            onStatusChange={handleApplicantStatusChange}
           />
         </div>
       </main>
