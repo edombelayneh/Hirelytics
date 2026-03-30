@@ -117,9 +117,9 @@ export function Navbar() {
     { label: 'Home', href: '/home', icon: Home, match: (p) => p === '/home' },
     {
       label: 'Available Jobs',
-      href: '/applicant/jobs',
+      href: '/recruiter/jobs',
       icon: Briefcase,
-      match: (p) => p.startsWith('/applicant/jobs'),
+      match: (p) => p.startsWith('/recruiter/jobs'),
     },
     {
       label: 'My Jobs',

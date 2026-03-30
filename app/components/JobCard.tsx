@@ -16,14 +16,28 @@ interface JobCardProps {
   onApply: (job: AvailableJob) => void
   // Controls disabled state + label
   isApplied: boolean
+  // Whether to show the apply button
+  showApplyButton?: boolean
+  // Current user role for routing
+  role?: 'applicant' | 'recruiter'
 }
 
 // Memoized JobCard component for rendering job info and apply button
-export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCardProps) {
+export const JobCard = memo(function JobCard({
+  job,
+  onApply,
+  isApplied,
+  showApplyButton = true,
+  role = 'applicant',
+}: JobCardProps) {
   // Calculate how many days since the job was posted
   const daysSincePosted = Math.floor(
     (new Date().getTime() - new Date(job.postedDate).getTime()) / (1000 * 60 * 60 * 24)
   )
+
+  // Decide which details page to link to based on role
+  const detailsHref =
+    role === 'recruiter' ? `/recruiter/jobs/${job.id}` : `/applicant/jobs/${job.id}`
 
   return (
     // Root card container
@@ -96,27 +110,29 @@ export const JobCard = memo(function JobCard({ job, onApply, isApplied }: JobCar
         <Button
           asChild
           variant='outline'
-          className='flex-1'
+          className={showApplyButton ? 'flex-1' : 'w-full'}
         >
-          <Link href={`/applicant/jobs/${job.id}`}>View Details</Link>
+          <Link href={detailsHref}>View Details</Link>
         </Button>
-        <Button
-          className='flex-1'
-          onClick={() => onApply(job)}
-          disabled={isApplied}
-          variant={isApplied ? 'secondary' : 'default'}
-        >
-          {isApplied ? (
-            // Show check icon and 'Applied' if already applied
-            <>
-              <CheckCircle2 className='h-4 w-4 mr-2' />
-              Applied
-            </>
-          ) : (
-            // Otherwise show 'Apply Now' button
-            'Apply Now'
-          )}
-        </Button>
+        {showApplyButton && (
+          <Button
+            className='flex-1'
+            onClick={() => onApply(job)}
+            disabled={isApplied}
+            variant={isApplied ? 'secondary' : 'default'}
+          >
+            {isApplied ? (
+              // Show check icon and 'Applied' if already applied
+              <>
+                <CheckCircle2 className='h-4 w-4 mr-2' />
+                Applied
+              </>
+            ) : (
+              // Otherwise show 'Apply Now' button
+              'Apply Now'
+            )}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   )
