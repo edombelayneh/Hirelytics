@@ -28,10 +28,12 @@ vi.mock('next/navigation', () => ({
 vi.mock('./ui/select', () => {
   function Select({
     value,
+    disabled,
     onValueChange,
     children,
   }: {
     value?: string
+    disabled?: boolean
     onValueChange?: (v: string) => void
     children: React.ReactNode
   }) {
@@ -39,6 +41,7 @@ vi.mock('./ui/select', () => {
       <select
         role='combobox'
         value={value ?? ''}
+        disabled={Boolean(disabled)}
         onChange={(e) => onValueChange?.(e.target.value)}
       >
         {children}
@@ -436,7 +439,11 @@ describe('ApplicationsTable', () => {
       />
     )
 
-    const statusControl = screen.getByRole('combobox', { name: /status/i })
-    expect(statusControl).toBeDisabled()
+    const companyCell = screen.getAllByText('Hirelytics')[0]
+    const row = companyCell.closest('tr')
+    expect(row).toBeTruthy()
+
+    const statusControl = within(row as HTMLElement).getByRole('combobox') as HTMLSelectElement
+    expect(statusControl.disabled).toBe(true)
   })
 })
