@@ -34,7 +34,7 @@ export type Applicant = {
 }
 
 // --------------------------------------------------
-// JobApplication type
-// Represents a user's application to a specific job posting
+// ApplicationStatus type
+// Represents the lifecycle status of a user's job application
 // ------------------------------------------------
 export type ApplicationStatus = 'Applied' | 'Interview' | 'Offer' | 'Rejected' | 'Withdrawn'

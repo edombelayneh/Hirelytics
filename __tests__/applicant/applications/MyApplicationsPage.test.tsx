@@ -244,8 +244,28 @@ describe('MyApplicationsPage', () => {
       outcome: 'Pending' as const,
     }
 
-    // Configure snapshot mock in this test to emit hirelyticsApp,
-    // trigger status change from mocked table, and assert no write:
+    // Configure the onSnapshot mock to emit only the Hirelytics application
+    onSnapshotMock.mockImplementationOnce((_query, callback) => {
+      const mockSnapshot = {
+        docs: [
+          {
+            id: hirelyticsApp.id,
+            data: () => hirelyticsApp,
+          },
+        ],
+      } as any
+
+      callback(mockSnapshot)
+      // Return an unsubscribe function as Firestore does
+      return vi.fn()
+    })
+
+    render(<MyApplicationsPage />)
+
+    // Trigger the mocked ApplicationsTable "Change Status" action
+    fireEvent.click(screen.getByRole('button', { name: /change status/i }))
+
+    // Even though a status change was attempted, Hirelytics applications should not be updated
     expect(updateDocMock).not.toHaveBeenCalled()
   })
 })
