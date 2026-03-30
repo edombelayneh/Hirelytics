@@ -183,9 +183,13 @@ export default function AddExternalJobPage() {
         workArrangement,
         employmentType,
         experienceLevel,
-        applicationDate,
-        jobSource,
-      })
+        status: 'Applied',
+        notes: '',
+        createdAt: new Date().toISOString(),
+      }
+
+      // For now: just log
+      console.log('Tracked job saved:', trackedJob)
 
       setMessage('Saved. Redirecting to My Applications...')
       setRedirecting(true)

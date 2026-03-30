@@ -20,7 +20,6 @@ const mockApplications: JobApplication[] = [
     contactPerson: 'John Doe',
     notes: 'Initial application submitted',
     jobSource: 'LinkedIn',
-    outcome: 'Pending',
   },
   {
     id: '2',
@@ -34,7 +33,6 @@ const mockApplications: JobApplication[] = [
     contactPerson: 'Jane Smith',
     notes: 'First interview scheduled',
     jobSource: 'Company Website',
-    outcome: 'In Progress',
   },
   {
     id: '3',
@@ -48,7 +46,6 @@ const mockApplications: JobApplication[] = [
     contactPerson: 'Bob Johnson',
     notes: 'Not a good fit',
     jobSource: 'Indeed',
-    outcome: 'Unsuccessful',
   },
 ]
 

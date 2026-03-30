@@ -177,7 +177,6 @@ describe('app/utils/applicationFirebase', () => {
         jobId: '9',
         company: 'Fabrikam',
         status: 'Applied',
-        outcome: 'Pending',
         createdAt: 'SERVER_TS',
         updatedAt: 'SERVER_TS',
       }),
