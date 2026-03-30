@@ -13,6 +13,11 @@ vi.mock('../utils/dateFormatter', () => ({
   formatDate: (date: string) => new Date(date).toLocaleDateString(),
 }))
 
+// Badge color utilitiesExpand commentComment on line L16
+vi.mock('../utils/badgeColors', () => ({
+  getStatusColor: (status: string) => `status-${String(status).toLowerCase().replace(/\s+/g, '-')}`,
+}))
+
 // Next.js router
 const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
