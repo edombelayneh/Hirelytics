@@ -7,14 +7,6 @@ import { Navbar } from './Navbar'
 /*                                   MOCKS                                    */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Replace Next.js <Link> with a plain <a> element.
- *
- * Why:
- * - Simplifies testing
- * - Allows direct assertions on `href`
- * - Avoids Next.js routing complexity
- */
 vi.mock('next/link', () => ({
   default: ({
     href,
@@ -33,18 +25,9 @@ vi.mock('next/link', () => ({
   ),
 }))
 
-/**
- * Router + pathname mocks
- *
- * - usePathnameMock controls the current route
- * - routerPush verifies navigation behavior
- */
 const usePathnameMock = vi.fn()
 const routerPush = vi.fn()
 
-/**
- * useRouter returns the shared push spy so tests can assert redirects.
- */
 const useRouterMock = vi.fn(() => ({ push: routerPush }))
 
 vi.mock('next/navigation', () => ({
@@ -52,21 +35,9 @@ vi.mock('next/navigation', () => ({
   useRouter: () => useRouterMock(),
 }))
 
-/**
- * Role control for Clerk mock.
- * Each test sets this before rendering.
- */
 type Role = 'applicant' | 'recruiter' | undefined
 let clerkRole: Role = undefined
 
-/**
- * Clerk mock using async factory for ESM compatibility.
- *
- * Only mocks what Navbar actually uses:
- * - UserButton container
- * - MenuItems wrapper
- * - Action buttons
- */
 vi.mock('@clerk/nextjs', async () => {
   const React = await import('react')
 
@@ -78,9 +49,6 @@ vi.mock('@clerk/nextjs', async () => {
     <div data-testid='user-button-menu'>{children}</div>
   )
 
-  /**
-   * Represents each dropdown action such as "My Profile".
-   */
   const MockAction = ({
     label,
     onClick,
@@ -97,10 +65,6 @@ vi.mock('@clerk/nextjs', async () => {
     </button>
   )
 
-  /**
-   * Recreate Clerk's component API shape:
-   * UserButton.MenuItems and UserButton.Action
-   */
   const TypedUserButton = MockUserButton as React.FC<{ children?: React.ReactNode }> & {
     MenuItems: typeof MockMenuItems
     Action: typeof MockAction
@@ -121,14 +85,6 @@ vi.mock('@clerk/nextjs', async () => {
 /*                               TEST HELPERS                                 */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Shared render helper.
- *
- * Ensures consistent setup across tests:
- * - sets role
- * - sets pathname
- * - renders component
- */
 function renderNavbar({
   role,
   pathname = '/',
@@ -141,11 +97,6 @@ function renderNavbar({
   return render(<Navbar />)
 }
 
-/**
- * Desktop navigation selector.
- *
- * Uses data-testid for stability instead of CSS classes.
- */
 function getDesktopNav() {
   return screen.getByTestId('desktop-nav')
 }
@@ -156,9 +107,6 @@ function getDesktopNav() {
 
 describe('Navbar', () => {
   beforeEach(() => {
-    /**
-     * Reset shared state before each test to keep tests isolated.
-     */
     clerkRole = undefined
     usePathnameMock.mockReturnValue('/')
     routerPush.mockClear()
@@ -172,11 +120,6 @@ describe('Navbar', () => {
 
   it('renders the logo image', () => {
     renderNavbar()
-
-    /**
-     * getByAltText throws if not found,
-     * so no extra assertion is needed.
-     */
     screen.getByAltText('Hirelytics Logo')
   })
 
@@ -191,9 +134,6 @@ describe('Navbar', () => {
     const desktopNav = getDesktopNav()
     const links = within(desktopNav).getAllByRole('link')
 
-    /**
-     * Ensures each desktop nav link includes an icon.
-     */
     links.forEach((link) => {
       expect(link.querySelector('svg')).toBeTruthy()
     })
@@ -207,13 +147,9 @@ describe('Navbar', () => {
 
     const desktopNav = getDesktopNav()
 
-    /**
-     * Only Home should appear in fallback state.
-     */
     const homeLink = within(desktopNav).getByRole('link', { name: /home/i })
     expect(homeLink.getAttribute('href')).toBe('/')
 
-    // Ensure role-specific links are not rendered.
     expect(within(desktopNav).queryByText('Available Jobs')).toBeNull()
     expect(within(desktopNav).queryByText('My Applications')).toBeNull()
     expect(within(desktopNav).queryByText('My Jobs')).toBeNull()
@@ -227,9 +163,6 @@ describe('Navbar', () => {
 
     const desktopNav = getDesktopNav()
 
-    /**
-     * Validate correct routes for applicant navigation.
-     */
     expect(within(desktopNav).getByRole('link', { name: /home/i }).getAttribute('href')).toBe(
       '/home'
     )
@@ -246,7 +179,6 @@ describe('Navbar', () => {
         .getAttribute('href')
     ).toBe('/applicant/applications')
 
-    // Recruiter-only link should not exist.
     expect(within(desktopNav).queryByText('My Jobs')).toBeNull()
   })
 
@@ -258,9 +190,6 @@ describe('Navbar', () => {
 
     const desktopNav = getDesktopNav()
 
-    /**
-     * Validate correct routes for recruiter navigation.
-     */
     expect(within(desktopNav).getByRole('link', { name: /home/i }).getAttribute('href')).toBe(
       '/home'
     )
@@ -269,7 +198,7 @@ describe('Navbar', () => {
       within(desktopNav)
         .getByRole('link', { name: /available jobs/i })
         .getAttribute('href')
-    ).toBe('/applicant/jobs')
+    ).toBe('/recruiter/jobs')
 
     expect(
       within(desktopNav)
@@ -277,7 +206,6 @@ describe('Navbar', () => {
         .getAttribute('href')
     ).toBe('/recruiter/myJobs')
 
-    // Applicant-only link should not exist.
     expect(within(desktopNav).queryByText('My Applications')).toBeNull()
   })
 
@@ -287,10 +215,6 @@ describe('Navbar', () => {
       pathname: '/recruiter/myJobs',
     })
 
-    /**
-     * Metadata should override route inference.
-     * Applicant nav should render instead of recruiter nav.
-     */
     const desktopNav = getDesktopNav()
     within(desktopNav).getByRole('link', { name: /my applications/i })
     expect(within(desktopNav).queryByRole('link', { name: /my jobs/i })).toBeNull()
@@ -299,9 +223,6 @@ describe('Navbar', () => {
   it('toggles the mobile menu open and closed', () => {
     renderNavbar()
 
-    /**
-     * Verifies aria-expanded updates when the menu is toggled.
-     */
     const hamburger = screen.getByRole('button', { name: /open menu/i })
 
     fireEvent.click(hamburger)
@@ -314,9 +235,6 @@ describe('Navbar', () => {
   it('locks body scroll while the mobile menu is open', () => {
     renderNavbar()
 
-    /**
-     * Background scrolling should be disabled when menu is open.
-     */
     const hamburger = screen.getByRole('button', { name: /open menu/i })
 
     fireEvent.click(hamburger)
@@ -326,9 +244,6 @@ describe('Navbar', () => {
   it('closes the mobile menu when the pathname changes', () => {
     const { rerender } = renderNavbar()
 
-    /**
-     * Simulates navigation and verifies menu resets.
-     */
     fireEvent.click(screen.getByRole('button', { name: /open menu/i }))
 
     usePathnameMock.mockReturnValue('/new-route')
