@@ -121,7 +121,7 @@ describe('HomePage', () => {
 
     expect(screen.getByText('What Makes Hirelytics Different')).toBeTruthy()
 
-    expect(screen.getByText('AI Feedback Engine')).toBeTruthy()
+    expect(screen.getByText('Feedback That Guides Growth')).toBeTruthy()
     expect(screen.getByText('Real-Time Status Updates')).toBeTruthy()
     expect(screen.getByText('Smart Job Aggregation')).toBeTruthy()
     expect(screen.getByText('Recruiter Efficiency')).toBeTruthy()
@@ -138,7 +138,7 @@ describe('HomePage', () => {
     expect(screen.getByText('How It Works')).toBeTruthy()
     expect(screen.getByText('Apply & Sync')).toBeTruthy()
     expect(screen.getByText('Review & Update')).toBeTruthy()
-    expect(screen.getByText('AI Feedback')).toBeTruthy()
+    expect(screen.getByText('Feedback')).toBeTruthy()
   })
   // Confirms the bottom call-to-action section renders the headline
   // and the two CTA buttons that route users into the app.
