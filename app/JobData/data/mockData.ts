@@ -1,7 +1,7 @@
 import { jobsData } from './jobs'
 
 export interface JobApplication {
-  id: string
+  id: string | number
   company: string
   country: string
   city: string

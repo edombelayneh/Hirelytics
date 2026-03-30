@@ -1,6 +1,6 @@
 export const jobsData = [
   {
-    id: '1',
+    id: 1,
     company: 'Google',
     country: 'USA',
     city: 'Mountain View',
@@ -13,7 +13,7 @@ export const jobsData = [
     jobSource: 'LinkedIn' as const,
   },
   {
-    id: '2',
+    id: 2,
     company: 'Microsoft',
     country: 'USA',
     city: 'Seattle',
@@ -26,7 +26,7 @@ export const jobsData = [
     jobSource: 'Company Website' as const,
   },
   {
-    id: '3',
+    id: 3,
     company: 'Meta',
     country: 'USA',
     city: 'Menlo Park',
@@ -39,7 +39,7 @@ export const jobsData = [
     jobSource: 'Indeed' as const,
   },
   {
-    id: '4',
+    id: 4,
     company: 'Apple',
     country: 'USA',
     city: 'Cupertino',
@@ -52,7 +52,7 @@ export const jobsData = [
     jobSource: 'Referral' as const,
   },
   {
-    id: '5',
+    id: 5,
     company: 'Netflix',
     country: 'USA',
     city: 'Los Gatos',
@@ -65,7 +65,7 @@ export const jobsData = [
     jobSource: 'Glassdoor' as const,
   },
   {
-    id: '6',
+    id: 6,
     company: 'Amazon',
     country: 'USA',
     city: 'Seattle',
@@ -78,7 +78,7 @@ export const jobsData = [
     jobSource: 'LinkedIn' as const,
   },
   {
-    id: '7',
+    id: 7,
     company: 'Spotify',
     country: 'Sweden',
     city: 'Stockholm',
@@ -91,7 +91,7 @@ export const jobsData = [
     jobSource: 'Company Website' as const,
   },
   {
-    id: '8',
+    id: 8,
     company: 'Uber',
     country: 'USA',
     city: 'San Francisco',
@@ -104,7 +104,7 @@ export const jobsData = [
     jobSource: 'LinkedIn' as const,
   },
   {
-    id: '9',
+    id: 9,
     company: 'Adobe',
     country: 'USA',
     city: 'San Jose',
@@ -117,7 +117,7 @@ export const jobsData = [
     jobSource: 'Company Website' as const,
   },
   {
-    id: '10',
+    id: 10,
     company: 'Salesforce',
     country: 'USA',
     city: 'San Francisco',
@@ -130,7 +130,7 @@ export const jobsData = [
     jobSource: 'LinkedIn' as const,
   },
   {
-    id: '11',
+    id: 11,
     company: 'Tesla',
     country: 'USA',
     city: 'Austin',
@@ -143,7 +143,7 @@ export const jobsData = [
     jobSource: 'Indeed' as const,
   },
   {
-    id: '12',
+    id: 12,
     company: 'Airbnb',
     country: 'USA',
     city: 'San Francisco',
