@@ -1,6 +1,8 @@
 import { arrayUnion, doc, serverTimestamp, setDoc } from 'firebase/firestore'
 import { db } from '../lib/firebaseClient'
 import type { AvailableJob } from '../data/availableJobs'
+import type { JobSource } from '../types/jobSource'
+import { normalizeJobSource } from '../types/jobSource'
 
 type DetailRecord = Record<string, unknown>
 
@@ -29,7 +31,7 @@ type ApplicationPayload = {
   city: string
   state?: string
   contactPerson: string
-  jobSource: string
+  jobSource: JobSource
   jobLink: string
   applicationDate: string
   status: 'Applied'
@@ -158,6 +160,7 @@ export function buildApplication({
   const workArrangement = toText(mergedJob.workArrangement) || undefined
   const paymentType = toText(mergedJob.paymentType) || undefined
   const jobLink = toText(mergedJob.applyLink) || toText(mergedJob.jobLink)
+  const jobSource = normalizeJobSource(toText(mergedJob.jobSource) || 'Hirelytics')
 
   return {
     id: jobId,
@@ -169,7 +172,7 @@ export function buildApplication({
     city,
     ...(state ? { state } : {}),
     contactPerson: toText(mergedJob.contactPerson),
-    jobSource: toText(mergedJob.jobSource) || 'Hirelytics',
+    jobSource,
     jobLink,
     applicationDate: new Date().toISOString().slice(0, 10),
     status: 'Applied',

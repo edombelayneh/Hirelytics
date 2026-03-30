@@ -15,22 +15,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@clerk/nextjs'
 import { buildApplication, saveUserApplication } from '../../utils/applicationFirebase'
+import { type JobSource, type JobSourceInput, normalizeJobSource } from '../../types/jobSource'
 
 // Controlled select fields types
 type VisaRequired = 'yes' | 'no' | ''
 type WorkArrangement = 'onsite' | 'remote' | 'hybrid' | ''
 type EmploymentType = 'full-time' | 'part-time' | 'contract' | 'internship' | ''
 type ExperienceLevel = 'entry' | 'mid' | 'senior' | 'lead' | ''
-type JobSource =
-  | 'LinkedIn'
-  | 'Indeed'
-  | 'Handshake'
-  | 'Glassdoor'
-  | 'Google Jobs'
-  | 'Company Career Page'
-  | 'Hirelytics'
-  | 'Other'
-  | ''
 type PaymentType = 'hourly' | 'salary' | ''
 
 // Returns todays date, used as default value for applicationDate
@@ -84,7 +75,15 @@ function inferJobSource(url: string): JobSource {
     if (host.includes('handshake')) return 'Handshake'
     if (host.includes('glassdoor')) return 'Glassdoor'
     if (host.includes('google')) return 'Google Jobs'
-    return 'Company Career Page'
+    if (host.includes('greenhouse')) return 'Greenhouse'
+    if (host.includes('lever')) return 'Lever'
+    if (host.includes('workday')) return 'Workday'
+    if (host.includes('ziprecruiter')) return 'ZipRecruiter'
+    if (host.includes('monster')) return 'Monster'
+    if (host.includes('dice')) return 'Dice'
+    if (host.includes('builtin')) return 'Built In'
+    if (host.includes('wellfound') || host.includes('angel.co')) return 'Wellfound'
+    return 'Company Website'
   } catch {
     return 'Other'
   }
@@ -178,7 +177,7 @@ export default function AddExternalJobPage() {
   const [employmentType, setEmploymentType] = useState<EmploymentType>('')
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>('')
   const [applicationDate, setApplicationDate] = useState(safeToday())
-  const [jobSource, setJobSource] = useState<JobSource>('Other')
+  const [jobSource, setJobSource] = useState<JobSourceInput>('Other')
 
   const [message, setMessage] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -592,7 +591,10 @@ export default function AddExternalJobPage() {
                 <label className='block text-sm mb-1'>Job Source</label>
                 <select
                   value={jobSource}
-                  onChange={(e) => setJobSource(e.target.value as JobSource)}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    setJobSource(value === '' ? '' : normalizeJobSource(value))
+                  }}
                   className='w-full border rounded p-2'
                 >
                   <option value=''>Select job source</option>
@@ -601,7 +603,16 @@ export default function AddExternalJobPage() {
                   <option value='Handshake'>Handshake</option>
                   <option value='Glassdoor'>Glassdoor</option>
                   <option value='Google Jobs'>Google Jobs</option>
-                  <option value='Company Career Page'>Company Career Page</option>
+                  <option value='Company Website'>Company Website</option>
+                  <option value='Greenhouse'>Greenhouse</option>
+                  <option value='Lever'>Lever</option>
+                  <option value='Workday'>Workday</option>
+                  <option value='ZipRecruiter'>ZipRecruiter</option>
+                  <option value='Monster'>Monster</option>
+                  <option value='Dice'>Dice</option>
+                  <option value='Built In'>Built In</option>
+                  <option value='Wellfound'>Wellfound</option>
+                  <option value='Referral'>Referral</option>
                   <option value='Other'>Other</option>
                 </select>
               </div>
