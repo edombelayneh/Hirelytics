@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup, waitFor, fireEvent } from '@testing-library/react'
 import React from 'react'
 import JobDetailsPage from '../../../app/recruiter/JobDetails/[jobId]/page'
+import type { ApplicationStatus } from '../../../app/types/job'
 
 /* -------------------------------------------------------------------------- */
 /*                                   MOCKS                                    */
@@ -124,7 +125,7 @@ type Applicant = {
   resumeFileName?: string
   linkedinUrl?: string
   portfolioUrl?: string
-  applicationStatus?: 'Applied' | 'Interview' | 'Offer' | 'Rejected' | 'Withdrawn'
+  applicationStatus?: ApplicationStatus
 }
 
 // Mock ApplicantsTable to inspect props + verify computed profileHref
@@ -136,10 +137,7 @@ vi.mock('../../../app/components/job/ApplicantsTable', () => ({
   }: {
     applicants: Applicant[]
     profileHref: (id: string) => string
-    onStatusChange?: (
-      applicantId: string,
-      status: 'Applied' | 'Interview' | 'Offer' | 'Rejected' | 'Withdrawn'
-    ) => Promise<void> | void
+    onStatusChange?: (applicantId: string, status: ApplicationStatus) => Promise<void> | void
   }) => (
     <div data-testid='applicants-table'>
       <div data-testid='applicant-count'>{applicants.length}</div>
