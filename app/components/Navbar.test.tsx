@@ -163,12 +163,15 @@ describe('Navbar', () => {
     // Recruiter Home
     const home = screen.getByRole('link', { name: /home/i })
     expect(home.getAttribute('href')).toBe('/home')
-    // Shared jobs link
+
+    // Recruiter jobs link
     const jobs = screen.getByRole('link', { name: /available jobs/i })
-    expect(jobs.getAttribute('href')).toBe('/applicant/jobs') // as in your component
+    expect(jobs.getAttribute('href')).toBe('/recruiter/jobs')
+
     // Recruiter-specific link
     const myJobs = screen.getByRole('link', { name: /my jobs/i })
     expect(myJobs.getAttribute('href')).toBe('/recruiter/myJobs')
+
     // Applicant-only link should not appear
     expect(screen.queryByText('My Applications')).toBeNull()
   })

@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { AvailableJobsList } from '../../components/AvailableJobsList'
 import { AvailableJob } from '../../data/availableJobs'
 import type { Role } from '../../utils/userRole'
 import { applyToAvailableJob } from '../../utils/applicationFirebase'
 import { useAuth, useUser } from '@clerk/nextjs'
 import { db } from '../../lib/firebaseClient'
-import { collection, getDocs, onSnapshot } from 'firebase/firestore'
+import { collection, onSnapshot, getDocs } from 'firebase/firestore'
 
 function Jobs() {
   // Get Clerk authentication state
@@ -21,6 +21,9 @@ function Jobs() {
   const { user } = useUser()
   const role = (user?.publicMetadata?.role as Role | undefined) ?? null
 
+  // Ref to track if component is mounted
+  const mountedRef = useRef(false)
+
   // Fetch all jobs from Firestore jobPostings collection
   useEffect(() => {
     const ref = collection(db, 'jobPostings')
@@ -33,6 +36,8 @@ function Jobs() {
   }, [])
 
   useEffect(() => {
+    mountedRef.current = true
+
     // Wait until Clerk finishes loading and user exists
     if (!isLoaded || !userId) return
 
@@ -41,6 +46,8 @@ function Jobs() {
 
     // Listen for real-time updates
     const unsub = onSnapshot(ref, (snap) => {
+      if (!mountedRef.current) return
+
       const ids = new Set<number>()
 
       // Convert document IDs (stored as strings) back to numbers
@@ -54,7 +61,10 @@ function Jobs() {
     })
 
     // Cleanup listener when component unmounts
-    return () => unsub()
+    return () => {
+      mountedRef.current = false
+      unsub()
+    }
   }, [isLoaded, userId])
 
   const handleApply = async (job: AvailableJob) => {
@@ -74,7 +84,7 @@ function Jobs() {
           <AvailableJobsList
             jobs={jobs}
             onApply={handleApply}
-            appliedJobIds={appliedJobIds}
+            appliedJobIds={appliedJobIds} // Controls disabled Apply buttons
             role={role}
           />
         </section>

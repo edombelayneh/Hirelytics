@@ -52,7 +52,10 @@ function toList(value: unknown): string[] {
     return value.map((item) => formatValue(item).trim()).filter((item) => item && item !== '—')
   }
   if (typeof value === 'string') {
-    return value.split(/\n|,|;/).map((item) => item.trim()).filter(Boolean)
+    return value
+      .split(/\n|,|;/)
+      .map((item) => item.trim())
+      .filter(Boolean)
   }
   return []
 }
@@ -145,9 +148,13 @@ export default function ApplicationDetailsPage() {
 
   // Job posting derived values
   const title =
-    formatValue(mergedJob.title) !== '—' ? formatValue(mergedJob.title) : formatValue(mergedJob.position)
+    formatValue(mergedJob.title) !== '—'
+      ? formatValue(mergedJob.title)
+      : formatValue(mergedJob.position)
   const company =
-    formatValue(mergedJob.company) !== '—' ? formatValue(mergedJob.company) : formatValue(mergedJob.companyName)
+    formatValue(mergedJob.company) !== '—'
+      ? formatValue(mergedJob.company)
+      : formatValue(mergedJob.companyName)
   const location =
     formatValue(mergedJob.location) !== '—'
       ? formatValue(mergedJob.location)
@@ -170,7 +177,10 @@ export default function ApplicationDetailsPage() {
     ['Employment Type', formatValue(mergedJob.employmentType ?? mergedJob.type)],
     ['Work Arrangement', formatValue(mergedJob.workArrangement ?? mergedJob.jobType)],
     ['Experience Level', formatValue(mergedJob.experienceLevel)],
-    ['Compensation', formatValue(mergedJob.salary ?? mergedJob.hourlyRate ?? mergedJob.paymentAmount)],
+    [
+      'Compensation',
+      formatValue(mergedJob.salary ?? mergedJob.hourlyRate ?? mergedJob.paymentAmount),
+    ],
     ['Application Deadline', formatValue(mergedJob.applicationDeadline)],
   ].filter((entry): entry is [string, string] => entry[1] !== '—')
 
@@ -179,12 +189,19 @@ export default function ApplicationDetailsPage() {
       <div className='container mx-auto max-w-6xl px-6 py-8 space-y-6'>
         {/* Header */}
         <div className='flex items-center justify-between'>
-          <Button variant='outline' onClick={() => router.push('/applicant/applications')}>
+          <Button
+            variant='outline'
+            onClick={() => router.push('/applicant/applications')}
+          >
             Back to My Applications
           </Button>
           {application.jobLink ? (
             <Button asChild>
-              <Link href={application.jobLink} target='_blank' rel='noreferrer'>
+              <Link
+                href={application.jobLink}
+                target='_blank'
+                rel='noreferrer'
+              >
                 Open Job Posting
               </Link>
             </Button>
@@ -206,7 +223,10 @@ export default function ApplicationDetailsPage() {
           </div>
 
           {/* ── Job Posting tab ── */}
-          <TabsContent value='job-posting' className='space-y-4 mt-4'>
+          <TabsContent
+            value='job-posting'
+            className='space-y-4 mt-4'
+          >
             {jobDoc === null ? (
               <Card className='rounded-2xl'>
                 <CardContent className='py-8 text-sm text-muted-foreground'>
@@ -238,14 +258,19 @@ export default function ApplicationDetailsPage() {
                       {requirements.length > 0 ? (
                         <ul className='text-sm text-muted-foreground space-y-2'>
                           {requirements.map((req) => (
-                            <li key={req} className='flex items-start gap-2'>
+                            <li
+                              key={req}
+                              className='flex items-start gap-2'
+                            >
                               <span className='text-primary mt-1'>•</span>
                               <span>{req}</span>
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p className='text-sm text-muted-foreground'>No required qualifications provided.</p>
+                        <p className='text-sm text-muted-foreground'>
+                          No required qualifications provided.
+                        </p>
                       )}
                     </div>
 
@@ -254,14 +279,19 @@ export default function ApplicationDetailsPage() {
                       {optionalRequirements.length > 0 ? (
                         <ul className='text-sm text-muted-foreground space-y-2'>
                           {optionalRequirements.map((req) => (
-                            <li key={req} className='flex items-start gap-2'>
+                            <li
+                              key={req}
+                              className='flex items-start gap-2'
+                            >
                               <span className='text-primary mt-1'>•</span>
                               <span>{req}</span>
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p className='text-sm text-muted-foreground'>No optional requirements provided.</p>
+                        <p className='text-sm text-muted-foreground'>
+                          No optional requirements provided.
+                        </p>
                       )}
                     </div>
                   </section>
@@ -298,7 +328,10 @@ export default function ApplicationDetailsPage() {
           </TabsContent>
 
           {/* ── My Details tab ── */}
-          <TabsContent value='my-details' className='mt-4'>
+          <TabsContent
+            value='my-details'
+            className='mt-4'
+          >
             <Card className='rounded-2xl border shadow-sm'>
               <CardContent className='space-y-6 pt-6'>
                 {/* Application status fields */}
@@ -308,10 +341,6 @@ export default function ApplicationDetailsPage() {
                     <div>
                       <dt className='font-semibold'>Status</dt>
                       <dd className='text-muted-foreground'>{application.status}</dd>
-                    </div>
-                    <div>
-                      <dt className='font-semibold'>Outcome</dt>
-                      <dd className='text-muted-foreground'>{application.outcome}</dd>
                     </div>
                     <div>
                       <dt className='font-semibold'>Applied</dt>

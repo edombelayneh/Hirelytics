@@ -176,7 +176,6 @@ export default function AddExternalJobPage() {
         employmentType,
         experienceLevel,
         status: 'Applied',
-        outcome: 'Pending',
         notes: '',
         createdAt: new Date().toISOString(),
       }

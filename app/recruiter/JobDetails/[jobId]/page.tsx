@@ -14,7 +14,6 @@ import type { Applicant, Job } from '../../../types/job'
 export default function JobDetailsPage() {
   const { jobId } = useParams<{ jobId: string }>()
 
-
   // Job posting data fetched from jobPostings collection
   const [job, setJob] = useState<Job | null>(null)
   // Applicant profiles resolved from users/{uid}.profile for each id in applicantsId
@@ -90,7 +89,10 @@ export default function JobDetailsPage() {
     <div className='min-h-screen bg-background'>
       <main className='mx-auto max-w-6xl px-6 py-6 space-y-6'>
         <div>
-          <Button asChild variant='outline'>
+          <Button
+            asChild
+            variant='outline'
+          >
             <Link href='/recruiter/myJobs'>Return to my jobs</Link>
           </Button>
         </div>

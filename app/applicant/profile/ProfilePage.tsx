@@ -273,8 +273,8 @@ export const ProfilePage = memo(function ProfilePage({
   return (
     <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8'>
       {/* Header */}
-      <div className='flex flex-col gap-2'>
-        <h2 className='text-xl font-semibold'>My Profile</h2>
+      <div>
+        <h2 className='text-2xl font-bold mb-1'>My Profile</h2>
         <p className='text-muted-foreground'>
           Manage your personal information and job application preferences
         </p>

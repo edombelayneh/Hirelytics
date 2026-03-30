@@ -29,7 +29,6 @@ type SaveUserApplicationInput = {
   status?: string
   contactPerson: string
   jobSource: string
-  outcome?: string
   notes?: string
   jobLink: string
   jobDetails: JobDetailsPayload
@@ -276,7 +275,6 @@ export async function saveUserApplication(input: SaveUserApplicationInput) {
     status = 'Applied',
     contactPerson,
     jobSource,
-    outcome = 'Pending',
     notes = '',
     jobLink,
     jobDetails,
@@ -297,7 +295,6 @@ export async function saveUserApplication(input: SaveUserApplicationInput) {
       status,
       contactPerson,
       jobSource,
-      outcome,
       notes,
       jobLink,
       jobDetails,
