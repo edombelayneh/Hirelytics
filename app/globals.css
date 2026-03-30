@@ -144,57 +144,59 @@
 /**
  * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
  */
+/* Typography only */
 @layer base {
-  :where(:not(:has([class*=' text-']), :not(:has([class^='text-'])))) {
-    h1 {
-      font-size: var(--text-2xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
+  /* Keeps root font size predictable for rem-based scaling */
+  html {
+    font-size: 100%;
+  }
 
-    h2 {
-      font-size: var(--text-xl);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
+  /* Base body text defaults */
+  body {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
 
-    h3 {
-      font-size: var(--text-lg);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
+  /* Default heading styles when you use raw h1/h2/etc. */
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 2rem;
+  }
 
-    h4 {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.75rem;
+  }
 
-    p {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-    }
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.75rem;
+  }
 
-    label {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
+  h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5rem;
+  }
 
-    button {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-medium);
-      line-height: 1.5;
-    }
+  /* Default paragraph sizing */
+  p {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
 
-    input {
-      font-size: var(--text-base);
-      font-weight: var(--font-weight-normal);
-      line-height: 1.5;
-    }
+  /* Default sizes for common form/UI text */
+  label,
+  button,
+  input {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
   }
 }
+
 
 html {
   font-size: var(--font-size);

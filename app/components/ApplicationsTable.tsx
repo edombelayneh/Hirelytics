@@ -211,7 +211,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
               {filteredApplications.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={10}
+                    colSpan={9}
                     className='text-center py-8 text-muted-foreground'
                   >
                     No applications found matching your criteria

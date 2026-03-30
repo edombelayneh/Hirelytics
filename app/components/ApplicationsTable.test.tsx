@@ -13,6 +13,11 @@ vi.mock('../utils/dateFormatter', () => ({
   formatDate: (date: string) => new Date(date).toLocaleDateString(),
 }))
 
+// Badge color utilitiesExpand commentComment on line L16
+vi.mock('../utils/badgeColors', () => ({
+  getStatusColor: (status: string) => `status-${String(status).toLowerCase().replace(/\s+/g, '-')}`,
+}))
+
 // Next.js router
 const pushMock = vi.fn()
 vi.mock('next/navigation', () => ({
@@ -382,7 +387,7 @@ describe('ApplicationsTable', () => {
   })
 
   it('shows job sources in its cell', () => {
-    // Confirms key fields render in source column)
+    // Confirms key fields render in source column
     render(<ApplicationsTable applications={mockApplications} />)
 
     // Job sources
