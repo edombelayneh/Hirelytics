@@ -7,7 +7,6 @@ import { normalizeJobSource } from '../types/jobSource'
 type DetailRecord = Record<string, unknown>
 
 type ApplicationJobDetails = {
-  id: string
   title: string
   company: string
   location: string
@@ -18,11 +17,9 @@ type ApplicationJobDetails = {
   requirements: string[]
   status: string
   applyLink: string
-  recruiterId?: string
 }
 
 type ApplicationPayload = {
-  id: string
   jobId: string
   userId: string
   company: string
@@ -35,7 +32,6 @@ type ApplicationPayload = {
   jobLink: string
   applicationDate: string
   status: 'Applied'
-  outcome: 'Pending'
   notes: string
   recruiterId?: string
   visaRequired?: string
@@ -65,6 +61,34 @@ type BuildApplicationParams = {
     requirements: string[]
     postedDate: string
   }
+}
+
+type BuildFromJobDetailsInput = {
+  userId: string
+  jobId: string
+  company: string
+  position: string
+  country: string
+  city: string
+  contactPerson: string
+  jobSource?: string
+  jobLink: string
+  title: string
+  location: string
+  type: string
+  postedDate: string
+  salary: string
+  description: string
+  requirements: string[]
+  status: string
+  applyLink: string
+  recruiterId?: string
+  state?: string
+  visaRequired?: string
+  experienceLevel?: string
+  preferredSkills?: string
+  workArrangement?: string
+  paymentType?: string
 }
 
 function toText(value: unknown): string {
@@ -103,7 +127,6 @@ export function buildApplicationFromAvailableJob({
   const jobId = String(job.id)
 
   return {
-    id: jobId,
     jobId,
     userId,
     company: job.company,
@@ -115,11 +138,9 @@ export function buildApplicationFromAvailableJob({
     jobLink: job.applyLink,
     applicationDate: new Date().toISOString().slice(0, 10),
     status: 'Applied',
-    outcome: 'Pending',
     notes: '',
     recruiterId: job.recruiterId,
     jobDetails: {
-      id: jobId,
       title: job.title,
       company: job.company,
       location: job.location,
@@ -130,7 +151,6 @@ export function buildApplicationFromAvailableJob({
       requirements: job.requirements,
       status: job.status,
       applyLink: job.applyLink,
-      recruiterId: job.recruiterId,
     },
   }
 }
@@ -162,44 +182,96 @@ export function buildApplication({
   const jobLink = toText(mergedJob.applyLink) || toText(mergedJob.jobLink)
   const jobSource = normalizeJobSource(toText(mergedJob.jobSource) || 'Hirelytics')
 
-  return {
-    id: jobId,
-    jobId,
+  return buildApplicationFromJobDetails({
     userId,
+    jobId,
     company,
     position: title,
     country,
     city,
-    ...(state ? { state } : {}),
     contactPerson: toText(mergedJob.contactPerson),
     jobSource,
     jobLink,
+    title,
+    location,
+    type: toText(mergedJob.type) || toText(mergedJob.employmentType),
+    postedDate: toText(mergedJob.postedDate) || fallback.postedDate,
+    salary: toText(mergedJob.salary) || toText(mergedJob.paymentAmount),
+    description:
+      toText(mergedJob.description) || toText(mergedJob.generalDescription) || fallback.description,
+    requirements,
+    status: toText(mergedJob.status) || 'Open',
+    applyLink: jobLink,
+    recruiterId: toText(mergedJob.recruiterId) || undefined,
+    ...(state ? { state } : {}),
+    ...(visaRequired ? { visaRequired } : {}),
+    ...(experienceLevel ? { experienceLevel } : {}),
+    ...(preferredSkills ? { preferredSkills } : {}),
+    ...(workArrangement ? { workArrangement } : {}),
+    ...(paymentType ? { paymentType } : {}),
+  })
+}
+
+export function buildApplicationFromJobDetails({
+  userId,
+  jobId,
+  company,
+  position,
+  country,
+  city,
+  contactPerson,
+  jobSource = 'Hirelytics',
+  jobLink,
+  title,
+  location,
+  type,
+  postedDate,
+  salary,
+  description,
+  requirements,
+  status,
+  applyLink,
+  recruiterId,
+  state,
+  visaRequired,
+  experienceLevel,
+  preferredSkills,
+  workArrangement,
+  paymentType,
+}: BuildFromJobDetailsInput): ApplicationPayload {
+  const normalizedSource = normalizeJobSource(jobSource)
+
+  return {
+    jobId,
+    userId,
+    company,
+    position,
+    country,
+    city,
+    ...(state ? { state } : {}),
+    contactPerson,
+    jobSource: normalizedSource,
+    jobLink,
     applicationDate: new Date().toISOString().slice(0, 10),
     status: 'Applied',
-    outcome: 'Pending',
     notes: '',
-    recruiterId: toText(mergedJob.recruiterId) || undefined,
+    recruiterId,
     ...(visaRequired ? { visaRequired } : {}),
     ...(experienceLevel ? { experienceLevel } : {}),
     ...(preferredSkills ? { preferredSkills } : {}),
     ...(workArrangement ? { workArrangement } : {}),
     ...(paymentType ? { paymentType } : {}),
     jobDetails: {
-      id: jobId,
       title,
       company,
       location,
-      type: toText(mergedJob.type) || toText(mergedJob.employmentType),
-      postedDate: toText(mergedJob.postedDate) || fallback.postedDate,
-      salary: toText(mergedJob.salary) || toText(mergedJob.paymentAmount),
-      description:
-        toText(mergedJob.description) ||
-        toText(mergedJob.generalDescription) ||
-        fallback.description,
+      type,
+      postedDate,
+      salary,
+      description,
       requirements,
-      status: toText(mergedJob.status) || 'Open',
+      status,
       applyLink: jobLink,
-      recruiterId: toText(mergedJob.recruiterId) || undefined,
     },
   }
 }
@@ -208,9 +280,7 @@ export async function saveUserApplication(application: ApplicationPayload): Prom
   const ref = doc(db, 'users', application.userId, 'applications', application.jobId)
   const normalizedApplication = {
     ...application,
-    id: application.id || application.jobId,
     status: application.status || 'Applied',
-    outcome: application.outcome || 'Pending',
   }
 
   await setDoc(

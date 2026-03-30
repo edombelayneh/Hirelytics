@@ -56,7 +56,6 @@ describe('app/utils/applicationFirebase', () => {
       city: 'Remote',
       jobSource: 'Hirelytics',
       jobDetails: {
-        id: '7',
         title: 'Frontend Engineer',
         postedDate: '2026-02-01',
       },
@@ -97,7 +96,6 @@ describe('app/utils/applicationFirebase', () => {
       country: 'USA',
       city: 'New York, NY',
       jobDetails: {
-        id: '44',
         title: 'Platform Engineer',
         company: 'Contoso',
         location: 'New York, NY',
@@ -141,7 +139,6 @@ describe('app/utils/applicationFirebase', () => {
     const { saveUserApplication } = await import('@/app/utils/applicationFirebase')
 
     await saveUserApplication({
-      id: '9',
       userId: 'user-3',
       jobId: '9',
       company: 'Fabrikam',
@@ -153,10 +150,8 @@ describe('app/utils/applicationFirebase', () => {
       jobLink: 'https://example.com/jobs/9',
       applicationDate: '2026-02-28',
       status: 'Applied',
-      outcome: 'Pending',
       notes: '',
       jobDetails: {
-        id: '9',
         title: 'Backend Engineer',
         company: 'Fabrikam',
         location: 'Toronto',
@@ -167,7 +162,6 @@ describe('app/utils/applicationFirebase', () => {
         requirements: ['Node.js'],
         status: 'Open',
         applyLink: 'https://example.com/jobs/9/apply',
-        recruiterId: 'rec-9',
       },
     })
 
@@ -176,7 +170,6 @@ describe('app/utils/applicationFirebase', () => {
     expect(setDocMock).toHaveBeenCalledWith(
       expect.any(Object),
       expect.objectContaining({
-        id: '9',
         jobId: '9',
         company: 'Fabrikam',
         status: 'Applied',

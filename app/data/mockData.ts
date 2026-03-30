@@ -13,16 +13,12 @@ export interface JobApplication {
   contactPerson: string
   notes: string
   jobSource: JobSource
-  outcome: 'Pending' | 'Successful' | 'Unsuccessful' | 'In Progress'
   // Stores the Firebase UID of the recruiter who posted the job the user applied to
   recruiterId?: string
 }
 
 // Load job applications from jobs data file
-export const mockJobApplications: JobApplication[] = jobsData.map((job) => ({
-  ...job,
-  outcome: 'Pending',
-}))
+export const mockJobApplications: JobApplication[] = jobsData
 
 export const getDashboardStats = () => {
   const total = mockJobApplications.length

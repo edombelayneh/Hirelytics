@@ -323,7 +323,9 @@ export default function AddExternalJobPage() {
               'This site blocked auto-parsing. Please paste the details manually.'
           )
         } else if (hasCoreAutofillData) {
-          setMessage('Job information extracted successfully!')
+          setMessage(
+            'Job information extracted successfully! Please review all fields, information may be inaccurate.'
+          )
         } else {
           setMessage('Could not auto-fill this posting. Please fill in details manually.')
         }
