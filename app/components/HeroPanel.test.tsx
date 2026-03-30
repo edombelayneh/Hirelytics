@@ -138,7 +138,6 @@ describe('HeroPanel', () => {
       contactPerson: 'John',
       notes: '',
       jobSource: 'LinkedIn',
-      outcome: 'Pending',
     },
   ]
   // Standard mock outputs returned by helper functions
@@ -270,8 +269,7 @@ describe('HeroPanel', () => {
     const interviewDot = interviewLabel.previousSibling as HTMLElement
 
     // Colors from STATUS_COLORS in HeroPanel.tsx
-    expect(appliedDot.style.backgroundColor).toBe('rgb(254, 240, 138)')   // #FEF08A
+    expect(appliedDot.style.backgroundColor).toBe('rgb(254, 240, 138)') // #FEF08A
     expect(interviewDot.style.backgroundColor).toBe('rgb(59, 130, 243)') // #3b82f3
-    })
-  
+  })
 })

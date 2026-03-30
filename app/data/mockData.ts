@@ -19,7 +19,10 @@ export interface JobApplication {
 }
 
 // Load job applications from jobs data file
-export const mockJobApplications: JobApplication[] = jobsData
+export const mockJobApplications: JobApplication[] = jobsData.map((job) => ({
+  ...job,
+  outcome: 'Pending',
+}))
 
 export const getDashboardStats = () => {
   const total = mockJobApplications.length
