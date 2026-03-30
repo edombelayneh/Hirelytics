@@ -5,7 +5,7 @@ import type { AvailableJob } from '../data/availableJobs'
 // Canonical shape persisted in each user's `applications/{jobId}` document.
 // Keeping this centralized prevents subtle field drift across different apply entry points.
 type JobDetailsPayload = {
-  id?: string
+  id: string
   title: string
   company: string
   location: string

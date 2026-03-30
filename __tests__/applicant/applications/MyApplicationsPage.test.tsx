@@ -139,6 +139,13 @@ vi.mock('../../../app/components/ApplicationsTable', () => ({
   }) => (
     <div data-testid='applications-table'>
       <div>ApplicationsTable: {applications.length} applications</div>
+      <ul data-testid='applications-identifiers'>
+        {applications.map((application) => (
+          <li
+            key={application.id}
+          >{`${application.id} | ${application.company} | ${application.position}`}</li>
+        ))}
+      </ul>
       <button onClick={() => onStatusChange('1', 'Interview')}>Change Status</button>
       <button onClick={() => onNotesChange('1', 'New notes')}>Change Notes</button>
     </div>
@@ -261,7 +268,10 @@ describe('MyApplicationsPage', () => {
     // Verify total count includes external job
     expect(screen.getByTestId('applications-table').textContent).toContain('4 applications')
 
-    // Verify the external job is passed to ApplicationsTable
-    expect(screen.getByTestId('hero-panel').textContent).toContain('4 applications')
+    // Verify coexistence: both existing platform jobs and external job identifiers are present
+    expect(screen.getByText('1 | TechCorp Inc. | Software Engineer')).toBeTruthy()
+    expect(
+      screen.getByText('x7Pq9Lm2RtA4bN8kY1cD | ExternalCorp | Senior Backend Engineer')
+    ).toBeTruthy()
   })
 })
