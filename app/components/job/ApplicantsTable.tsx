@@ -10,6 +10,7 @@ import {
   TableRow,
 } from '../../components/ui/table'
 import type { Applicant, ApplicationStatus } from '../../types/job'
+import { ApplicationStatusColor } from '../../utils/applicationStatusStyles'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 
 type ApplicantsTableProps = {
@@ -81,6 +82,7 @@ export function ApplicantsTable({
               applicants.map((a) => {
                 const fullName = `${a.firstName} ${a.lastName}`.trim() || 'Unnamed'
                 const resumeLabel = a.resumeFileName || 'Download resume'
+                const status = a.applicationStatus ?? 'Applied'
 
                 return (
                   <TableRow key={a.id}>
@@ -96,21 +98,48 @@ export function ApplicantsTable({
                     {/* STATUS -> dropdown to update */}
                     <TableCell>
                       <Select
-                        value={a.applicationStatus ?? 'Applied'}
+                        value={status}
                         disabled={!onStatusChange}
                         onValueChange={(status) =>
                           onStatusChange?.(a.id, status as ApplicationStatus)
                         }
                       >
-                        <SelectTrigger className='w-[130px]'>
+                        <SelectTrigger
+                          className={`w-[130px] ${ApplicationStatusColor[status] ?? ''}`}
+                        >
                           <SelectValue placeholder='Status' />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value='Applied'>Applied</SelectItem>
-                          <SelectItem value='Interview'>Interview</SelectItem>
-                          <SelectItem value='Offer'>Offer</SelectItem>
-                          <SelectItem value='Rejected'>Rejected</SelectItem>
-                          <SelectItem value='Withdrawn'>Withdrawn</SelectItem>
+                          <SelectItem
+                            value='Applied'
+                            className={ApplicationStatusColor.Applied}
+                          >
+                            Applied
+                          </SelectItem>
+                          <SelectItem
+                            value='Interview'
+                            className={ApplicationStatusColor.Interview}
+                          >
+                            Interview
+                          </SelectItem>
+                          <SelectItem
+                            value='Offer'
+                            className={ApplicationStatusColor.Offer}
+                          >
+                            Offer
+                          </SelectItem>
+                          <SelectItem
+                            value='Rejected'
+                            className={ApplicationStatusColor.Rejected}
+                          >
+                            Rejected
+                          </SelectItem>
+                          <SelectItem
+                            value='Withdrawn'
+                            className={ApplicationStatusColor.Withdrawn}
+                          >
+                            Withdrawn
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>
