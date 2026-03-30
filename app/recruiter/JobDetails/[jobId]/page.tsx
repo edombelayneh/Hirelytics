@@ -131,7 +131,7 @@ export default function JobDetailsPage() {
   }
   return (
     <div className='min-h-screen bg-background'>
-      <main className='mx-auto max-w-6xl px-6 py-6 space-y-6'>
+      <main className='mr-auto w-full max-w-[1400px] px-4 sm:px-6 py-6 space-y-6'>
         <div>
           <Button
             asChild
@@ -141,7 +141,7 @@ export default function JobDetailsPage() {
           </Button>
         </div>
 
-        <div className='grid gap-6 md:grid-cols-[380px_1fr]'>
+        <div className='grid gap-6 md:grid-cols-[340px_minmax(0,1fr)]'>
           <JobDetailsCard job={job} />
 
           <ApplicantsTable
