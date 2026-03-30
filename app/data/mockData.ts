@@ -12,7 +12,6 @@ export interface JobApplication {
   contactPerson: string
   notes: string
   jobSource: 'LinkedIn' | 'Company Website' | 'Indeed' | 'Glassdoor' | 'Referral' | 'Other'
-  outcome: 'Pending' | 'Successful' | 'Unsuccessful' | 'In Progress'
   // Stores the Firebase UID of the recruiter who posted the job the user applied to
   recruiterId?: string
 }

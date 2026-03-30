@@ -19,7 +19,6 @@ export interface JobApplication {
     | 'Referral'
     | 'Hirelytics'
     | 'Other'
-  outcome: 'Pending' | 'Successful' | 'Unsuccessful' | 'In Progress'
 }
 
 // Load job applications from jobs data file
