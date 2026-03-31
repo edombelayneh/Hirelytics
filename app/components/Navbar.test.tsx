@@ -7,6 +7,7 @@ import { Navbar } from './Navbar'
 /*                                   MOCKS                                    */
 /* -------------------------------------------------------------------------- */
 
+// Mock next/link to a plain <a> so href assertions work in jsdom.
 vi.mock('next/link', () => ({
   default: ({
     href,
@@ -25,6 +26,7 @@ vi.mock('next/link', () => ({
   ),
 }))
 
+// Mock usePathname so we can control the current route per test.
 const usePathnameMock = vi.fn()
 const routerPush = vi.fn()
 
@@ -35,9 +37,12 @@ vi.mock('next/navigation', () => ({
   useRouter: () => useRouterMock(),
 }))
 
+// Simulate supported roles plus unresolved state.
 type Role = 'applicant' | 'recruiter' | undefined
 let clerkRole: Role = undefined
 
+// Mock Clerk's useUser and UserButton with nested components.
+// This mirrors the real API so role-based rendering and menu actions can be tested.
 vi.mock('@clerk/nextjs', async () => {
   const React = await import('react')
 
@@ -65,6 +70,7 @@ vi.mock('@clerk/nextjs', async () => {
     </button>
   )
 
+  // Attach subcomponents to mimic Clerk's structure.
   const TypedUserButton = MockUserButton as React.FC<{ children?: React.ReactNode }> & {
     MenuItems: typeof MockMenuItems
     Action: typeof MockAction
@@ -74,6 +80,7 @@ vi.mock('@clerk/nextjs', async () => {
   TypedUserButton.Action = MockAction
 
   return {
+    // Return role metadata for each test scenario.
     useUser: () => ({
       user: clerkRole ? { publicMetadata: { role: clerkRole } } : { publicMetadata: {} },
     }),
@@ -85,6 +92,8 @@ vi.mock('@clerk/nextjs', async () => {
 /*                               TEST HELPERS                                 */
 /* -------------------------------------------------------------------------- */
 
+// Render Navbar with a given role and route.
+// Keeps tests focused on behavior instead of setup.
 function renderNavbar({
   role,
   pathname = '/',
@@ -97,6 +106,7 @@ function renderNavbar({
   return render(<Navbar />)
 }
 
+// Scope queries to desktop nav only (avoids mobile duplicates).
 function getDesktopNav() {
   return screen.getByTestId('desktop-nav')
 }
@@ -107,6 +117,7 @@ function getDesktopNav() {
 
 describe('Navbar', () => {
   beforeEach(() => {
+    // Reset shared state before each test.
     clerkRole = undefined
     usePathnameMock.mockReturnValue('/')
     routerPush.mockClear()
@@ -114,17 +125,22 @@ describe('Navbar', () => {
   })
 
   afterEach(() => {
+    // Clean up DOM and mocks.
     cleanup()
     vi.clearAllMocks()
   })
 
   it('renders the logo image', () => {
     renderNavbar()
+
+    // Verify logo renders via alt text.
     screen.getByAltText('Hirelytics Logo')
   })
 
   it('renders the Clerk user button wrapper', () => {
     renderNavbar()
+
+    // Confirms Clerk UserButton is mounted.
     screen.getByTestId('user-button')
   })
 
@@ -134,6 +150,7 @@ describe('Navbar', () => {
     const desktopNav = getDesktopNav()
     const links = within(desktopNav).getAllByRole('link')
 
+    // Each nav link should include a lucide icon.
     links.forEach((link) => {
       expect(link.querySelector('svg')).toBeTruthy()
     })
@@ -147,9 +164,11 @@ describe('Navbar', () => {
 
     const desktopNav = getDesktopNav()
 
+    // Only Home should exist, linking to "/".
     const homeLink = within(desktopNav).getByRole('link', { name: /home/i })
     expect(homeLink.getAttribute('href')).toBe('/')
 
+    // No role-specific links should appear.
     expect(within(desktopNav).queryByText('Available Jobs')).toBeNull()
     expect(within(desktopNav).queryByText('My Applications')).toBeNull()
     expect(within(desktopNav).queryByText('My Jobs')).toBeNull()
@@ -163,6 +182,7 @@ describe('Navbar', () => {
 
     const desktopNav = getDesktopNav()
 
+    // Applicant-specific routes.
     expect(within(desktopNav).getByRole('link', { name: /home/i }).getAttribute('href')).toBe(
       '/home'
     )
@@ -179,6 +199,7 @@ describe('Navbar', () => {
         .getAttribute('href')
     ).toBe('/applicant/applications')
 
+    // Recruiter-only link should not appear.
     expect(within(desktopNav).queryByText('My Jobs')).toBeNull()
   })
 
@@ -190,6 +211,7 @@ describe('Navbar', () => {
 
     const desktopNav = getDesktopNav()
 
+    // Recruiter-specific routes.
     expect(within(desktopNav).getByRole('link', { name: /home/i }).getAttribute('href')).toBe(
       '/home'
     )
@@ -206,6 +228,7 @@ describe('Navbar', () => {
         .getAttribute('href')
     ).toBe('/recruiter/myJobs')
 
+    // Applicant-only link should not appear.
     expect(within(desktopNav).queryByText('My Applications')).toBeNull()
   })
 
@@ -216,6 +239,8 @@ describe('Navbar', () => {
     })
 
     const desktopNav = getDesktopNav()
+
+    // Metadata role should override route-based inference.
     within(desktopNav).getByRole('link', { name: /my applications/i })
     expect(within(desktopNav).queryByRole('link', { name: /my jobs/i })).toBeNull()
   })
@@ -225,6 +250,7 @@ describe('Navbar', () => {
 
     const hamburger = screen.getByRole('button', { name: /open menu/i })
 
+    // aria-expanded reflects open/closed state.
     fireEvent.click(hamburger)
     expect(hamburger.getAttribute('aria-expanded')).toBe('true')
 
@@ -238,6 +264,8 @@ describe('Navbar', () => {
     const hamburger = screen.getByRole('button', { name: /open menu/i })
 
     fireEvent.click(hamburger)
+
+    // Body scrolling should be disabled while menu is open.
     expect(document.body.style.overflow).toBe('hidden')
   })
 
@@ -246,11 +274,40 @@ describe('Navbar', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /open menu/i }))
 
+    // Simulate route change.
     usePathnameMock.mockReturnValue('/new-route')
     rerender(<Navbar />)
 
     expect(screen.getByRole('button', { name: /open menu/i }).getAttribute('aria-expanded')).toBe(
       'false'
     )
+  })
+
+  it('navigates to the correct profile when "My Profile" is clicked (applicant)', () => {
+    renderNavbar({
+      role: 'applicant',
+      pathname: '/applicant/applications',
+    })
+
+    const profileButton = screen.getByRole('button', { name: /my profile/i })
+
+    fireEvent.click(profileButton)
+
+    // Should route to applicant profile.
+    expect(routerPush).toHaveBeenCalledWith('/applicant/profile')
+  })
+
+  it('navigates to the correct profile when "My Profile" is clicked (recruiter)', () => {
+    renderNavbar({
+      role: 'recruiter',
+      pathname: '/recruiter/myJobs',
+    })
+
+    const profileButton = screen.getByRole('button', { name: /my profile/i })
+
+    fireEvent.click(profileButton)
+
+    // Should route to recruiter profile.
+    expect(routerPush).toHaveBeenCalledWith('/recruiter/profile')
   })
 })
