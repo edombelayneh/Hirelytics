@@ -110,7 +110,7 @@ export function Navbar() {
       /**
        * Covers both list + detail pages
        */
-      match: (p) => p.startsWith('/recruiter/myJobs') || p.startsWith('/recruiter/jobDetails'),
+      match: (p) => p.startsWith('/recruiter/myJobs') || p.startsWith('/recruiter/JobDetails'),
     },
   ]
 
