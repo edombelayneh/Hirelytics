@@ -384,7 +384,6 @@ export async function saveExternalJob(input: SaveExternalJobInput) {
       status: 'Applied',
       contactPerson: companyContact,
       jobSource,
-      outcome: 'Pending',
       notes: '',
       jobLink: jobUrl,
       isExternal: true, // Flag to identify external jobs.
