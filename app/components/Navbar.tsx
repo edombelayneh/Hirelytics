@@ -7,16 +7,13 @@ import { UserButton, useUser } from '@clerk/nextjs'
 import { Home, Briefcase, BarChart3, User, Menu, X } from 'lucide-react'
 
 /**
- * Defines the possible user roles that determine
- * which navigation layout is rendered.
+ * Possible user roles that determine which nav is shown
  */
 type Role = 'applicant' | 'recruiter' | undefined
 
 /**
- * Structure for each navigation item.
- *
- * match(): determines if this item should be styled as active
- * based on the current route.
+ * Structure for navigation items
+ * match() is used to determine active styling
  */
 type NavItem = {
   label: string
@@ -31,31 +28,19 @@ export function Navbar() {
   const { user } = useUser()
 
   /**
-   * Controls whether the mobile menu dropdown is visible.
+   * Stores the pathname where the menu was opened.
+   * If the current pathname changes, the menu automatically counts as closed.
    */
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null)
 
   /**
-   * Close mobile menu when route changes.
-   *
-   * WHY:
-   * Prevents the menu from staying open after navigation,
-   * which would feel like broken UI.
+   * Menu is only open if it was opened on the current route.
    */
-  // Close mobile menu on route change
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMenuOpen(false)
-  }, [pathname])
+  const isMenuOpen = menuOpenPath === pathname
 
   /**
-   * Lock background scrolling when mobile menu is open.
-   *
-   * WHY:
-   * Creates a proper "overlay" effect so users cannot scroll
-   * the page behind the menu.
-   *
-   * Cleanup ensures scroll is restored even if component unmounts.
+   * Lock background scroll when menu is open
+   * WHY: creates proper overlay behavior
    */
   useEffect(() => {
     if (isMenuOpen) {
@@ -63,20 +48,19 @@ export function Navbar() {
     } else {
       document.body.style.overflow = ''
     }
+
     return () => {
       document.body.style.overflow = ''
     }
   }, [isMenuOpen])
 
   /**
-   * Primary role source: Clerk metadata.
-   * This is the most reliable source of truth.
+   * Primary role source (from Clerk metadata)
    */
   const metaRole = (user?.publicMetadata?.role as Role) ?? undefined
 
   /**
-   * Fallback role inference based on URL.
-   * Used when metadata is unavailable.
+   * Fallback role based on route
    */
   const inferredRole: Role = pathname.startsWith('/recruiter')
     ? 'recruiter'
@@ -85,13 +69,12 @@ export function Navbar() {
       : undefined
 
   /**
-   * Final role resolution:
-   * metadata takes priority over inferred route.
+   * Final role (metadata overrides route)
    */
   const role = metaRole ?? inferredRole
 
   /**
-   * Navigation configuration for applicants.
+   * Applicant navigation config
    */
   const applicantNav: NavItem[] = [
     { label: 'Home', href: '/home', icon: Home, match: (p) => p === '/home' },
@@ -99,7 +82,6 @@ export function Navbar() {
       label: 'Available Jobs',
       href: '/applicant/jobs',
       icon: Briefcase,
-      // Matches base route + any nested job routes
       match: (p) => p.startsWith('/applicant/jobs'),
     },
     {
@@ -111,7 +93,7 @@ export function Navbar() {
   ]
 
   /**
-   * Navigation configuration for recruiters.
+   * Recruiter navigation config
    */
   const recruiterNav: NavItem[] = [
     { label: 'Home', href: '/home', icon: Home, match: (p) => p === '/home' },
@@ -126,19 +108,15 @@ export function Navbar() {
       href: '/recruiter/myJobs',
       icon: Briefcase,
       /**
-       * Covers:
-       * - Job listing page
-       * - Individual job detail pages
-       *
-       * Ensures "My Jobs" remains active when drilling into job details.
+       * Covers both list + detail pages
        */
       match: (p) => p.startsWith('/recruiter/myJobs') || p.startsWith('/recruiter/jobDetails'),
     },
   ]
 
   /**
-   * Select navigation items based on resolved role.
-   * Falls back to minimal navigation if role is unknown.
+   * Shows different nav items depending on role.
+   * Defaults to just Home if role is unknown.
    */
   const navItems: NavItem[] =
     role === 'recruiter'
@@ -148,18 +126,16 @@ export function Navbar() {
         : [{ label: 'Home', href: '/', icon: Home, match: (p) => p === '/' }]
 
   /**
-   * Determines where "My Profile" should route
-   * based on the current role.
+   * Profile route depends on role
    */
   const profileHref =
     role === 'recruiter' ? '/recruiter/profile' : role === 'applicant' ? '/applicant/profile' : '/'
 
   return (
     <>
-      {/* Main navbar container (sticky for persistent access) */}
-      <nav className='relative flex items-center justify-center px-4 md:px-6 h-20 bg-background border-b sticky top-0 z-50'>
-        {/* Logo section (always routes to homepage) */}
-        <div className='absolute left-4 md:left-6 flex items-center'>
+      <nav className='relative flex items-center justify-center px-4 lg:px-6 h-20 bg-background border-b sticky top-0 z-50'>
+        {/* LOGO (always left) */}
+        <div className='absolute left-4 lg:left-6 flex items-center'>
           <Link
             href='/'
             className='inline-block'
@@ -167,15 +143,14 @@ export function Navbar() {
             <img
               src='/Hirelytics_Logo.png'
               alt='Hirelytics Logo'
-              className='h-8 md:h-10 w-auto'
+              className='h-8 lg:h-10 w-auto'
             />
           </Link>
         </div>
 
-        {/* Desktop navigation (hidden on mobile, centered layout) */}
-        {/* data-testid ensures stable targeting for tests */}
+        {/* DESKTOP NAV (only visible on large screens now) */}
         <div
-          className='hidden md:flex gap-6 lg:gap-12'
+          className='hidden lg:flex gap-6 xl:gap-12'
           data-testid='desktop-nav'
         >
           {navItems.map((item) => {
@@ -186,61 +161,53 @@ export function Navbar() {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-2 text-base lg:text-xl ${
+                className={`flex items-center gap-2 text-base xl:text-xl ${
                   isActive
-                    ? 'font-bold text-foreground' // active page styling
+                    ? 'font-bold text-foreground'
                     : 'font-medium text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <Icon className='h-5 w-5 lg:h-6 lg:w-6' />
+                <Icon className='h-5 w-5 xl:h-6 xl:w-6' />
                 {item.label}
               </Link>
             )
           })}
         </div>
 
-        {/* Right section: user menu + mobile toggle */}
-        <div className='absolute right-4 md:right-6 flex items-center gap-2 md:gap-3'>
-          {/* Clerk user dropdown menu */}
+        {/* RIGHT SIDE (user + hamburger) */}
+        <div className='absolute right-4 lg:right-6 flex items-center gap-2 lg:gap-3'>
           <UserButton afterSignOutUrl='/'>
             <UserButton.MenuItems>
-              {/* Custom action: navigate to role-specific profile */}
+              {/* Custom profile navigation */}
               <UserButton.Action
                 label='My Profile'
                 labelIcon={<User className='h-4 w-4' />}
                 onClick={() => router.push(profileHref)}
               />
 
-              {/* Built-in Clerk actions */}
+              {/* Default Clerk actions */}
               <UserButton.Action label='manageAccount' />
               <UserButton.Action label='signOut' />
             </UserButton.MenuItems>
           </UserButton>
 
-          {/* Mobile hamburger toggle (accessible via aria attributes) */}
+          {/* HAMBURGER (mobile + tablet now) */}
           <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className='md:hidden p-2 text-foreground focus:outline-none'
+            onClick={() => setMenuOpenPath((prev) => (prev === pathname ? null : pathname))}
+            className='lg:hidden p-2 text-foreground focus:outline-none'
             aria-expanded={isMenuOpen}
             aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
           >
-            {
-              isMenuOpen ? (
-                <X className='h-6 w-6' /> // close icon
-              ) : (
-                <Menu className='h-6 w-6' />
-              ) // open icon
-            }
+            {isMenuOpen ? <X className='h-6 w-6' /> : <Menu className='h-6 w-6' />}
           </button>
         </div>
       </nav>
 
-      {/* Mobile navigation dropdown (animated) */}
-      {/* data-testid allows stable selection in tests */}
+      {/* MOBILE/TABLET MENU */}
       <div
         data-testid='mobile-nav'
         className={`
-          md:hidden fixed inset-x-0 top-20 z-40 bg-background border-b shadow-lg
+          lg:hidden fixed inset-x-0 top-20 z-40 bg-background border-b shadow-lg
           transition-all duration-300 ease-in-out
           ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}
         `}
@@ -259,11 +226,7 @@ export function Navbar() {
                     ? 'bg-muted font-bold text-foreground'
                     : 'font-medium text-muted-foreground hover:bg-muted/50'
                 }`}
-                /**
-                 * Close menu after navigation
-                 * Prevents menu staying open after user selects a page
-                 */
-                onClick={() => setIsMenuOpen(false)}
+                onClick={() => setMenuOpenPath(null)}
               >
                 <Icon className='h-5 w-5' />
                 {item.label}
