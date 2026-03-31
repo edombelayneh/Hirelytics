@@ -252,7 +252,6 @@ describe('MyApplicationsPage', () => {
       contactPerson: 'recruiter@external.com',
       notes: 'External job added via Add External Job feature',
       jobSource: 'LinkedIn',
-      outcome: 'Pending',
     }
 
     const allApplicationsWithExternal: JobApplication[] = [...mockApplications, externalJob]
