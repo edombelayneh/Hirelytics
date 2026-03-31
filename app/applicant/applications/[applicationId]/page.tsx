@@ -343,10 +343,6 @@ export default function ApplicationDetailsPage() {
                       <dd className='text-muted-foreground'>{application.status}</dd>
                     </div>
                     <div>
-                      <dt className='font-semibold'>Outcome</dt>
-                      <dd className='text-muted-foreground'>{application.outcome}</dd>
-                    </div>
-                    <div>
                       <dt className='font-semibold'>Applied</dt>
                       <dd className='text-muted-foreground'>
                         {formatDateWithYear(application.applicationDate)}

@@ -251,7 +251,7 @@ function HomePage() {
           >
             <h2 className='mb-4 text-4xl font-bold'>How It Works</h2>
             <p className='mx-auto max-w-2xl text-xl text-muted-foreground'>
-              A shared workflow that respects everyone&apos;s time—clear steps, clear outcomes.
+              A shared workflow that respects everyone&apos;s time.
             </p>
           </motion.div>
 
