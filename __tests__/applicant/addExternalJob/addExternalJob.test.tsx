@@ -124,7 +124,7 @@ describe('AddExternalJobPage', () => {
 
     // Router should not navigate yet (redirect is delayed)
     expect(pushMock).not.toHaveBeenCalled()
-    expect(saveUserApplicationMock).toHaveBeenCalledTimes(1)
+    expect(saveExternalJobMock).toHaveBeenCalledTimes(1)
 
     // Flush all pending timers to trigger the delayed redirect
     await vi.runAllTimersAsync()
@@ -174,9 +174,8 @@ describe('AddExternalJobPage', () => {
       target: { value: 'AWS\nDocker\nKubernetes' },
     })
 
-    // Set categorical fields
-    const jobSourceSelect = screen.getByDisplayValue('Other')
-    fireEvent.change(jobSourceSelect, { target: { value: 'LinkedIn' } })
+    // Job source is inferred from the LinkedIn URL in Step 1.
+    expect(screen.getByDisplayValue('LinkedIn')).toBeTruthy()
 
     const employmentSelect = screen.getAllByDisplayValue('Select type')[0]
     fireEvent.change(employmentSelect, { target: { value: 'full-time' } })

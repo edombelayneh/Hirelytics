@@ -64,6 +64,13 @@ type BuildApplicationParams = {
   }
 }
 
+type ApplyToAvailableJobParams = {
+  userId: string
+  job: AvailableJob
+}
+
+type ApplyToJobFromDetailsParams = BuildApplicationParams
+
 type BuildFromJobDetailsInput = {
   userId: string
   id: string
@@ -275,6 +282,24 @@ export function buildApplicationFromJobDetails({
       applyLink: jobLink,
     },
   }
+}
+
+export async function applyToAvailableJob({
+  userId,
+  job,
+}: ApplyToAvailableJobParams): Promise<void> {
+  const application = buildApplicationFromAvailableJob({ userId, job })
+  await saveUserApplication(application)
+}
+
+export async function applyToJobFromDetails({
+  userId,
+  jobId,
+  mergedJob,
+  fallback,
+}: ApplyToJobFromDetailsParams): Promise<void> {
+  const application = buildApplication({ userId, jobId, mergedJob, fallback })
+  await saveUserApplication(application)
 }
 
 export async function saveUserApplication(application: ApplicationPayload): Promise<void> {

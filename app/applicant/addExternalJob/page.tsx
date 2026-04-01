@@ -15,6 +15,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@clerk/nextjs'
 import { saveExternalJob } from '../../utils/applicationFirebase'
+import { normalizeJobSource, type JobSource, type JobSourceInput } from '../../types/jobSource'
 
 // Controlled select fields types
 type VisaRequired = 'yes' | 'no' | ''
@@ -396,14 +397,9 @@ export default function AddExternalJobPage() {
         jobUrl: jobUrl.trim(),
         jobName: jobName.trim(),
         companyName: companyName.trim(),
-        contactPerson: companyContact.trim(),
+        companyContact: companyContact.trim(),
         description: description.trim(),
-        generalDescription: description.trim(),
         qualifications: qualifications.trim(),
-        requirements: qualifications
-          .split(/\n|,|;/)
-          .map((item) => item.trim())
-          .filter(Boolean),
         preferredSkills: preferredSkills.trim(),
         country: country.trim(),
         state: stateValue.trim(),
