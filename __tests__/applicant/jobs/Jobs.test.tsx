@@ -67,7 +67,7 @@ vi.mock('../../../app/components/AvailableJobsList', () => ({
     appliedJobIds,
   }: {
     onApply: (job: AvailableJob) => void
-    appliedJobIds: Set<number>
+    appliedJobIds: Set<string>
   }) => (
     <div data-testid='available-jobs-list'>
       <div data-testid='applied-jobs-count'>{appliedJobIds.size}</div>
@@ -76,7 +76,7 @@ vi.mock('../../../app/components/AvailableJobsList', () => ({
         data-testid='apply-button'
         onClick={() =>
           onApply({
-            id: 1,
+            id: '1',
             title: 'Test Job',
             company: 'Test Company',
             location: 'Test City',
@@ -139,7 +139,7 @@ describe('Jobs Page', () => {
     expect(applyToAvailableJobMock).toHaveBeenCalledWith({
       userId: 'test-user-id-123',
       job: expect.objectContaining({
-        id: 1,
+        id: '1',
         company: 'Test Company',
         title: 'Test Job',
         location: 'Test City',

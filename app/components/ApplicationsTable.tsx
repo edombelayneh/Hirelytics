@@ -139,7 +139,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                       disabled={isRecruiterManaged(app)}
                       onValueChange={(status) => {
                         if (isRecruiterManaged(app)) return
-                        onStatusChange?.(app.id, status as JobApplication['status'])
+                        onStatusChange?.(String(app.id), status as JobApplication['status'])
                       }}
                     >
                       <SelectTrigger
@@ -189,7 +189,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                     <input
                       type='text'
                       value={app.notes}
-                      onChange={(e) => onNotesChange?.(app.id, e.target.value)}
+                      onChange={(e) => onNotesChange?.(String(app.id), e.target.value)}
                       className='border rounded px-2 py-1 w-full text-sm bg-background'
                       placeholder='Add notes...'
                     />
@@ -199,7 +199,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                       variant='ghost'
                       size='sm'
                       aria-label='View application details'
-                      onClick={() => router.push(`/applicant/applications/${app.id}`)}
+                      onClick={() => router.push(`/applicant/applications/${String(app.id)}`)}
                     >
                       <ExternalLink className='h-4 w-4' />
                     </Button>
