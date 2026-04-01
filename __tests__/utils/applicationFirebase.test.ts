@@ -141,7 +141,6 @@ describe('app/utils/applicationFirebase', () => {
     await saveUserApplication({
       id: '9',
       userId: 'user-3',
-      jobId: '9',
       company: 'Fabrikam',
       position: 'Backend Engineer',
       country: 'Canada',
