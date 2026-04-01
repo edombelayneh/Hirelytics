@@ -51,7 +51,6 @@ describe('app/utils/applicationFirebase', () => {
     expect(payload).toMatchObject({
       id: '7',
       userId: 'user-1',
-      jobId: '7',
       company: 'Acme',
       position: 'Frontend Engineer',
       city: 'Remote',
@@ -92,7 +91,6 @@ describe('app/utils/applicationFirebase', () => {
     expect(payload).toMatchObject({
       id: '44',
       userId: 'user-2',
-      jobId: '44',
       company: 'Contoso',
       position: 'Platform Engineer',
       country: 'USA',

@@ -21,7 +21,7 @@ type ApplicationJobDetails = {
 
 type ApplicationPayload = {
   id: string
-  jobId: string
+  jobId?: string
   userId: string
   company: string
   position: string
@@ -66,7 +66,7 @@ type BuildApplicationParams = {
 
 type BuildFromJobDetailsInput = {
   userId: string
-  jobId: string
+  id: string
   company: string
   position: string
   country: string
@@ -128,9 +128,8 @@ export function buildApplicationFromAvailableJob({
   const jobId = String(job.id)
 
   return {
-    id: jobId,
-    jobId,
     userId,
+    id: jobId,
     company: job.company,
     position: job.title,
     country,
@@ -186,7 +185,7 @@ export function buildApplication({
 
   return buildApplicationFromJobDetails({
     userId,
-    jobId,
+    id: jobId,
     company,
     position: title,
     country,
@@ -216,7 +215,7 @@ export function buildApplication({
 
 export function buildApplicationFromJobDetails({
   userId,
-  jobId,
+  id,
   company,
   position,
   country,
@@ -244,9 +243,8 @@ export function buildApplicationFromJobDetails({
   const normalizedSource = normalizeJobSource(jobSource)
 
   return {
-    id: jobId,
-    jobId,
     userId,
+    id,
     company,
     position,
     country,
@@ -280,10 +278,12 @@ export function buildApplicationFromJobDetails({
 }
 
 export async function saveUserApplication(application: ApplicationPayload): Promise<void> {
-  const ref = doc(db, 'users', application.userId, 'applications', application.jobId)
+  const resolvedJobId = application.jobId || application.id
+  const ref = doc(db, 'users', application.userId, 'applications', resolvedJobId)
   const normalizedApplication = {
     ...application,
-    id: application.id || application.jobId,
+    id: application.id || resolvedJobId,
+    jobId: resolvedJobId,
     status: application.status || 'Applied',
   }
 
@@ -302,7 +302,7 @@ export async function applyToAvailableJob({ userId, job }: BuildApplicationFromA
   const payload = buildApplicationFromAvailableJob({ userId, job })
   await saveUserApplication(payload)
 
-  const jobRef = doc(db, 'jobPostings', payload.jobId)
+  const jobRef = doc(db, 'jobPostings', payload.id)
   await setDoc(jobRef, { applicantsId: arrayUnion(userId) }, { merge: true })
 }
 
