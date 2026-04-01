@@ -1,7 +1,8 @@
 import { jobsData } from './jobs'
+import type { JobSource } from '../types/jobSource'
 
 export interface JobApplication {
-  id: string
+  id: string | number
   company: string
   country: string
   city: string
@@ -11,7 +12,7 @@ export interface JobApplication {
   status: 'Applied' | 'Interview' | 'Rejected' | 'Offer' | 'Withdrawn'
   contactPerson: string
   notes: string
-  jobSource: 'LinkedIn' | 'Company Website' | 'Indeed' | 'Glassdoor' | 'Referral' | 'Other'
+  jobSource: JobSource
   // Stores the Firebase UID of the recruiter who posted the job the user applied to
   recruiterId?: string
 }

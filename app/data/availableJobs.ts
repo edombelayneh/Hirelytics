@@ -1,5 +1,5 @@
 export interface AvailableJob {
-  id: number
+  id: string
   title: string
   company: string
   location: string
@@ -18,7 +18,7 @@ export interface AvailableJob {
 
 export const availableJobs: AvailableJob[] = [
   {
-    id: 1,
+    id: '1',
     title: 'Software Engineer',
     company: 'TechCorp Inc.',
     location: 'New York, NY',
@@ -38,7 +38,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 2,
+    id: '2',
     title: 'UX/UI Designer',
     company: 'CreativeSolutions',
     location: 'Remote',
@@ -57,7 +57,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 3,
+    id: '3',
     title: 'Data Analyst',
     company: 'FinAnalytics',
     location: 'Chicago, IL',
@@ -77,7 +77,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 4,
+    id: '4',
     title: 'Marketing Coordinator',
     company: 'BrandBoost',
     location: 'Los Angeles, CA',
@@ -96,7 +96,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 5,
+    id: '5',
     title: 'Frontend Developer',
     company: 'Webify Labs',
     location: 'Austin, TX',
@@ -116,7 +116,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 6,
+    id: '6',
     title: 'Backend Developer',
     company: 'CloudNet Solutions',
     location: 'Seattle, WA',
@@ -135,7 +135,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 7,
+    id: '7',
     title: 'Project Manager',
     company: 'Innovatech',
     location: 'Boston, MA',
@@ -154,7 +154,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 8,
+    id: '8',
     title: 'Mobile App Developer',
     company: 'Appify Studio',
     location: 'Remote',
@@ -173,7 +173,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 9,
+    id: '9',
     title: 'QA Engineer',
     company: 'NextGen Software',
     location: 'Denver, CO',
@@ -192,7 +192,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 10,
+    id: '10',
     title: 'DevOps Engineer',
     company: 'InfraTech',
     location: 'San Francisco, CA',
@@ -211,7 +211,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 11,
+    id: '11',
     title: 'Content Writer',
     company: 'WriteWorks',
     location: 'Remote',
@@ -230,7 +230,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 12,
+    id: '12',
     title: 'Cybersecurity Analyst',
     company: 'SecureTech',
     location: 'Washington, D.C.',
@@ -249,7 +249,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 13,
+    id: '13',
     title: 'Graphic Designer',
     company: 'PixelWorks',
     location: 'Chicago, IL',
@@ -268,7 +268,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 14,
+    id: '14',
     title: 'HR Specialist',
     company: 'PeopleFirst',
     location: 'Atlanta, GA',
@@ -287,7 +287,7 @@ export const availableJobs: AvailableJob[] = [
     applicantsId: [],
   },
   {
-    id: 15,
+    id: '15',
     title: 'AI/ML Engineer',
     company: 'DeepLearn Labs',
     location: 'Palo Alto, CA',
