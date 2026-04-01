@@ -11,9 +11,11 @@ import HomePage from '../../app/home/page'
 // Mock the entire Clerk module to control useAuth behavior in tests
 const clerk = vi.hoisted(() => ({
   useAuth: vi.fn(),
+  useUser: vi.fn(),
 }))
 vi.mock('@clerk/nextjs', () => ({
   useAuth: clerk.useAuth,
+  useUser: clerk.useUser,
 }))
 
 // Mock the entire protectedAction module to control its behavior in tests
@@ -71,8 +73,9 @@ vi.mock('lucide-react', () => ({
 describe('HomePage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // default state: user is signed out
+    // default state: user is signed out, no role (defaults to applicant paths)
     clerk.useAuth.mockReturnValue({ isSignedIn: false })
+    clerk.useUser.mockReturnValue({ user: null })
     // default protectedAction behavior:
     // only run onAuthed() if the user is signed in
     protectedActionMock.protectedAction.mockImplementation(
@@ -80,8 +83,13 @@ describe('HomePage', () => {
         if (isSignedIn) onAuthed()
       }
     )
-    // reset the hash so each test starts clean
-    window.location.hash = ''
+    // Replace window.location with a plain object so href assignments
+    // don't trigger jsdom navigation errors (jsdom only supports hash changes)
+    Object.defineProperty(window, 'location', {
+      value: { href: 'http://localhost/', hash: '', pathname: '/' },
+      writable: true,
+      configurable: true,
+    })
   })
 
   // Clean up the DOM after every test so state/DOM from one test
@@ -165,33 +173,34 @@ describe('HomePage', () => {
     expect(appsLink.getAttribute('href')).toBe('#/applications')
   })
   // Signed-out behavior: clicking hero buttons should trigger the protectedAction gate
-  // (e.g., sign-in prompt) and should NOT navigate/change the URL hash.
+  // (e.g., sign-in prompt) and should NOT navigate/change the URL.
   it('when signed OUT, clicking hero buttons calls protectedAction and does not change the hash', () => {
     clerk.useAuth.mockReturnValue({ isSignedIn: false })
 
     render(<HomePage />)
-    // Simulate clicking the hero buttons and check that protectedAction is called and the hash does NOT change
+    // Simulate clicking the hero buttons and check that protectedAction is called and the href does NOT change
     fireEvent.click(screen.getByText('Browse Available Jobs'))
     expect(protectedActionMock.protectedAction).toHaveBeenCalledTimes(1)
-    expect(window.location.hash).toBe('')
-    // Reset mocks and hash before next click
+    expect(window.location.href).toBe('http://localhost/')
+    // Reset mocks and href before next click
     fireEvent.click(screen.getByText('View My Applications'))
     expect(protectedActionMock.protectedAction).toHaveBeenCalledTimes(2)
-    expect(window.location.hash).toBe('')
+    expect(window.location.href).toBe('http://localhost/')
   })
 
-  // Signed-in behavior: clicking hero buttons should navigate by updating the hash.
-  // This confirms routing logic is wired correctly when auth is valid.
+  // Signed-in behavior: clicking hero buttons should navigate to the correct role-based routes.
+  // Default role is applicant (user is null → no role metadata).
   it('when signed IN, hero buttons update the hash correctly', () => {
     clerk.useAuth.mockReturnValue({ isSignedIn: true })
 
     render(<HomePage />)
-    // Simulate clicking the hero buttons and check that the hash updates to the expected routes
+    // Simulate clicking the hero buttons and check that href updates to the expected routes
     fireEvent.click(screen.getByText('Browse Available Jobs'))
-    expect(window.location.hash).toBe('#/jobs')
-    // Reset hash before next click
+    expect(window.location.href).toBe('/applicant/jobs')
+    // Reset href before next click
+    window.location.href = 'http://localhost/'
     fireEvent.click(screen.getByText('View My Applications'))
-    expect(window.location.hash).toBe('#/applications')
+    expect(window.location.href).toBe('/applicant/applications')
   })
   // Signed-in behavior for CTA buttons too (not just hero buttons).
   // Ensures “Get Started Now” and “View Dashboard” route to the right pages.
@@ -201,10 +210,11 @@ describe('HomePage', () => {
     render(<HomePage />)
     // Simulate clicking the CTA buttons at the bottom of the page
     fireEvent.click(screen.getByText('Get Started Now'))
-    expect(window.location.hash).toBe('#/jobs')
-    // Reset hash before next click
+    expect(window.location.href).toBe('/applicant/jobs')
+    // Reset href before next click
+    window.location.href = 'http://localhost/'
     fireEvent.click(screen.getByText('View Dashboard'))
-    expect(window.location.hash).toBe('#/applications')
+    expect(window.location.href).toBe('/applicant/applications')
   })
   // Ensures we pass the correct auth state into protectedAction.
   // This checks the integration contract: protectedAction receives isSignedIn
