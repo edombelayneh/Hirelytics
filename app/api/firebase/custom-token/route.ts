@@ -23,8 +23,8 @@ export async function GET() {
     // Return the generated token to the client
     return NextResponse.json({ customToken })
   } catch (err: unknown) {
-    // Log unexpected errors for debugging and return a generic server error
-    console.error('Custom token error:', err)
-    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('Custom token error:', message, err)
+    return NextResponse.json({ error: 'Server error', detail: message }, { status: 500 })
   }
 }
