@@ -7,7 +7,13 @@ import { Navbar } from './Navbar'
 /*                                   MOCKS                                    */
 /* -------------------------------------------------------------------------- */
 
-// Mock next/link to a plain <a> so href assertions work in jsdom.
+/**
+ * Replace Next.js Link with a plain anchor element for testing.
+ *
+ * Why:
+ * In jsdom, we do not need full Next.js routing behavior. A normal <a>
+ * makes it easy to assert href values directly.
+ */
 vi.mock('next/link', () => ({
   default: ({
     href,
@@ -26,10 +32,12 @@ vi.mock('next/link', () => ({
   ),
 }))
 
-// Mock usePathname so we can control the current route per test.
+/**
+ * Mock routing hooks so each test can control the current pathname
+ * and verify navigation triggered through router.push().
+ */
 const usePathnameMock = vi.fn()
 const routerPush = vi.fn()
-
 const useRouterMock = vi.fn(() => ({ push: routerPush }))
 
 vi.mock('next/navigation', () => ({
@@ -37,23 +45,53 @@ vi.mock('next/navigation', () => ({
   useRouter: () => useRouterMock(),
 }))
 
-// Simulate supported roles plus unresolved state.
+/**
+ * Match the roles supported by Navbar.
+ * undefined represents the unresolved fallback case.
+ */
 type Role = 'applicant' | 'recruiter' | undefined
+
+/**
+ * Shared mock role that useUser() reads from.
+ * Each test updates this before rendering Navbar.
+ */
 let clerkRole: Role = undefined
 
-// Mock Clerk's useUser and UserButton with nested components.
-// This mirrors the real API so role-based rendering and menu actions can be tested.
+/**
+ * Mock Clerk components used by Navbar.
+ *
+ * Why:
+ * We only need enough Clerk behavior to verify:
+ * - role-based rendering from useUser()
+ * - presence of the user menu wrapper
+ * - click behavior for custom menu actions like "My Profile"
+ *
+ * The nested structure is preserved so Navbar can render
+ * <UserButton.MenuItems> and <UserButton.Action> normally.
+ */
 vi.mock('@clerk/nextjs', async () => {
   const React = await import('react')
 
+  /**
+   * Minimal stand-in for Clerk's UserButton wrapper.
+   */
   const MockUserButton = ({ children }: { children?: React.ReactNode }) => (
     <div data-testid='user-button'>{children}</div>
   )
 
+  /**
+   * Minimal stand-in for the menu items container.
+   */
   const MockMenuItems = ({ children }: { children?: React.ReactNode }) => (
     <div data-testid='user-button-menu'>{children}</div>
   )
 
+  /**
+   * Minimal stand-in for Clerk menu actions.
+   *
+   * Rendering each action as a button lets tests click custom actions
+   * like "My Profile" and verify the attached handler runs.
+   */
   const MockAction = ({
     label,
     onClick,
@@ -70,7 +108,9 @@ vi.mock('@clerk/nextjs', async () => {
     </button>
   )
 
-  // Attach subcomponents to mimic Clerk's structure.
+  /**
+   * Attach nested subcomponents so the mock matches Clerk's API shape.
+   */
   const TypedUserButton = MockUserButton as React.FC<{ children?: React.ReactNode }> & {
     MenuItems: typeof MockMenuItems
     Action: typeof MockAction
@@ -80,7 +120,10 @@ vi.mock('@clerk/nextjs', async () => {
   TypedUserButton.Action = MockAction
 
   return {
-    // Return role metadata for each test scenario.
+    /**
+     * Return role metadata based on the current test scenario.
+     * If no role is set, Navbar should fall back to its unknown-role behavior.
+     */
     useUser: () => ({
       user: clerkRole ? { publicMetadata: { role: clerkRole } } : { publicMetadata: {} },
     }),
@@ -92,8 +135,13 @@ vi.mock('@clerk/nextjs', async () => {
 /*                               TEST HELPERS                                 */
 /* -------------------------------------------------------------------------- */
 
-// Render Navbar with a given role and route.
-// Keeps tests focused on behavior instead of setup.
+/**
+ * Render Navbar with an optional mocked role and pathname.
+ *
+ * Why:
+ * This helper keeps each test focused on what it is verifying
+ * instead of repeating the same setup logic.
+ */
 function renderNavbar({
   role,
   pathname = '/',
@@ -106,7 +154,13 @@ function renderNavbar({
   return render(<Navbar />)
 }
 
-// Scope queries to desktop nav only (avoids mobile duplicates).
+/**
+ * Scope queries to the desktop nav only.
+ *
+ * Why:
+ * Navbar renders both desktop and mobile navigation, which can create
+ * duplicate text in the DOM. Scoping avoids ambiguous queries.
+ */
 function getDesktopNav() {
   return screen.getByTestId('desktop-nav')
 }
@@ -117,7 +171,10 @@ function getDesktopNav() {
 
 describe('Navbar', () => {
   beforeEach(() => {
-    // Reset shared state before each test.
+    /**
+     * Reset shared mock state before every test so one scenario
+     * cannot leak into the next.
+     */
     clerkRole = undefined
     usePathnameMock.mockReturnValue('/')
     routerPush.mockClear()
@@ -125,7 +182,9 @@ describe('Navbar', () => {
   })
 
   afterEach(() => {
-    // Clean up DOM and mocks.
+    /**
+     * Clean up the rendered DOM and clear mock call history after each test.
+     */
     cleanup()
     vi.clearAllMocks()
   })
@@ -133,14 +192,19 @@ describe('Navbar', () => {
   it('renders the logo image', () => {
     renderNavbar()
 
-    // Verify logo renders via alt text.
+    /**
+     * The logo should always render, regardless of role or route.
+     */
     screen.getByAltText('Hirelytics Logo')
   })
 
   it('renders the Clerk user button wrapper', () => {
     renderNavbar()
 
-    // Confirms Clerk UserButton is mounted.
+    /**
+     * Confirms the user menu area is mounted.
+     * This is important because custom menu actions live inside it.
+     */
     screen.getByTestId('user-button')
   })
 
@@ -150,7 +214,10 @@ describe('Navbar', () => {
     const desktopNav = getDesktopNav()
     const links = within(desktopNav).getAllByRole('link')
 
-    // Each nav link should include a lucide icon.
+    /**
+     * Each visible nav link should include its matching Lucide icon.
+     * This protects the visual structure of the navbar, not just the text labels.
+     */
     links.forEach((link) => {
       expect(link.querySelector('svg')).toBeTruthy()
     })
@@ -164,11 +231,16 @@ describe('Navbar', () => {
 
     const desktopNav = getDesktopNav()
 
-    // Only Home should exist, linking to "/".
+    /**
+     * In the unresolved-role case, Navbar should fall back to a safe,
+     * minimal navigation with only the root Home link.
+     */
     const homeLink = within(desktopNav).getByRole('link', { name: /home/i })
     expect(homeLink.getAttribute('href')).toBe('/')
 
-    // No role-specific links should appear.
+    /**
+     * No applicant-only or recruiter-only links should be shown.
+     */
     expect(within(desktopNav).queryByText('Available Jobs')).toBeNull()
     expect(within(desktopNav).queryByText('My Applications')).toBeNull()
     expect(within(desktopNav).queryByText('My Jobs')).toBeNull()
@@ -182,7 +254,10 @@ describe('Navbar', () => {
 
     const desktopNav = getDesktopNav()
 
-    // Applicant-specific routes.
+    /**
+     * Applicant users should receive applicant routes, even if multiple
+     * nav layouts exist in the component.
+     */
     expect(within(desktopNav).getByRole('link', { name: /home/i }).getAttribute('href')).toBe(
       '/home'
     )
@@ -199,7 +274,9 @@ describe('Navbar', () => {
         .getAttribute('href')
     ).toBe('/applicant/applications')
 
-    // Recruiter-only link should not appear.
+    /**
+     * Recruiter-only links must not appear in the applicant view.
+     */
     expect(within(desktopNav).queryByText('My Jobs')).toBeNull()
   })
 
@@ -211,7 +288,9 @@ describe('Navbar', () => {
 
     const desktopNav = getDesktopNav()
 
-    // Recruiter-specific routes.
+    /**
+     * Recruiter users should receive recruiter routes.
+     */
     expect(within(desktopNav).getByRole('link', { name: /home/i }).getAttribute('href')).toBe(
       '/home'
     )
@@ -228,7 +307,9 @@ describe('Navbar', () => {
         .getAttribute('href')
     ).toBe('/recruiter/myJobs')
 
-    // Applicant-only link should not appear.
+    /**
+     * Applicant-only links must not appear in the recruiter view.
+     */
     expect(within(desktopNav).queryByText('My Applications')).toBeNull()
   })
 
@@ -240,7 +321,10 @@ describe('Navbar', () => {
 
     const desktopNav = getDesktopNav()
 
-    // Metadata role should override route-based inference.
+    /**
+     * Navbar supports a route-based fallback, but explicit Clerk metadata
+     * should win when the two sources disagree.
+     */
     within(desktopNav).getByRole('link', { name: /my applications/i })
     expect(within(desktopNav).queryByRole('link', { name: /my jobs/i })).toBeNull()
   })
@@ -250,7 +334,10 @@ describe('Navbar', () => {
 
     const hamburger = screen.getByRole('button', { name: /open menu/i })
 
-    // aria-expanded reflects open/closed state.
+    /**
+     * aria-expanded is the simplest reliable signal for the mobile menu's
+     * open/closed state in this test environment.
+     */
     fireEvent.click(hamburger)
     expect(hamburger.getAttribute('aria-expanded')).toBe('true')
 
@@ -265,19 +352,29 @@ describe('Navbar', () => {
 
     fireEvent.click(hamburger)
 
-    // Body scrolling should be disabled while menu is open.
+    /**
+     * Opening the mobile menu should prevent the page behind it from scrolling.
+     */
     expect(document.body.style.overflow).toBe('hidden')
   })
 
   it('closes the mobile menu when the pathname changes', () => {
     const { rerender } = renderNavbar()
 
+    /**
+     * Open the menu first so the route change can prove it closes automatically.
+     */
     fireEvent.click(screen.getByRole('button', { name: /open menu/i }))
 
-    // Simulate route change.
+    /**
+     * Simulate a navigation event by changing the mocked pathname and rerendering.
+     */
     usePathnameMock.mockReturnValue('/new-route')
     rerender(<Navbar />)
 
+    /**
+     * After the route changes, the menu should no longer be considered open.
+     */
     expect(screen.getByRole('button', { name: /open menu/i }).getAttribute('aria-expanded')).toBe(
       'false'
     )
@@ -289,11 +386,15 @@ describe('Navbar', () => {
       pathname: '/applicant/applications',
     })
 
+    /**
+     * Regression test:
+     * "My Profile" used to navigate differently, but Navbar now routes through
+     * router.push(). This verifies the applicant path still resolves correctly.
+     */
     const profileButton = screen.getByRole('button', { name: /my profile/i })
 
     fireEvent.click(profileButton)
 
-    // Should route to applicant profile.
     expect(routerPush).toHaveBeenCalledWith('/applicant/profile')
   })
 
@@ -303,11 +404,13 @@ describe('Navbar', () => {
       pathname: '/recruiter/myJobs',
     })
 
+    /**
+     * Same regression protection as above, but for the recruiter-specific path.
+     */
     const profileButton = screen.getByRole('button', { name: /my profile/i })
 
     fireEvent.click(profileButton)
 
-    // Should route to recruiter profile.
     expect(routerPush).toHaveBeenCalledWith('/recruiter/profile')
   })
 })
