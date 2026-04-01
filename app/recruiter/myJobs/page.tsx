@@ -68,9 +68,9 @@ export default function RecruiterMyJobsPage() {
           <EmptyMyJobs />
         ) : (
           <div className='grid gap-4'>
-            {jobs.map((job) => (
+            {jobs.map((job, index) => (
               <RecruiterJobCard
-                key={job.id}
+                key={`${job.id}-${index}`}
                 job={job}
               />
             ))}

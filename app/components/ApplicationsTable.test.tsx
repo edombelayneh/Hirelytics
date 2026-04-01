@@ -28,10 +28,12 @@ vi.mock('next/navigation', () => ({
 vi.mock('./ui/select', () => {
   function Select({
     value,
+    disabled,
     onValueChange,
     children,
   }: {
     value?: string
+    disabled?: boolean
     onValueChange?: (v: string) => void
     children: React.ReactNode
   }) {
@@ -39,6 +41,7 @@ vi.mock('./ui/select', () => {
       <select
         role='combobox'
         value={value ?? ''}
+        disabled={Boolean(disabled)}
         onChange={(e) => onValueChange?.(e.target.value)}
       >
         {children}
@@ -410,5 +413,37 @@ describe('ApplicationsTable', () => {
 
     // Elements should be the same (component memoized)
     expect(initialCompanyElement).toBe(afterRerenderCompanyElement)
+  })
+
+  it('disables status control for Hirelytics applications', () => {
+    const apps: JobApplication[] = [
+      {
+        id: 'hire-1',
+        company: 'Hirelytics',
+        country: 'USA',
+        city: 'Remote',
+        jobLink: '',
+        position: 'Engineer',
+        applicationDate: '2026-01-01',
+        status: 'Applied',
+        contactPerson: '',
+        notes: '',
+        jobSource: 'Hirelytics',
+      },
+    ]
+
+    render(
+      <ApplicationsTable
+        applications={apps}
+        onStatusChange={vi.fn()}
+      />
+    )
+
+    const companyCell = screen.getAllByText('Hirelytics')[0]
+    const row = companyCell.closest('tr')
+    expect(row).toBeTruthy()
+
+    const statusControl = within(row as HTMLElement).getByRole('combobox') as HTMLSelectElement
+    expect(statusControl.disabled).toBe(true)
   })
 })

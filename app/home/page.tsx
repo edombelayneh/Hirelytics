@@ -2,7 +2,7 @@
 
 import { Button } from '../components/ui/button'
 import { motion } from 'framer-motion'
-import { useAuth } from '@clerk/nextjs'
+import { useAuth, useUser } from '@clerk/nextjs'
 import { protectedAction } from '../utils/protectedAction'
 import { Card } from '../components/ui/card'
 import {
@@ -24,14 +24,21 @@ import {
 
 function HomePage() {
   const { isSignedIn } = useAuth()
+  const { user } = useUser()
+  const role = user?.publicMetadata?.role as 'applicant' | 'recruiter' | undefined
 
-  // Navigates to selected section only if user is signed in.
+  // Navigates to the correct role-based route only if user is signed in.
   // If not signed in, protectedAction will show toast + open Clerk modal.
-  const goto = (path: '/jobs' | '/applications') =>
+  const goto = (dest: 'jobs' | 'applications') =>
     protectedAction({
       isSignedIn,
       onAuthed: () => {
-        window.location.hash = path
+        if (dest === 'jobs') {
+          window.location.href = role === 'recruiter' ? '/recruiter/jobs' : '/applicant/jobs'
+        } else {
+          window.location.href =
+            role === 'recruiter' ? '/recruiter/myJobs' : '/applicant/applications'
+        }
       },
     })
 
@@ -143,7 +150,7 @@ function HomePage() {
                 size='lg'
                 className='group flex items-center gap-3 rounded-lg px-6 py-3 font-semibold text-black shadow hover:-translate-y-0.5 hover:shadow-md transition'
                 style={{ background: 'var(--accent-teal)' }}
-                onClick={() => goto('/jobs')}
+                onClick={() => goto('jobs')}
               >
                 <Briefcase className='h-5 w-5' />
                 Browse Available Jobs
@@ -154,7 +161,7 @@ function HomePage() {
                 size='lg'
                 variant='outline'
                 className='flex items-center gap-3 rounded-lg border border-gray-300 bg-white px-6 py-3 font-semibold text-black hover:bg-gray-50 transition'
-                onClick={() => goto('/applications')}
+                onClick={() => goto('applications')}
               >
                 <ClipboardList className='h-5 w-5' />
                 View My Applications
@@ -346,7 +353,7 @@ function HomePage() {
                   size='lg'
                   className='group gap-2 rounded-lg px-8 py-3 font-semibold text-black shadow hover:-translate-y-0.5 hover:shadow-md transition'
                   style={{ background: 'var(--accent-teal)' }}
-                  onClick={() => goto('/jobs')}
+                  onClick={() => goto('jobs')}
                 >
                   Get Started Now
                   <ArrowRight className='h-5 w-5' />
@@ -355,7 +362,7 @@ function HomePage() {
                   size='lg'
                   variant='outline'
                   className='rounded-lg border border-gray-300 bg-white px-8 py-3 font-semibold text-black hover:bg-gray-50 transition'
-                  onClick={() => goto('/applications')}
+                  onClick={() => goto('applications')}
                 >
                   View Dashboard
                 </Button>

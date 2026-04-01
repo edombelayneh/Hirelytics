@@ -30,6 +30,8 @@ export const JobCard = memo(function JobCard({
   showApplyButton = true,
   role = 'applicant',
 }: JobCardProps) {
+  const requirements = Array.isArray(job.requirements) ? job.requirements : []
+
   // Calculate how many days since the job was posted
   const daysSincePosted = Math.floor(
     (new Date().getTime() - new Date(job.postedDate).getTime()) / (1000 * 60 * 60 * 24)
@@ -92,7 +94,7 @@ export const JobCard = memo(function JobCard({
         <div>
           <p className='text-sm font-medium mb-2'>Requirements:</p>
           <ul className='text-sm text-muted-foreground space-y-1'>
-            {job.requirements.slice(0, 3).map((req, index) => (
+            {requirements.slice(0, 3).map((req, index) => (
               <li
                 key={index}
                 className='flex items-start gap-2'

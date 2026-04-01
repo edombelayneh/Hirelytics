@@ -76,6 +76,17 @@ type Unsubscribe = () => void
 const updateDocMock = vi.fn()
 const serverTimestampMock = vi.fn(() => 'SERVER_TS')
 const docMock = vi.fn((...parts: unknown[]): DocPath => ({ __docPath: parts }))
+const onSnapshotMock = vi.fn(
+  (_q: unknown, callback: (snap: Snapshot<JobApplication>) => void): Unsubscribe => {
+    callback({
+      docs: mockApplications.map((a) => ({
+        id: a.id,
+        data: () => a,
+      })),
+    })
+    return vi.fn() as Unsubscribe
+  }
+)
 
 // Mock the entire Firestore module to control behavior of query builders, real-time subscriptions, and writes
 vi.mock('firebase/firestore', () => ({
@@ -85,17 +96,7 @@ vi.mock('firebase/firestore', () => ({
   orderBy: vi.fn(),
 
   // real-time subscription: IMPORTANT — call callback with docs
-  onSnapshot: vi.fn(
-    (_q: unknown, callback: (snap: Snapshot<JobApplication>) => void): Unsubscribe => {
-      callback({
-        docs: mockApplications.map((a) => ({
-          id: a.id,
-          data: () => a,
-        })),
-      })
-      return vi.fn() as Unsubscribe
-    }
-  ),
+  onSnapshot: (...args: unknown[]) => onSnapshotMock(...args),
 
   // writes
   doc: (...args: unknown[]) => docMock(...args),
@@ -226,5 +227,45 @@ describe('MyApplicationsPage', () => {
 
     expect(screen.getByRole('heading', { name: /Dashboard Overview/i })).toBeTruthy()
     expect(screen.getByRole('heading', { name: /Key Metrics/i })).toBeTruthy()
+  })
+
+  it('does not update status for Hirelytics applications', async () => {
+    const hirelyticsApp: JobApplication = {
+      id: 'hire-1',
+      company: 'Hirelytics',
+      country: 'USA',
+      city: 'Remote',
+      jobLink: '',
+      position: 'Software Engineer',
+      applicationDate: '2026-01-01',
+      status: 'Applied',
+      contactPerson: '',
+      notes: '',
+      jobSource: 'Hirelytics',
+    }
+
+    // Configure the onSnapshot mock to emit only the Hirelytics application
+    onSnapshotMock.mockImplementationOnce((_query, callback) => {
+      const mockSnapshot: Snapshot<JobApplication> = {
+        docs: [
+          {
+            id: hirelyticsApp.id,
+            data: () => hirelyticsApp,
+          },
+        ],
+      }
+
+      callback(mockSnapshot)
+      // Return an unsubscribe function as Firestore does
+      return vi.fn()
+    })
+
+    render(<MyApplicationsPage />)
+
+    // Trigger the mocked ApplicationsTable "Change Status" action
+    fireEvent.click(screen.getByRole('button', { name: /change status/i }))
+
+    // Even though a status change was attempted, Hirelytics applications should not be updated
+    expect(updateDocMock).not.toHaveBeenCalled()
   })
 })

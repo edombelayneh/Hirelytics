@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, memo } from 'react'
+import Link from 'next/link'
 import { JobCard } from './JobCard'
 import { Input } from './ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
@@ -14,7 +15,7 @@ interface AvailableJobsListProps {
   // Called when a user clicks Apply on a job
   onApply: (job: AvailableJob) => void
   // Set of job IDs already applied to (controls disabled state)
-  appliedJobIds: Set<number>
+  appliedJobIds: Set<string>
   // Optional role used for conditional UI (e.g., recruiter-only actions)
   role?: Role | null
 }
@@ -32,12 +33,18 @@ export const AvailableJobsList = memo(function AvailableJobsList({
 
   // Derived list: filters jobs based on search + type + location
   const filteredJobs = jobs.filter((job) => {
+    const normalizedSearchTerm = searchTerm.toLowerCase()
+    const title = String(job.title ?? '').toLowerCase()
+    const company = String(job.company ?? '').toLowerCase()
+    const location = String(job.location ?? '').toLowerCase()
+    const description = String(job.description ?? '').toLowerCase()
+
     // Search matches title, company, location, or description
     const matchesSearch =
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase())
+      title.includes(normalizedSearchTerm) ||
+      company.includes(normalizedSearchTerm) ||
+      location.includes(normalizedSearchTerm) ||
+      description.includes(normalizedSearchTerm)
 
     // Type filter match
     const matchesType = typeFilter === 'all' || job.type === typeFilter
@@ -62,13 +69,13 @@ export const AvailableJobsList = memo(function AvailableJobsList({
         </div>
         {/* Recruiter-only: Add Job button */}
         {role === 'recruiter' && (
-          <a
-            href='#/addNewJob'
+          <Link
+            href='/recruiter/addNewJob'
             className='inline-flex items-center gap-2 rounded bg-black text-white px-4 py-2 text-sm font-medium'
           >
             <span className='text-lg'>+</span>
             Add Job
-          </a>
+          </Link>
         )}
       </div>
 
@@ -131,9 +138,9 @@ export const AvailableJobsList = memo(function AvailableJobsList({
 
       {/* Job Cards Grid */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-        {filteredJobs.map((job) => (
+        {filteredJobs.map((job, index) => (
           <JobCard
-            key={job.id}
+            key={`${job.id}-${index}`}
             job={job}
             onApply={onApply}
             isApplied={appliedJobIds.has(job.id)}
