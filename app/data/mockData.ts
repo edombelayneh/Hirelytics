@@ -1,5 +1,6 @@
 import { jobsData } from './jobs'
 import type { JobSource } from '../types/jobSource'
+import type { ApplicationStatus } from '../types/job'
 
 export interface JobApplication {
   id: string | number
@@ -9,7 +10,7 @@ export interface JobApplication {
   jobLink: string
   position: string
   applicationDate: string
-  status: 'Applied' | 'Interview' | 'Rejected' | 'Offer' | 'Withdrawn'
+  status: ApplicationStatus
   contactPerson: string
   notes: string
   jobSource: JobSource

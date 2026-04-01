@@ -57,6 +57,12 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
   // Handle status updates from the table
   const handleStatusChange = async (id: string, status: JobApplication['status']) => {
     if (!isLoaded || !userId) return
+    // Update user status
+    const target = liveApplications.find((app) => app.id === id)
+    if (!target) return
+
+    // Hirelytics-hosted jobs are recruiter-managed, User cannot update status
+    if (target.jobSource === 'Hirelytics') return
     // Update status in Firestore
     await updateDoc(doc(db, 'users', userId, 'applications', id), {
       status,
