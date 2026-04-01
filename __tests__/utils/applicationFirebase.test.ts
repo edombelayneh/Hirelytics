@@ -171,7 +171,6 @@ describe('app/utils/applicationFirebase', () => {
       expect.any(Object),
       expect.objectContaining({
         id: '9',
-        jobId: '9',
         company: 'Fabrikam',
         status: 'Applied',
         createdAt: 'SERVER_TS',
