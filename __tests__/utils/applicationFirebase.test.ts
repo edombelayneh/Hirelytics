@@ -51,14 +51,13 @@ describe('app/utils/applicationFirebase', () => {
     })
 
     expect(payload).toMatchObject({
+      id: '7',
       userId: 'user-1',
-      jobId: '7',
       company: 'Acme',
       position: 'Frontend Engineer',
       city: 'Remote',
       jobSource: 'Hirelytics',
       jobDetails: {
-        id: '7',
         title: 'Frontend Engineer',
         postedDate: '2026-02-01',
       },
@@ -92,14 +91,13 @@ describe('app/utils/applicationFirebase', () => {
     })
 
     expect(payload).toMatchObject({
+      id: '44',
       userId: 'user-2',
-      jobId: '44',
       company: 'Contoso',
       position: 'Platform Engineer',
       country: 'USA',
       city: 'New York, NY',
       jobDetails: {
-        id: '44',
         title: 'Platform Engineer',
         company: 'Contoso',
         location: 'New York, NY',
@@ -143,8 +141,8 @@ describe('app/utils/applicationFirebase', () => {
     const { saveUserApplication } = await import('@/app/utils/applicationFirebase')
 
     await saveUserApplication({
+      id: '9',
       userId: 'user-3',
-      jobId: '9',
       company: 'Fabrikam',
       position: 'Backend Engineer',
       country: 'Canada',
@@ -152,8 +150,10 @@ describe('app/utils/applicationFirebase', () => {
       contactPerson: 'Jane Doe',
       jobSource: 'Hirelytics',
       jobLink: 'https://example.com/jobs/9',
+      applicationDate: '2026-02-28',
+      status: 'Applied',
+      notes: '',
       jobDetails: {
-        id: '9',
         title: 'Backend Engineer',
         company: 'Fabrikam',
         location: 'Toronto',
@@ -164,7 +164,6 @@ describe('app/utils/applicationFirebase', () => {
         requirements: ['Node.js'],
         status: 'Open',
         applyLink: 'https://example.com/jobs/9/apply',
-        recruiterId: 'rec-9',
       },
     })
 
@@ -174,7 +173,6 @@ describe('app/utils/applicationFirebase', () => {
       expect.any(Object),
       expect.objectContaining({
         id: '9',
-        jobId: '9',
         company: 'Fabrikam',
         status: 'Applied',
         createdAt: 'SERVER_TS',

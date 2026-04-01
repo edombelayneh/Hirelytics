@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup, act, waitFor } from '@testing-library/react'
 import React from 'react'
 import AddExternalJobPage from '../../../app/applicant/addExternalJob/page'
 import * as applicationFirebase from '../../../app/utils/applicationFirebase'
@@ -37,8 +37,8 @@ describe('AddExternalJobPage', () => {
 
   // Cleanup: Ensure all pending timers are flushed and real timers are restored
   afterEach(() => {
-    vi.runOnlyPendingTimers()
     vi.useRealTimers()
+    vi.unstubAllGlobals()
     cleanup()
   })
 
@@ -54,7 +54,7 @@ describe('AddExternalJobPage', () => {
     expect(screen.getByRole('button', { name: /Next/i })).toBeTruthy()
   })
 
-  it('moves to Step 2 after entering a valid URL and clicking Next', () => {
+  it('moves to Step 2 after entering a valid URL and clicking Next', async () => {
     render(<AddExternalJobPage />)
 
     // Enter a valid job URL
@@ -76,7 +76,7 @@ describe('AddExternalJobPage', () => {
     expect(screen.getByRole('button', { name: /^Save$/i })).toBeTruthy()
   })
 
-  it('shows error message when required fields are missing on Step 2', () => {
+  it('shows error message when required fields are missing on Step 2', async () => {
     render(<AddExternalJobPage />)
 
     // Proceed to Step 2 with a valid URL
@@ -124,6 +124,7 @@ describe('AddExternalJobPage', () => {
 
     // Router should not navigate yet (redirect is delayed)
     expect(pushMock).not.toHaveBeenCalled()
+    expect(saveUserApplicationMock).toHaveBeenCalledTimes(1)
 
     // Flush all pending timers to trigger the delayed redirect
     await vi.runAllTimersAsync()

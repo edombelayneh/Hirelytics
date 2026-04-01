@@ -53,7 +53,7 @@ vi.mock('firebase/firestore', () => ({
 
 interface MockAvailableJobsListProps {
   onApply: (job: AvailableJob) => void
-  appliedJobIds: Set<number>
+  appliedJobIds: Set<string>
   role?: Role | null
 }
 

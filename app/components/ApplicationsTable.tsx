@@ -10,15 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { ExternalLink, Search, Filter } from 'lucide-react'
 import { JobApplication } from '../data/mockData'
 import { formatDate } from '../utils/dateFormatter'
+import { ApplicationStatusColor } from '../utils/applicationStatusStyles'
 import { useRouter } from 'next/navigation'
-
-const STATUS_STYLES: Record<string, string> = {
-  Applied: '!bg-yellow-200',
-  Interview: '!bg-blue-200',
-  Offer: '!bg-green-200',
-  Rejected: '!bg-red-200',
-  Withdrawn: '!bg-purple-200',
-}
 
 interface ApplicationsTableProps {
   // Full list of applications to render
@@ -54,6 +47,8 @@ export const ApplicationsTable = memo(function ApplicationsTable({
 
     return matchesSearch && matchesStatus
   })
+
+  const isRecruiterManaged = (app: JobApplication) => app.jobSource === 'Hirelytics'
 
   return (
     <Card>
@@ -141,41 +136,45 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                   <TableCell>
                     <Select
                       value={app.status}
-                      onValueChange={(status) =>
-                        onStatusChange?.(app.id, status as JobApplication['status'])
-                      }
+                      disabled={isRecruiterManaged(app)}
+                      onValueChange={(status) => {
+                        if (isRecruiterManaged(app)) return
+                        onStatusChange?.(String(app.id), status as JobApplication['status'])
+                      }}
                     >
-                      <SelectTrigger className={`w-[120px] ${STATUS_STYLES[app.status] ?? ''}`}>
+                      <SelectTrigger
+                        className={`w-[120px] ${ApplicationStatusColor[app.status] ?? ''}`}
+                      >
                         <SelectValue placeholder='Status' />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem
                           value='Applied'
-                          className={STATUS_STYLES.Applied}
+                          className={ApplicationStatusColor.Applied}
                         >
                           Applied
                         </SelectItem>
                         <SelectItem
                           value='Interview'
-                          className={STATUS_STYLES.Interview}
+                          className={ApplicationStatusColor.Interview}
                         >
                           Interview
                         </SelectItem>
                         <SelectItem
                           value='Offer'
-                          className={STATUS_STYLES.Offer}
+                          className={ApplicationStatusColor.Offer}
                         >
                           Offer
                         </SelectItem>
                         <SelectItem
                           value='Rejected'
-                          className={STATUS_STYLES.Rejected}
+                          className={ApplicationStatusColor.Rejected}
                         >
                           Rejected
                         </SelectItem>
                         <SelectItem
                           value='Withdrawn'
-                          className={STATUS_STYLES.Withdrawn}
+                          className={ApplicationStatusColor.Withdrawn}
                         >
                           Withdrawn
                         </SelectItem>
@@ -190,7 +189,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                     <input
                       type='text'
                       value={app.notes}
-                      onChange={(e) => onNotesChange?.(app.id, e.target.value)}
+                      onChange={(e) => onNotesChange?.(String(app.id), e.target.value)}
                       className='border rounded px-2 py-1 w-full text-sm bg-background'
                       placeholder='Add notes...'
                     />
@@ -200,7 +199,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                       variant='ghost'
                       size='sm'
                       aria-label='View application details'
-                      onClick={() => router.push(`/applicant/applications/${app.id}`)}
+                      onClick={() => router.push(`/applicant/applications/${String(app.id)}`)}
                     >
                       <ExternalLink className='h-4 w-4' />
                     </Button>

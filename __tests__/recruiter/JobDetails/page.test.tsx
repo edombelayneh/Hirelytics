@@ -1,8 +1,9 @@
 // __tests__/recruiter/jobDetails/JobDetailsPage.test.tsx
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, cleanup, waitFor } from '@testing-library/react'
+import { render, screen, cleanup, waitFor, fireEvent } from '@testing-library/react'
 import React from 'react'
 import JobDetailsPage from '../../../app/recruiter/JobDetails/[jobId]/page'
+import type { ApplicationStatus } from '../../../app/types/job'
 
 /* -------------------------------------------------------------------------- */
 /*                                   MOCKS                                    */
@@ -16,10 +17,15 @@ vi.mock('@clerk/nextjs', () => ({
 // Firebase client stub — avoids real SDK initialization in tests
 vi.mock('../../../app/lib/firebaseClient', () => ({ db: {} }))
 
+const updateDocMock = vi.fn()
+const serverTimestampMock = vi.fn(() => 'SERVER_TS')
+
 // Firestore mock:
 // - onSnapshot delivers job data synchronously (including 3 applicant uids)
 // - getDoc resolves with profile data for each applicant uid
 vi.mock('firebase/firestore', () => ({
+  updateDoc: (...args: unknown[]) => updateDocMock(...args),
+  serverTimestamp: () => serverTimestampMock(),
   doc: vi.fn((...args: unknown[]) => ({ path: args })),
   onSnapshot: vi.fn(
     (
@@ -50,6 +56,12 @@ vi.mock('firebase/firestore', () => ({
       a3: { firstName: 'John', lastName: 'Doe' },
     }
     const profile = names[uid] ?? { firstName: 'Unknown', lastName: 'User' }
+    if (ref.path[1] === 'users' && ref.path[3] === 'applications') {
+      return Promise.resolve({
+        exists: () => true,
+        data: () => ({ status: 'Interview', jobSource: 'Hirelytics' }),
+      })
+    }
     return Promise.resolve({
       exists: () => true,
       data: () => ({ profile }),
@@ -109,10 +121,11 @@ type Applicant = {
   id: string
   firstName: string
   lastName: string
-  resumeUrl: string
-  resumeFileName: string
-  linkedinUrl: string
-  portfolioUrl: string
+  resumeUrl?: string
+  resumeFileName?: string
+  linkedinUrl?: string
+  portfolioUrl?: string
+  applicationStatus?: ApplicationStatus
 }
 
 // Mock ApplicantsTable to inspect props + verify computed profileHref
@@ -120,16 +133,20 @@ vi.mock('../../../app/components/job/ApplicantsTable', () => ({
   ApplicantsTable: ({
     applicants,
     profileHref,
+    onStatusChange,
   }: {
     applicants: Applicant[]
     profileHref: (id: string) => string
+    onStatusChange?: (applicantId: string, status: ApplicationStatus) => Promise<void> | void
   }) => (
     <div data-testid='applicants-table'>
       <div data-testid='applicant-count'>{applicants.length}</div>
       <div data-testid='first-applicant-name'>
         {applicants[0]?.firstName} {applicants[0]?.lastName}
       </div>
+      <div data-testid='first-applicant-status'>{applicants[0]?.applicationStatus}</div>
       <div data-testid='profile-href-a1'>{profileHref('a1')}</div>
+      <button onClick={() => onStatusChange?.('a1', 'Offer')}>mock-change-status</button>
     </div>
   ),
 }))
@@ -180,5 +197,24 @@ describe('JobDetailsPage', () => {
     expect(screen.getByTestId('applicants-table')).toBeTruthy()
     expect(screen.getByTestId('first-applicant-name').textContent).toContain('Edom Belayneh')
     expect(screen.getByTestId('profile-href-a1').textContent).toBe('/recruiter/applicants/a1')
+  })
+
+  it('updates Firestore and re-renders applicant status when ApplicantsTable triggers onStatusChange', async () => {
+    render(<JobDetailsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('first-applicant-status').textContent).toBe('Interview')
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'mock-change-status' }))
+
+    await waitFor(() => {
+      expect(updateDocMock).toHaveBeenCalledTimes(1)
+      expect(updateDocMock).toHaveBeenCalledWith(
+        { path: [{}, 'users', 'a1', 'applications', 'job-123'] },
+        { status: 'Offer', updatedAt: 'SERVER_TS' }
+      )
+      expect(screen.getByTestId('first-applicant-status').textContent).toBe('Offer')
+    })
   })
 })

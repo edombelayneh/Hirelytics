@@ -78,6 +78,17 @@ type Unsubscribe = () => void
 const updateDocMock = vi.fn()
 const serverTimestampMock = vi.fn(() => 'SERVER_TS')
 const docMock = vi.fn((...parts: unknown[]): DocPath => ({ __docPath: parts }))
+const onSnapshotMock = vi.fn(
+  (_q: unknown, callback: (snap: Snapshot<JobApplication>) => void): Unsubscribe => {
+    callback({
+      docs: mockApplications.map((a) => ({
+        id: a.id,
+        data: () => a,
+      })),
+    })
+    return vi.fn() as Unsubscribe
+  }
+)
 
 // Mock the entire Firestore module to control behavior of query builders, real-time subscriptions, and writes
 vi.mock('firebase/firestore', () => ({

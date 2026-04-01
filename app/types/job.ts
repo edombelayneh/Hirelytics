@@ -28,4 +28,13 @@ export type Applicant = {
 
   linkedinUrl?: string
   portfolioUrl?: string
+
+  applicationStatus?: ApplicationStatus
+  jobSource?: string
 }
+
+// --------------------------------------------------
+// ApplicationStatus type
+// Represents the lifecycle status of a user's job application
+// ------------------------------------------------
+export type ApplicationStatus = 'Applied' | 'Interview' | 'Offer' | 'Rejected' | 'Withdrawn'
