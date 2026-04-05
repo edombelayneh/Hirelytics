@@ -9,7 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from '../../components/ui/table'
-import type { Applicant } from '../../types/job'
+import type { Applicant, ApplicationStatus } from '../../types/job'
+import { ApplicationStatusColor } from '../../utils/applicationStatusStyles'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 
 type ApplicantsTableProps = {
   // List of applicants to display
@@ -19,6 +21,8 @@ type ApplicantsTableProps = {
   // Optional profile route builder
   // Defaults to recruiter applicant details page
   profileHref?: (applicantId: string) => string
+  // Status
+  onStatusChange?: (applicantId: string, status: ApplicationStatus) => Promise<void> | void
 }
 
 // Utility: ensure URL has an absolute protocol so it doesn't resolve as a relative path
@@ -44,6 +48,7 @@ export function ApplicantsTable({
   applicants,
   title = 'Applicants', // Default title
   profileHref = (id) => `/recruiter/applicants/${id}`, // Default route builder
+  onStatusChange,
 }: ApplicantsTableProps) {
   return (
     <div className='space-y-3'>
@@ -56,6 +61,7 @@ export function ApplicantsTable({
           <TableHeader>
             <TableRow>
               <TableHead className='w-[30%]'>Name</TableHead>
+              <TableHead className='w-[20%]'>Status</TableHead>
               <TableHead className='w-[25%]'>Resume</TableHead>
               <TableHead className='w-[22%]'>LinkedIn</TableHead>
               <TableHead className='w-[23%]'>Portfolio</TableHead>
@@ -66,7 +72,7 @@ export function ApplicantsTable({
             {applicants.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={4}
+                  colSpan={5}
                   className='text-sm text-muted-foreground'
                 >
                   No applicants yet.
@@ -76,6 +82,7 @@ export function ApplicantsTable({
               applicants.map((a) => {
                 const fullName = `${a.firstName} ${a.lastName}`.trim() || 'Unnamed'
                 const resumeLabel = a.resumeFileName || 'Download resume'
+                const status = a.applicationStatus ?? 'Applied'
 
                 return (
                   <TableRow key={a.id}>
@@ -88,7 +95,54 @@ export function ApplicantsTable({
                         {fullName}
                       </Link>
                     </TableCell>
-
+                    {/* STATUS -> dropdown to update */}
+                    <TableCell>
+                      <Select
+                        value={status}
+                        disabled={!onStatusChange}
+                        onValueChange={(status) =>
+                          onStatusChange?.(a.id, status as ApplicationStatus)
+                        }
+                      >
+                        <SelectTrigger
+                          className={`w-[130px] ${ApplicationStatusColor[status] ?? ''}`}
+                        >
+                          <SelectValue placeholder='Status' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem
+                            value='Applied'
+                            className={ApplicationStatusColor.Applied}
+                          >
+                            Applied
+                          </SelectItem>
+                          <SelectItem
+                            value='Interview'
+                            className={ApplicationStatusColor.Interview}
+                          >
+                            Interview
+                          </SelectItem>
+                          <SelectItem
+                            value='Offer'
+                            className={ApplicationStatusColor.Offer}
+                          >
+                            Offer
+                          </SelectItem>
+                          <SelectItem
+                            value='Rejected'
+                            className={ApplicationStatusColor.Rejected}
+                          >
+                            Rejected
+                          </SelectItem>
+                          <SelectItem
+                            value='Withdrawn'
+                            className={ApplicationStatusColor.Withdrawn}
+                          >
+                            Withdrawn
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                     {/* RESUME -> downloadable */}
                     <TableCell>
                       {a.resumeUrl ? (

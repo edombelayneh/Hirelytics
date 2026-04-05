@@ -14,7 +14,7 @@ function Jobs() {
   const { userId, isLoaded } = useAuth()
 
   // Stores job IDs the user has already applied to
-  const [appliedJobIds, setAppliedJobIds] = useState<Set<number>>(new Set())
+  const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set())
   // Jobs fetched from Firestore jobPostings collection
   const [jobs, setJobs] = useState<AvailableJob[]>([])
   // Access user metadata (e.g., role-based logic if needed)
@@ -25,9 +25,7 @@ function Jobs() {
   useEffect(() => {
     const ref = collection(db, 'jobPostings')
     getDocs(ref).then((snap) => {
-      const fetched = snap.docs.map(
-        (doc) => ({ id: Number(doc.id), ...doc.data() }) as AvailableJob
-      )
+      const fetched = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as AvailableJob)
       setJobs(fetched)
     })
   }, [])
@@ -41,12 +39,10 @@ function Jobs() {
 
     // Listen for real-time updates
     const unsub = onSnapshot(ref, (snap) => {
-      const ids = new Set<number>()
+      const ids = new Set<string>()
 
-      // Convert document IDs (stored as strings) back to numbers
       snap.docs.forEach((doc) => {
-        const id = Number(doc.id)
-        if (!isNaN(id)) ids.add(id)
+        ids.add(doc.id)
       })
 
       // Update state so Apply buttons disable correctly

@@ -11,7 +11,7 @@ export function EmptyMyJobs() {
         Post your first job to start receiving applicants.
       </div>
       <Button asChild>
-        <Link href='/recruiter/add-new-job'>Post a job</Link>
+        <Link href='/recruiter/addNewJob'>Post a job</Link>
       </Button>
     </div>
   )
