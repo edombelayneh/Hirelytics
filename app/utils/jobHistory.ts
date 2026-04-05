@@ -1,4 +1,12 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, serverTimestamp } from 'firebase/firestore'
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  serverTimestamp,
+  updateDoc,
+} from 'firebase/firestore'
 import { db } from '../lib/firebaseClient'
 
 export interface JobHistoryItem {
@@ -32,9 +40,27 @@ export async function addJobHistory(uid: string, item: AddJobHistoryInput) {
   const docRef = await addDoc(collection(db, 'users', uid, 'JobHistory'), {
     ...item,
     createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   })
 
   return docRef.id
+}
+
+export async function updateJobHistory(
+  uid: string,
+  jobHistoryId: string,
+  item: {
+    company: string
+    title: string
+    roleDescription: string
+    startDate: string
+    endDate: string
+  }
+) {
+  await updateDoc(doc(db, 'users', uid, 'JobHistory', jobHistoryId), {
+    ...item,
+    updatedAt: serverTimestamp(),
+  })
 }
 
 export async function deleteJobHistory(uid: string, jobHistoryId: string) {

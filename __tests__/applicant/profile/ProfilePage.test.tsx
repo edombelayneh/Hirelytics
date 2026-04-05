@@ -73,6 +73,9 @@ const mockProfile = {
 
 // Mock save function
 const mockOnUpdateProfile = vi.fn()
+const mockOnAddJobHistory = vi.fn()
+const mockOnEditJobHistory = vi.fn()
+const mockOnDeleteJobHistory = vi.fn()
 
 /* -------------------------------------------------------------------------- */
 /*                                   TESTS                                    */
@@ -98,6 +101,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -121,6 +129,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -154,6 +167,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -199,6 +217,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -212,7 +235,7 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        'Missing required fields',
+        'Missing job history fields',
         expect.objectContaining({
           description: 'Fix the highlighted fields and try again.',
         })
@@ -231,6 +254,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -261,6 +289,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -292,6 +325,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -322,6 +360,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -353,6 +396,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -378,6 +426,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -408,6 +461,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -437,6 +495,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -481,6 +544,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -495,6 +563,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -510,6 +583,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -525,6 +603,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -542,6 +625,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -562,6 +650,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -579,6 +672,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -596,6 +694,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -611,6 +714,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -618,5 +726,136 @@ describe('ProfilePage', () => {
     fireEvent.change(experienceInput, { target: { value: '7' } })
 
     expect((experienceInput as HTMLInputElement).value).toBe('7')
+  })
+
+  it('shows validation error when job history fields are missing', async () => {
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /save and add another/i }))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        'Missing job history fields',
+        expect.objectContaining({
+          description: 'Please fill in company, title, role description, start date, and end date.',
+        })
+      )
+    })
+  })
+
+  it('adds a new job history item', async () => {
+    mockOnAddJobHistory.mockResolvedValueOnce(undefined)
+
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={mockOnAddJobHistory}
+        onEditJobHistory={mockOnEditJobHistory}
+        onDeleteJobHistory={mockOnDeleteJobHistory}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /save and add another/i }))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        'Missing job history fields',
+        expect.objectContaining({
+          description: 'Please fill in company, title, role description, start date, and end date.',
+        })
+      )
+    })
+  })
+
+  it('adds a new job history item', async () => {
+    mockOnAddJobHistory.mockResolvedValueOnce(undefined)
+
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={mockOnAddJobHistory}
+        onEditJobHistory={mockOnEditJobHistory}
+        onDeleteJobHistory={mockOnDeleteJobHistory}
+      />
+    )
+
+    fireEvent.change(screen.getByLabelText(/company/i), {
+      target: { value: 'Office of Information Technology' },
+    })
+
+    fireEvent.change(screen.getByLabelText(/^title$/i), {
+      target: { value: 'Student Classroom Technician' },
+    })
+
+    fireEvent.change(screen.getByLabelText(/role description/i), {
+      target: { value: 'Managed classroom AV systems' },
+    })
+
+    fireEvent.change(screen.getByLabelText(/start date/i), {
+      target: { value: '2025-01-01' },
+    })
+
+    fireEvent.change(screen.getByLabelText(/end date/i), {
+      target: { value: '2026-01-01' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /save and add another/i }))
+
+    await waitFor(() => {
+      expect(mockOnAddJobHistory).toHaveBeenCalledWith({
+        company: 'Office of Information Technology',
+        title: 'Student Classroom Technician',
+        roleDescription: 'Managed classroom AV systems',
+        startDate: '2025-01-01',
+        endDate: '2026-01-01',
+      })
+    })
+  })
+
+  it('calls delete job history when delete button is clicked', async () => {
+    const existingJobs = [
+      {
+        id: 'job1',
+        company: 'CMU OIT',
+        title: 'Student Technician',
+        roleDescription: 'Helped classrooms',
+        startDate: '2025-01-01',
+        endDate: '2025-12-01',
+      },
+    ]
+
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={existingJobs}
+        jobHistoryLoading={false}
+        onAddJobHistory={mockOnAddJobHistory}
+        onEditJobHistory={mockOnEditJobHistory}
+        onDeleteJobHistory={mockOnDeleteJobHistory}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /delete/i }))
+
+    await waitFor(() => {
+      expect(mockOnDeleteJobHistory).toHaveBeenCalledWith('job1')
+    })
   })
 })

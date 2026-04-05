@@ -9,10 +9,9 @@ import {
   addJobHistory,
   deleteJobHistory,
   getJobHistory,
+  updateJobHistory,
   type JobHistoryItem,
 } from '@/app/utils/jobHistory'
-import { set } from 'react-hook-form'
-import { NEXT_REWRITTEN_PATH_HEADER } from 'next/dist/client/components/app-router-headers'
 
 export default function ApplicantProfileRoute() {
   const [profile, setProfile] = useState<UserProfile>(defaultProfile)
@@ -76,6 +75,26 @@ export default function ApplicantProfileRoute() {
     setJobHistoryLoading(false)
   }
 
+  const handleEditJobHistory = async (
+    jobHistoryId: string,
+    item: {
+      company: string
+      title: string
+      roleDescription: string
+      startDate: string
+      endDate: string
+    }
+  ) => {
+    const uid = firebaseAuth.currentUser?.uid
+    if (!uid) return
+
+    await updateJobHistory(uid, jobHistoryId, item)
+
+    setJobHistory((prev) =>
+      prev.map((entry) => (entry.id === jobHistoryId ? { ...entry, ...item } : entry))
+    )
+  }
+
   const handleDeleteJobHistory = async (jobHistoryId: string) => {
     const uid = firebaseAuth.currentUser?.uid
     if (!uid) return
@@ -91,6 +110,7 @@ export default function ApplicantProfileRoute() {
       jobHistory={jobHistory}
       jobHistoryLoading={jobHistoryLoading}
       onAddJobHistory={handleAddJobHistory}
+      onEditJobHistory={handleEditJobHistory}
       onDeleteJobHistory={handleDeleteJobHistory}
     />
   )

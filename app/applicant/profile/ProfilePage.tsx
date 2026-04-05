@@ -33,17 +33,9 @@ import {
 } from 'lucide-react'
 import type { UserProfile } from '../../data/profileData'
 import { toast } from '../../components/ui/sonner'
+import type { JobHistoryItem } from '../../utils/jobHistory'
 
 type RequiredFields = 'firstName' | 'lastName' | 'email'
-
-interface JobHistoryItem {
-  id: string
-  company: string
-  title: string
-  roleDescription: string
-  startDate: string
-  endDate: string
-}
 
 interface ProfilePageProps {
   profile: UserProfile
@@ -57,6 +49,16 @@ interface ProfilePageProps {
     startDate: string
     endDate: string
   }) => Promise<void>
+  onEditJobHistory?: (
+    jobHistoryId: string,
+    item: {
+      company: string
+      title: string
+      roleDescription: string
+      startDate: string
+      endDate: string
+    }
+  ) => Promise<void>
   onDeleteJobHistory: (jobHistoryId: string) => Promise<void>
 }
 
@@ -65,8 +67,9 @@ export const ProfilePage = memo(function ProfilePage({
   onUpdateProfile,
   jobHistory = [],
   jobHistoryLoading = false,
-  onAddJobHistory,
-  onDeleteJobHistory,
+  onAddJobHistory = async () => {},
+  onEditJobHistory = async () => {},
+  onDeleteJobHistory = async () => {},
 }: ProfilePageProps) {
   const { user, isLoaded } = useUser()
 
@@ -80,6 +83,7 @@ export const ProfilePage = memo(function ProfilePage({
   const [jobEndDate, setJobEndDate] = useState('')
   const [jobHistorySaving, setJobHistorySaving] = useState(false)
   const [jobHistorySuccessMessage, setJobHistorySuccessMessage] = useState('')
+  const [editingJobHistoryId, setEditingJobHistoryId] = useState<string | null>(null)
 
   const profilePicInputRef = useRef<HTMLInputElement>(null)
   const resumeInputRef = useRef<HTMLInputElement>(null)
@@ -198,7 +202,7 @@ export const ProfilePage = memo(function ProfilePage({
     setErrors(nextErrors)
 
     if (Object.keys(nextErrors).length > 0) {
-      toast.error('Missing required fields', {
+      toast.error('Missing job history fields', {
         description: 'Fix the highlighted fields and try again.',
       })
       return
@@ -237,23 +241,30 @@ export const ProfilePage = memo(function ProfilePage({
     setJobHistorySuccessMessage('')
 
     try {
-      await onAddJobHistory({
+      const payload = {
         company: jobCompany.trim(),
         title: jobTitle.trim(),
         roleDescription: jobRoleDescription.trim(),
         startDate: jobStartDate,
         endDate: jobEndDate,
-      })
+      }
 
-      //Clear form so user can enter another job right away
+      if (editingJobHistoryId) {
+        await onEditJobHistory(editingJobHistoryId, payload)
+        setJobHistorySuccessMessage('Job history updated successfully.')
+        toast.success('Job history updated successfully')
+      } else {
+        await onAddJobHistory(payload)
+        setJobHistorySuccessMessage('Job history saved. You can add another one.')
+        toast.success('Job history added successfully')
+      }
+
       setJobCompany('')
       setJobTitle('')
       setJobRoleDescription('')
       setJobStartDate('')
       setJobEndDate('')
-
-      setJobHistorySuccessMessage('Job history saved. You can add another one.')
-      toast.success('Job history added successfully')
+      setEditingJobHistoryId(null)
     } catch (err) {
       console.error('Add job history error:', err)
       toast.error('Failed to add job history', {
@@ -577,10 +588,12 @@ export const ProfilePage = memo(function ProfilePage({
         </div>
       )}
       <Card className='p-6'>
-        <h2 className='mb-6'>Job History</h2>
-        <p className='text-sm text-muted-foreground'>
-          Add one past job at a time. After saving, the form will reset so you can add another.
-        </p>
+        <div className='space-y-1'>
+          <h2 className='text-lg font-semibold'>Job History</h2>
+          <p className='text-sm text-muted-foreground'>
+            Add one past job at a time. After saving, the form will reset so you can add another.
+          </p>
+        </div>
 
         <div className='space-y-6'>
           <div className='grid md:grid-cols-2 gap-6'>
@@ -641,7 +654,11 @@ export const ProfilePage = memo(function ProfilePage({
             onClick={handleAddJobHistorySubmit}
             disabled={jobHistorySaving}
           >
-            {jobHistorySaving ? 'Saving...' : 'Save and Add Another'}
+            {jobHistorySaving
+              ? 'Saving...'
+              : editingJobHistoryId
+                ? 'Update Job History'
+                : 'Save and Add Another'}
           </Button>
 
           <div className='space-y-4'>
@@ -665,7 +682,31 @@ export const ProfilePage = memo(function ProfilePage({
                       type='button'
                       variant='outline'
                       size='sm'
-                      onClick={() => onDeleteJobHistory(item.id)}
+                      onClick={() => {
+                        setEditingJobHistoryId(item.id)
+                        setJobCompany(item.company)
+                        setJobTitle(item.title)
+                        setJobRoleDescription(item.roleDescription)
+                        setJobStartDate(item.startDate)
+                        setJobEndDate(item.endDate)
+                        setJobHistorySuccessMessage('')
+                      }}
+                    >
+                      Edit
+                    </Button>
+
+                    <Button
+                      type='button'
+                      variant='outline'
+                      size='sm'
+                      onClick={async () => {
+                        try {
+                          await onDeleteJobHistory(item.id)
+                          toast.success('Job history deleted successfully')
+                        } catch (error) {
+                          toast.error('Failed to delete job history. Please try again.')
+                        }
+                      }}
                     >
                       Delete
                     </Button>
