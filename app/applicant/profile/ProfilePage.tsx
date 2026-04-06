@@ -202,7 +202,7 @@ export const ProfilePage = memo(function ProfilePage({
     setErrors(nextErrors)
 
     if (Object.keys(nextErrors).length > 0) {
-      toast.error('Missing job history fields', {
+      toast.error('Missing required fields', {
         description: 'Fix the highlighted fields and try again.',
       })
       return

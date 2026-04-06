@@ -1,14 +1,20 @@
+// Centralized collection name so we don’t hardcode strings everywhere
+// Keeps naming consistent and avoids bugs from case sensitivity in Firestore
+const JOB_HISTORY_COLLECTION = 'jobHistory'
 import {
   addDoc,
   collection,
   deleteDoc,
   doc,
   getDocs,
+  query,
+  orderBy,
   serverTimestamp,
   updateDoc,
 } from 'firebase/firestore'
 import { db } from '../lib/firebaseClient'
 
+// Type representing a single job history entry from Firestore
 export interface JobHistoryItem {
   id: string
   company: string
@@ -17,8 +23,11 @@ export interface JobHistoryItem {
   startDate: string
   endDate: string
   createdAt?: unknown
+  updatedAt?: unknown
 }
 
+// Input type for creating a new job history item
+// (no id because Firestore generates it)
 interface AddJobHistoryInput {
   company: string
   title: string
@@ -27,17 +36,26 @@ interface AddJobHistoryInput {
   endDate: string
 }
 
+// Fetch all job history entries for a user
+// Ordered by most recent (newest first)
 export async function getJobHistory(uid: string): Promise<JobHistoryItem[]> {
-  const snap = await getDocs(collection(db, 'users', uid, 'JobHistory'))
+  const q = query(
+    collection(db, 'users', uid, JOB_HISTORY_COLLECTION),
+    orderBy('createdAt', 'desc')
+  )
 
+  const snap = await getDocs(q)
+
+  // Map Firestore docs into our typed objects
   return snap.docs.map((d) => ({
     id: d.id,
     ...(d.data() as Omit<JobHistoryItem, 'id'>),
   }))
 }
 
+// Add a new job history entry for a user
 export async function addJobHistory(uid: string, item: AddJobHistoryInput) {
-  const docRef = await addDoc(collection(db, 'users', uid, 'JobHistory'), {
+  const docRef = await addDoc(collection(db, 'users', uid, JOB_HISTORY_COLLECTION), {
     ...item,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -46,6 +64,7 @@ export async function addJobHistory(uid: string, item: AddJobHistoryInput) {
   return docRef.id
 }
 
+// Update an existing job history entry
 export async function updateJobHistory(
   uid: string,
   jobHistoryId: string,
@@ -57,12 +76,13 @@ export async function updateJobHistory(
     endDate: string
   }
 ) {
-  await updateDoc(doc(db, 'users', uid, 'JobHistory', jobHistoryId), {
+  await updateDoc(doc(db, 'users', uid, JOB_HISTORY_COLLECTION, jobHistoryId), {
     ...item,
     updatedAt: serverTimestamp(),
   })
 }
 
+// Delete a job history entry
 export async function deleteJobHistory(uid: string, jobHistoryId: string) {
-  await deleteDoc(doc(db, 'users', uid, 'JobHistory', jobHistoryId))
+  await deleteDoc(doc(db, 'users', uid, JOB_HISTORY_COLLECTION, jobHistoryId))
 }

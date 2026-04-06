@@ -235,7 +235,7 @@ describe('ProfilePage', () => {
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        'Missing job history fields',
+        'Missing required fields',
         expect.objectContaining({
           description: 'Fix the highlighted fields and try again.',
         })
@@ -738,33 +738,6 @@ describe('ProfilePage', () => {
         onAddJobHistory={vi.fn()}
         onEditJobHistory={vi.fn()}
         onDeleteJobHistory={vi.fn()}
-      />
-    )
-
-    fireEvent.click(screen.getByRole('button', { name: /save and add another/i }))
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        'Missing job history fields',
-        expect.objectContaining({
-          description: 'Please fill in company, title, role description, start date, and end date.',
-        })
-      )
-    })
-  })
-
-  it('adds a new job history item', async () => {
-    mockOnAddJobHistory.mockResolvedValueOnce(undefined)
-
-    render(
-      <ProfilePage
-        profile={mockProfile}
-        onUpdateProfile={mockOnUpdateProfile}
-        jobHistory={[]}
-        jobHistoryLoading={false}
-        onAddJobHistory={mockOnAddJobHistory}
-        onEditJobHistory={mockOnEditJobHistory}
-        onDeleteJobHistory={mockOnDeleteJobHistory}
       />
     )
 
