@@ -49,7 +49,7 @@ interface ProfilePageProps {
     startDate: string
     endDate: string
   }) => Promise<void>
-  onEditJobHistory?: (
+  onEditJobHistory: (
     jobHistoryId: string,
     item: {
       company: string
@@ -67,9 +67,9 @@ export const ProfilePage = memo(function ProfilePage({
   onUpdateProfile,
   jobHistory = [],
   jobHistoryLoading = false,
-  onAddJobHistory = async () => {},
-  onEditJobHistory = async () => {},
-  onDeleteJobHistory = async () => {},
+  onAddJobHistory,
+  onEditJobHistory,
+  onDeleteJobHistory,
 }: ProfilePageProps) {
   const { user, isLoaded } = useUser()
 
@@ -266,10 +266,19 @@ export const ProfilePage = memo(function ProfilePage({
       setJobEndDate('')
       setEditingJobHistoryId(null)
     } catch (err) {
-      console.error('Add job history error:', err)
-      toast.error('Failed to add job history', {
-        description: 'Please try again.',
-      })
+      const isEditingJobHistory = Boolean(editingJobHistoryId)
+
+      console.error(
+        isEditingJobHistory ? 'Update job history errror:' : 'Add job history error:',
+        err
+      )
+
+      toast.error(
+        isEditingJobHistory ? 'Failed to update job history' : 'Failed to add job history',
+        {
+          description: 'Please try again.',
+        }
+      )
     } finally {
       setJobHistorySaving(false)
     }

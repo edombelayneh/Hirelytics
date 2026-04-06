@@ -1,6 +1,3 @@
-// Centralized collection name so we don’t hardcode strings everywhere
-// Keeps naming consistent and avoids bugs from case sensitivity in Firestore
-const JOB_HISTORY_COLLECTION = 'jobHistory'
 import {
   addDoc,
   collection,
@@ -25,6 +22,8 @@ export interface JobHistoryItem {
   createdAt?: unknown
   updatedAt?: unknown
 }
+
+const JOB_HISTORY_COLLECTION = 'jobHistory'
 
 // Input type for creating a new job history item
 // (no id because Firestore generates it)
