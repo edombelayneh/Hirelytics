@@ -136,11 +136,11 @@ export const ProfilePage = memo(function ProfilePage({
     const file = event.target.files?.[0]
     if (!file) return
 
-    const allowedExtensions = ['.pdf', '.doc', '.docx']
+    const allowedExtensions = ['.pdf']
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
 
     if (!allowedExtensions.includes(ext)) {
-      toast.error('Invalid file type', { description: 'Resume must be PDF, DOC, or DOCX.' })
+      toast.error('Invalid file type', { description: 'Resume must be a PDF.' })
       return
     }
 
@@ -271,14 +271,14 @@ export const ProfilePage = memo(function ProfilePage({
                 <div className='flex flex-col items-center gap-2'>
                   <Upload className='h-6 w-6 text-muted-foreground' />
                   <span>Click to upload resume</span>
-                  <span className='text-xs text-muted-foreground'>PDF, DOC, DOCX up to 10MB</span>
+                  <span className='text-xs text-muted-foreground'>PDF up to 10MB</span>
                 </div>
               </Button>
             )}
             <input
               ref={resumeInputRef}
               type='file'
-              accept='.pdf,.doc,.docx'
+              accept='.pdf'
               className='hidden'
               onChange={handleResumeUpload}
             />

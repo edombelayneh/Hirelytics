@@ -239,7 +239,7 @@ describe('ProfilePage', () => {
 
     // Find resume file input
     const resumeInput = Array.from(document.querySelectorAll('input[type="file"]')).find((input) =>
-      (input as HTMLInputElement).accept.includes('.pdf,.doc,.docx')
+      (input as HTMLInputElement).accept.includes('.pdf')
     ) as HTMLInputElement
 
     // Trigger upload
@@ -249,7 +249,7 @@ describe('ProfilePage', () => {
       expect(toast.error).toHaveBeenCalledWith(
         'Invalid file type',
         expect.objectContaining({
-          description: 'Resume must be PDF, DOC, or DOCX.',
+          description: 'Resume must be a PDF.',
         })
       )
     })
@@ -331,7 +331,7 @@ describe('ProfilePage', () => {
 
     // Find resume file input
     const resumeInput = Array.from(document.querySelectorAll('input[type="file"]')).find((input) =>
-      (input as HTMLInputElement).accept.includes('.pdf,.doc,.docx')
+      (input as HTMLInputElement).accept.includes('.pdf')
     ) as HTMLInputElement
 
     // Trigger upload
@@ -386,7 +386,7 @@ describe('ProfilePage', () => {
 
     // Find resume file input
     const resumeInput = Array.from(document.querySelectorAll('input[type="file"]')).find((input) =>
-      (input as HTMLInputElement).accept.includes('.pdf,.doc,.docx')
+      (input as HTMLInputElement).accept.includes('.pdf')
     ) as HTMLInputElement
 
     // Trigger upload

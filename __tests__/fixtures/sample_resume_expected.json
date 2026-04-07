@@ -1,0 +1,38 @@
+[
+  {
+    "company": "Summit Ridge Insurance Group, Columbus, OH",
+    "title": "Software Development Intern",
+    "roleDescription": "Built and maintained Duck Creek XML and React.js with TypeScript across 100+ shared repository files.\nDelivered 125+ Agile sprint tasks using SourceTree and Jira for version control and workflow management.\nWorked in CI/CD pipelines with Jenkins and feature toggles across DEV and PROD environments.\nPartnered with cross-functional teams (QA, BA, UX, Data) to deliver system-wide features and improvements.\nConducted code reviews and regression testing in layered repositories to ensure code quality and system stability.",
+    "dateRange": {
+      "start": { "year": 2024, "month": 5, "raw": "May 2024" },
+      "end": { "year": 2025, "month": 8, "raw": "August 2025" },
+      "raw": "May 2024 – August 2025"
+    },
+    "rawLines": [
+      "Software Development Intern May 2024 – August 2025",
+      "Summit Ridge Insurance Group, Columbus, OH",
+      "• Built and maintained Duck Creek XML and React.js with TypeScript across 100+ shared repository files.",
+      "• Delivered 125+ Agile sprint tasks using SourceTree and Jira for version control and workflow management.",
+      "• Worked in CI/CD pipelines with Jenkins and feature toggles across DEV and PROD environments.",
+      "• Partnered with cross-functional teams (QA, BA, UX, Data) to deliver system-wide features and improvements.",
+      "• Conducted code reviews and regression testing in layered repositories to ensure code quality and system stability."
+    ]
+  },
+  {
+    "company": "Lakeview State University IT Media Services, Columbus, OH",
+    "title": "Media Services Student Technician",
+    "roleDescription": "Delivered on-call classroom support, troubleshooting audio/visual technology campus-wide.\nCollaborated with technicians to install and maintain A/V equipment in 20+ buildings.\nEnsured minimal disruption by resolving issues within 10 minutes and updating management on status.",
+    "dateRange": {
+      "start": { "year": 2022, "month": 9, "raw": "September 2022" },
+      "end": { "year": null, "raw": "Current", "isCurrent": true },
+      "raw": "September 2022 – Current"
+    },
+    "rawLines": [
+      "Media Services Student Technician September 2022 – Current",
+      "Lakeview State University IT Media Services, Columbus, OH",
+      "• Delivered on-call classroom support, troubleshooting audio/visual technology campus-wide.",
+      "• Collaborated with technicians to install and maintain A/V equipment in 20+ buildings.",
+      "• Ensured minimal disruption by resolving issues within 10 minutes and updating management on status."
+    ]
+  }
+]
