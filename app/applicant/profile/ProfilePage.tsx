@@ -260,7 +260,7 @@ export const ProfilePage = memo(function ProfilePage({
         title: jobTitle.trim(),
         roleDescription: jobRoleDescription.trim(),
         startDate: jobStartDate,
-        endDate: jobIsCurrent ? undefined : jobEndDate,
+        ...(jobIsCurrent ? {} : { endDate: jobEndDate }),
         isCurrent: jobIsCurrent,
       }
 
@@ -286,7 +286,7 @@ export const ProfilePage = memo(function ProfilePage({
       const isEditingJobHistory = Boolean(editingJobHistoryId)
 
       console.error(
-        isEditingJobHistory ? 'Update job history errror:' : 'Add job history error:',
+        isEditingJobHistory ? 'Update job history error:' : 'Add job history error:',
         err
       )
 
@@ -774,7 +774,7 @@ export const ProfilePage = memo(function ProfilePage({
                       </div>
                     </div>
 
-                    <p className='text-sm'>{item.roleDescription}</p>
+                    <p className='text-sm whitespace-pre-wrap'>{item.roleDescription}</p>
 
                     <p className='text-sm text-muted-foreground'>
                       {item.startDate} - {item.isCurrent ? 'Current' : item.endDate}
