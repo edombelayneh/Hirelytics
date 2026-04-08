@@ -18,7 +18,8 @@ export interface JobHistoryItem {
   title: string
   roleDescription: string
   startDate: string
-  endDate: string
+  endDate?: string
+  isCurrent: boolean
   createdAt?: unknown
   updatedAt?: unknown
 }
@@ -32,16 +33,14 @@ interface AddJobHistoryInput {
   title: string
   roleDescription: string
   startDate: string
-  endDate: string
+  endDate?: string
+  isCurrent: boolean
 }
 
 // Fetch all job history entries for a user
 // Ordered by most recent (newest first)
 export async function getJobHistory(uid: string): Promise<JobHistoryItem[]> {
-  const q = query(
-    collection(db, 'users', uid, JOB_HISTORY_COLLECTION),
-    orderBy('createdAt', 'desc')
-  )
+  const q = query(collection(db, 'users', uid, JOB_HISTORY_COLLECTION), orderBy('endDate', 'desc'))
 
   const snap = await getDocs(q)
 
@@ -72,7 +71,8 @@ export async function updateJobHistory(
     title: string
     roleDescription: string
     startDate: string
-    endDate: string
+    endDate?: string
+    isCurrent: boolean
   }
 ) {
   await updateDoc(doc(db, 'users', uid, JOB_HISTORY_COLLECTION, jobHistoryId), {

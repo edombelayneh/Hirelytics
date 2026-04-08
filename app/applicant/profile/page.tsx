@@ -1,3 +1,4 @@
+//// Loads user profile and job history from Firebase and passes data into ProfilePage
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -59,7 +60,8 @@ export default function ApplicantProfileRoute() {
     title: string
     roleDescription: string
     startDate: string
-    endDate: string
+    endDate?: string
+    isCurrent: boolean
   }) => {
     const uid = firebaseAuth.currentUser?.uid
     if (!uid) return
@@ -82,7 +84,8 @@ export default function ApplicantProfileRoute() {
       title: string
       roleDescription: string
       startDate: string
-      endDate: string
+      endDate?: string
+      isCurrent: boolean
     }
   ) => {
     const uid = firebaseAuth.currentUser?.uid
