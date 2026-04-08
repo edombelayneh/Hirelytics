@@ -797,6 +797,7 @@ describe('ProfilePage', () => {
         roleDescription: 'Managed classroom AV systems',
         startDate: '2025-01-01',
         endDate: '2026-01-01',
+        isCurrent: false,
       })
     })
   })
@@ -867,53 +868,6 @@ describe('ProfilePage', () => {
       },
     ]
 
-    it('shows validation error when start date is after end date', async () => {
-      render(
-        <ProfilePage
-          profile={mockProfile}
-          onUpdateProfile={mockOnUpdateProfile}
-          jobHistory={[]}
-          jobHistoryLoading={false}
-          onAddJobHistory={mockOnAddJobHistory}
-          onEditJobHistory={mockOnEditJobHistory}
-          onDeleteJobHistory={mockOnDeleteJobHistory}
-        />
-      )
-
-      fireEvent.change(screen.getByLabelText(/company/i), {
-        target: { value: 'CMU OIT' },
-      })
-
-      fireEvent.change(screen.getByLabelText(/^title$/i), {
-        target: { value: 'Student Technician' },
-      })
-
-      fireEvent.change(screen.getByLabelText(/role description/i), {
-        target: { value: 'Helped classrooms' },
-      })
-
-      fireEvent.change(screen.getByLabelText(/start date/i), {
-        target: { value: '2026-12-01' },
-      })
-
-      fireEvent.change(screen.getByLabelText(/end date/i), {
-        target: { value: '2025-01-01' },
-      })
-
-      fireEvent.click(screen.getByRole('button', { name: /save and add another/i }))
-
-      await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith(
-          'Invalid job history dates',
-          expect.objectContaining({
-            description: 'Start date cannot be after end date.',
-          })
-        )
-      })
-
-      expect(mockOnAddJobHistory).not.toHaveBeenCalled()
-    })
-
     render(
       <ProfilePage
         profile={mockProfile}
@@ -931,5 +885,52 @@ describe('ProfilePage', () => {
     await waitFor(() => {
       expect(mockOnDeleteJobHistory).toHaveBeenCalledWith('job1')
     })
+  })
+
+  it('shows validation error when start date is after end date', async () => {
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={mockOnAddJobHistory}
+        onEditJobHistory={mockOnEditJobHistory}
+        onDeleteJobHistory={mockOnDeleteJobHistory}
+      />
+    )
+
+    fireEvent.change(screen.getByLabelText(/company/i), {
+      target: { value: 'CMU OIT' },
+    })
+
+    fireEvent.change(screen.getByLabelText(/^title$/i), {
+      target: { value: 'Student Technician' },
+    })
+
+    fireEvent.change(screen.getByLabelText(/role description/i), {
+      target: { value: 'Helped classrooms' },
+    })
+
+    fireEvent.change(screen.getByLabelText(/start date/i), {
+      target: { value: '2026-12-01' },
+    })
+
+    fireEvent.change(screen.getByLabelText(/end date/i), {
+      target: { value: '2025-01-01' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /save and add another/i }))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        'Invalid job history dates',
+        expect.objectContaining({
+          description: 'Start date cannot be after end date.',
+        })
+      )
+    })
+
+    expect(mockOnAddJobHistory).not.toHaveBeenCalled()
   })
 })
