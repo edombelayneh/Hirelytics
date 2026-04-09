@@ -933,4 +933,71 @@ describe('ProfilePage', () => {
 
     expect(mockOnAddJobHistory).not.toHaveBeenCalled()
   })
+
+  it('allows saving a current job without an end date', async () => {
+    mockOnAddJobHistory.mockResolvedValueOnce(undefined)
+
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={mockOnAddJobHistory}
+        onEditJobHistory={mockOnEditJobHistory}
+        onDeleteJobHistory={mockOnDeleteJobHistory}
+      />
+    )
+
+    fireEvent.change(screen.getByLabelText(/company/i), {
+      target: { value: 'CMU OIT' },
+    })
+
+    fireEvent.change(screen.getByLabelText(/^title$/i), {
+      target: { value: 'Student Technician' },
+    })
+
+    fireEvent.change(screen.getByLabelText(/role description/i), {
+      target: { value: 'Helped classrooms' },
+    })
+
+    fireEvent.change(screen.getByLabelText(/start date/i), {
+      target: { value: '2025-01-01' },
+    })
+
+    fireEvent.click(screen.getByLabelText(/i currently work here/i))
+
+    fireEvent.click(screen.getByRole('button', { name: /save and add another/i }))
+
+    await waitFor(() => {
+      expect(mockOnAddJobHistory).toHaveBeenCalledWith({
+        company: 'CMU OIT',
+        title: 'Student Technician',
+        roleDescription: 'Helped classrooms',
+        startDate: '2025-01-01',
+        isCurrent: true,
+      })
+    })
+  })
+
+  it('disables end date when current job is selected', () => {
+    render(
+      <ProfilePage
+        profile={mockProfile}
+        onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={mockOnAddJobHistory}
+        onEditJobHistory={mockOnEditJobHistory}
+        onDeleteJobHistory={mockOnDeleteJobHistory}
+      />
+    )
+
+    const checkbox = screen.getByLabelText(/i currently work here/i)
+    const endDateInput = screen.getByLabelText(/end date/i) as HTMLInputElement
+
+    fireEvent.click(checkbox)
+
+    expect(endDateInput.disabled).toBe(true)
+  })
 })

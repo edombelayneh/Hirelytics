@@ -35,7 +35,7 @@ export default function ApplicantProfileRoute() {
         }
 
         const history = await getJobHistory(uid)
-        setJobHistory(history)
+        setJobHistory(sortJobHistory(history))
       } catch (err) {
         console.error('Failed to load profile/job history:', err)
         setJobHistory([])
@@ -67,14 +67,15 @@ export default function ApplicantProfileRoute() {
     if (!uid) return
 
     const newId = await addJobHistory(uid, item)
-    setJobHistory((prev) => [
-      {
-        id: newId,
-        ...item,
-      },
-      ...prev,
-    ])
-    setJobHistoryLoading(false)
+    setJobHistory((prev) =>
+      sortJobHistory([
+        {
+          id: newId,
+          ...item,
+        },
+        ...prev,
+      ])
+    )
   }
 
   const handleEditJobHistory = async (
@@ -94,7 +95,9 @@ export default function ApplicantProfileRoute() {
     await updateJobHistory(uid, jobHistoryId, item)
 
     setJobHistory((prev) =>
-      prev.map((entry) => (entry.id === jobHistoryId ? { ...entry, ...item } : entry))
+      sortJobHistory(
+        prev.map((entry) => (entry.id === jobHistoryId ? { ...entry, ...item } : entry))
+      )
     )
   }
 
@@ -104,6 +107,20 @@ export default function ApplicantProfileRoute() {
 
     await deleteJobHistory(uid, jobHistoryId)
     setJobHistory((prev) => prev.filter((item) => item.id !== jobHistoryId))
+  }
+
+  const sortJobHistory = (jobs: JobHistoryItem[]) => {
+    return [...jobs].sort((a, b) => {
+      // Current jobs first
+      if (a.isCurrent && !b.isCurrent) return -1
+      if (!a.isCurrent && b.isCurrent) return 1
+
+      // Then sort by end date descending
+      const aEnd = a.endDate ?? ''
+      const bEnd = b.endDate ?? ''
+
+      return bEnd.localeCompare(aEnd)
+    })
   }
 
   return (

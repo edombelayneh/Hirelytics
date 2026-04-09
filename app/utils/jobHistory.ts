@@ -40,7 +40,11 @@ interface AddJobHistoryInput {
 // Fetch all job history entries for a user
 // Ordered by most recent (newest first)
 export async function getJobHistory(uid: string): Promise<JobHistoryItem[]> {
-  const q = query(collection(db, 'users', uid, JOB_HISTORY_COLLECTION), orderBy('endDate', 'desc'))
+  const q = query(
+    collection(db, 'users', uid, JOB_HISTORY_COLLECTION),
+    orderBy('isCurrent', 'desc'),
+    orderBy('endDate', 'desc')
+  )
 
   const snap = await getDocs(q)
 
