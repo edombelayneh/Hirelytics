@@ -33,28 +33,67 @@ import {
 } from 'lucide-react'
 import type { UserProfile } from '../../data/profileData'
 import { toast } from '../../components/ui/sonner'
+import type { JobHistoryItem } from '../../utils/jobHistory'
 
 type RequiredFields = 'firstName' | 'lastName' | 'email'
 
 interface ProfilePageProps {
   profile: UserProfile
   onUpdateProfile: (profile: UserProfile) => Promise<void>
+  jobHistory: JobHistoryItem[]
+  jobHistoryLoading: boolean
+  onAddJobHistory: (item: {
+    company: string
+    title: string
+    roleDescription: string
+    startDate: string
+    endDate?: string
+    isCurrent: boolean
+  }) => Promise<void>
+  onEditJobHistory: (
+    jobHistoryId: string,
+    item: {
+      company: string
+      title: string
+      roleDescription: string
+      startDate: string
+      endDate?: string
+      isCurrent: boolean
+    }
+  ) => Promise<void>
+  onDeleteJobHistory: (jobHistoryId: string) => Promise<void>
 }
 
 export const ProfilePage = memo(function ProfilePage({
   profile,
   onUpdateProfile,
+  jobHistory = [],
+  jobHistoryLoading = false,
+  onAddJobHistory,
+  onEditJobHistory,
+  onDeleteJobHistory,
 }: ProfilePageProps) {
   const { user, isLoaded } = useUser()
 
   const [formData, setFormData] = useState<UserProfile>(profile)
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [jobCompany, setJobCompany] = useState('')
+  const [jobTitle, setJobTitle] = useState('')
+  const [jobRoleDescription, setJobRoleDescription] = useState('')
+  const [jobStartDate, setJobStartDate] = useState('')
+  const [jobEndDate, setJobEndDate] = useState('')
+  const [jobHistorySaving, setJobHistorySaving] = useState(false)
+  const [jobHistorySuccessMessage, setJobHistorySuccessMessage] = useState('')
+  const [editingJobHistoryId, setEditingJobHistoryId] = useState<string | null>(null)
 
   const profilePicInputRef = useRef<HTMLInputElement>(null)
   const resumeInputRef = useRef<HTMLInputElement>(null)
+  const jobHistorySectionRef = useRef<HTMLDivElement>(null)
 
   const [errors, setErrors] = useState<Partial<Record<RequiredFields, string>>>({})
+  const safeJobHistory = jobHistory ?? []
+  const [jobIsCurrent, setJobIsCurrent] = useState(false)
 
   // Sync Firestore -> form + Clerk autofill for missing fields
   useEffect(() => {
@@ -86,6 +125,7 @@ export const ProfilePage = memo(function ProfilePage({
     })
   }, [profile, isLoaded, user?.id, isEditing])
 
+  // Validate required fields and ensure data logic is correct
   const validate = () => {
     const next: Partial<Record<RequiredFields, string>> = {}
 
@@ -185,6 +225,79 @@ export const ProfilePage = memo(function ProfilePage({
       toast.error('Save failed', { description: 'Please try again.' })
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  // Scroll to job history section after adding/editing an entry
+  const handleAddJobHistorySubmit = async () => {
+    if (
+      !jobCompany.trim() ||
+      !jobTitle.trim() ||
+      !jobRoleDescription.trim() ||
+      !jobStartDate ||
+      (!jobIsCurrent && !jobEndDate)
+    ) {
+      toast.error('Missing job history fields', {
+        description: 'Please fill in company, title, role description, start date, and end date.',
+      })
+      return
+    }
+
+    // Ensure start date is not after end date when job is not current
+    if (!jobIsCurrent && jobStartDate && jobEndDate && jobStartDate > jobEndDate) {
+      toast.error('Invalid job history dates', {
+        description: 'Start date cannot be after end date.',
+      })
+      return
+    }
+
+    setJobHistorySaving(true)
+    setJobHistorySuccessMessage('')
+
+    try {
+      const payload = {
+        company: jobCompany.trim(),
+        title: jobTitle.trim(),
+        roleDescription: jobRoleDescription.trim(),
+        startDate: jobStartDate,
+        ...(jobIsCurrent ? {} : { endDate: jobEndDate }),
+        isCurrent: jobIsCurrent,
+      }
+
+      // If editing, pass the existing jobHistoryId to update; otherwise, add a new entry
+      if (editingJobHistoryId) {
+        await onEditJobHistory(editingJobHistoryId, payload)
+        setJobHistorySuccessMessage('Job history updated successfully.')
+        toast.success('Job history updated successfully')
+      } else {
+        await onAddJobHistory(payload)
+        setJobHistorySuccessMessage('Job history saved. You can add another one.')
+        toast.success('Job history added successfully')
+      }
+
+      setJobCompany('')
+      setJobTitle('')
+      setJobRoleDescription('')
+      setJobStartDate('')
+      setJobEndDate('')
+      setJobIsCurrent(false)
+      setEditingJobHistoryId(null)
+    } catch (err) {
+      const isEditingJobHistory = Boolean(editingJobHistoryId)
+
+      console.error(
+        isEditingJobHistory ? 'Update job history error:' : 'Add job history error:',
+        err
+      )
+
+      toast.error(
+        isEditingJobHistory ? 'Failed to update job history' : 'Failed to add job history',
+        {
+          description: 'Please try again.',
+        }
+      )
+    } finally {
+      setJobHistorySaving(false)
     }
   }
 
@@ -493,6 +606,186 @@ export const ProfilePage = memo(function ProfilePage({
           <p className='text-sm text-muted-foreground'>{formData.bio.length} / 1000 characters</p>
         </div>
       </Card>
+
+      {/* Job History */}
+      {jobHistorySuccessMessage && (
+        <div className='rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700'>
+          {jobHistorySuccessMessage}
+        </div>
+      )}
+
+      <div ref={jobHistorySectionRef}>
+        <Card className='p-6'>
+          <div className='space-y-1'>
+            <h2 className='text-lg font-semibold'>Job History</h2>
+            <p className='text-sm text-muted-foreground'>
+              Add one past job at a time. After saving, the form will reset so you can add another.
+            </p>
+          </div>
+
+          <div className='space-y-6'>
+            <div className='grid md:grid-cols-2 gap-6'>
+              <div className='space-y-2'>
+                <Label htmlFor='jobCompany'>Company</Label>
+                <Input
+                  id='jobCompany'
+                  placeholder='TechCorp'
+                  value={jobCompany}
+                  onChange={(e) => setJobCompany(e.target.value)}
+                />
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='jobTitle'>Title</Label>
+                <Input
+                  id='jobTitle'
+                  placeholder='Software Engineer Intern'
+                  value={jobTitle}
+                  onChange={(e) => setJobTitle(e.target.value)}
+                />
+              </div>
+
+              <div className='space-y-2 md:col-span-2'>
+                <Label htmlFor='jobRoleDescription'>Role Description</Label>
+                <Textarea
+                  id='jobRoleDescription'
+                  placeholder='Describe what you did in this role...'
+                  value={jobRoleDescription}
+                  onChange={(e) => setJobRoleDescription(e.target.value)}
+                  rows={4}
+                />
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='jobStartDate'>Start Date</Label>
+                <Input
+                  id='jobStartDate'
+                  type='date'
+                  value={jobStartDate}
+                  onChange={(e) => setJobStartDate(e.target.value)}
+                />
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='jobEndDate'>End Date</Label>
+                <Input
+                  id='jobEndDate'
+                  type='date'
+                  value={jobEndDate}
+                  disabled={jobIsCurrent}
+                  onChange={(e) => setJobEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className='space-y-2 md:col-span-2'>
+              <Label className='flex items-center gap-2 cursor-pointer'>
+                <input
+                  type='checkbox'
+                  checked={jobIsCurrent}
+                  onChange={(e) => {
+                    setJobIsCurrent(e.target.checked)
+
+                    if (e.target.checked) {
+                      setJobEndDate('')
+                    }
+                  }}
+                />
+                I currently work here
+              </Label>
+            </div>
+
+            <Button
+              type='button'
+              onClick={handleAddJobHistorySubmit}
+              disabled={jobHistorySaving}
+            >
+              {jobHistorySaving
+                ? 'Saving...'
+                : editingJobHistoryId
+                  ? 'Update Job History'
+                  : 'Save and Add Another'}
+            </Button>
+
+            <div className='space-y-4'>
+              {jobHistoryLoading && safeJobHistory.length === 0 ? (
+                <p className='text-sm text-muted-foreground'>Loading job history...</p>
+              ) : safeJobHistory.length === 0 ? (
+                <p className='text-sm text-muted-foreground'>No job history added yet.</p>
+              ) : (
+                safeJobHistory.map((item) => (
+                  <div
+                    key={item.id}
+                    className='rounded-lg border p-4 flex flex-col gap-3'
+                  >
+                    <div className='flex items-start justify-between gap-4'>
+                      <div>
+                        <h3 className='font-semibold'>{item.title}</h3>
+                        <p className='text-sm text-muted-foreground'>{item.company}</p>
+                      </div>
+
+                      <div className='flex items-center gap-2'>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='sm'
+                          onClick={() => {
+                            setEditingJobHistoryId(item.id)
+                            setJobCompany(item.company)
+                            setJobTitle(item.title)
+                            setJobRoleDescription(item.roleDescription)
+                            setJobStartDate(item.startDate)
+                            setJobEndDate(item.endDate || '')
+                            setJobIsCurrent(item.isCurrent)
+                            setJobHistorySuccessMessage('')
+
+                            const yOffset = -120
+                            const element = jobHistorySectionRef.current
+
+                            if (element) {
+                              const y =
+                                element.getBoundingClientRect().top + window.pageYOffset + yOffset
+
+                              window.scrollTo({
+                                top: y,
+                                behavior: 'smooth',
+                              })
+                            }
+                          }}
+                        >
+                          Edit
+                        </Button>
+
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='sm'
+                          onClick={async () => {
+                            try {
+                              await onDeleteJobHistory(item.id)
+                              toast.success('Job history deleted successfully')
+                            } catch (error) {
+                              toast.error('Failed to delete job history. Please try again.')
+                            }
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+
+                    <p className='text-sm whitespace-pre-wrap'>{item.roleDescription}</p>
+
+                    <p className='text-sm text-muted-foreground'>
+                      {item.startDate} - {item.isCurrent ? 'Current' : item.endDate}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </Card>
+      </div>
 
       {/* Save Button */}
       <Button
