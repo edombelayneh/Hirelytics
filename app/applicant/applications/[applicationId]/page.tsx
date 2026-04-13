@@ -98,7 +98,21 @@ export default function ApplicationDetailsPage() {
     })
   }, [isLoaded, userId, applicationId])
 
-  // Marks recruiter feedback as seen the first time the user opens the Feedback tab
+  // Marks feedback seen when the page loads directly on the feedback tab (e.g. via ?tab=feedback).
+  // onValueChange only fires on tab *changes*, so this covers the initial-mount case.
+  useEffect(() => {
+    if (defaultTab !== 'feedback' || !userId || !application) return
+    const appData = application as unknown as {
+      recruiterFeedback?: string
+      recruiterFeedbackSeen?: boolean
+    }
+    if (!appData.recruiterFeedback || appData.recruiterFeedbackSeen) return
+    updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
+      recruiterFeedbackSeen: true,
+    })
+  }, [application, defaultTab, userId, applicationId])
+
+  // Marks recruiter feedback as seen when user manually switches to the Feedback tab
   const handleTabChange = async (value: string) => {
     if (value !== 'feedback' || !userId || !recruiterFeedback) return
     const appData = application as unknown as { recruiterFeedbackSeen?: boolean }
