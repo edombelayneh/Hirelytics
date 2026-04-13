@@ -179,4 +179,40 @@ describe('app/utils/applicationFirebase', () => {
       { merge: true }
     )
   })
+
+  it('saveUserApplication omits undefined optional fields before setDoc', async () => {
+    const { saveUserApplication } = await import('@/app/utils/applicationFirebase')
+
+    await saveUserApplication({
+      id: '10',
+      userId: 'user-4',
+      company: 'Tailspin',
+      position: 'QA Engineer',
+      country: 'USA',
+      city: 'Seattle',
+      contactPerson: 'Alex Doe',
+      jobSource: 'Hirelytics',
+      jobLink: 'https://example.com/jobs/10',
+      applicationDate: '2026-03-01',
+      status: 'Applied',
+      notes: '',
+      recruiterId: undefined,
+      jobDetails: {
+        title: 'QA Engineer',
+        company: 'Tailspin',
+        location: 'Seattle',
+        type: 'Full-time',
+        postedDate: '2026-03-01',
+        salary: '$100,000',
+        description: 'Test product quality',
+        requirements: ['Playwright'],
+        status: 'Open',
+        applyLink: 'https://example.com/jobs/10/apply',
+      },
+    })
+
+    expect(setDocMock).toHaveBeenCalledTimes(1)
+    const payload = setDocMock.mock.calls[0][1] as Record<string, unknown>
+    expect(payload).not.toHaveProperty('recruiterId')
+  })
 })

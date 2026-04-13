@@ -17,6 +17,10 @@ import {
 } from 'firebase/firestore'
 import { useAuth } from '@clerk/nextjs'
 import { useEffect, useState } from 'react'
+import {
+  getDisplayStatusForApplication,
+  isInternalHirelyticsJob,
+} from '../../utils/applicationStatus'
 
 const MyApplicationsPage = memo(function MyApplicationsPage() {
   // Get authenticated user and loading state from Clerk
@@ -42,6 +46,7 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
         const data = d.data() as JobApplication
         return {
           ...data,
+          status: getDisplayStatusForApplication(data.status, data.jobSource),
           id: data.id ?? d.id, // Ensure every record has an id
         }
       })
@@ -62,7 +67,7 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
     if (!target) return
 
     // Hirelytics-hosted jobs are recruiter-managed, User cannot update status
-    if (target.jobSource === 'Hirelytics') return
+    if (isInternalHirelyticsJob(target.jobSource)) return
     // Update status in Firestore
     await updateDoc(doc(db, 'users', userId, 'applications', id), {
       status,

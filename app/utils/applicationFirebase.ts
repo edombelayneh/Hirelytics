@@ -120,6 +120,26 @@ function parseLocation(location: string): { city: string; country: string } {
   return { city: location.trim(), country: '' }
 }
 
+function stripUndefinedDeep<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => stripUndefinedDeep(item)) as T
+  }
+
+  if (value && typeof value === 'object') {
+    const input = value as Record<string, unknown>
+    const result: Record<string, unknown> = {}
+
+    Object.entries(input).forEach(([key, entryValue]) => {
+      if (entryValue === undefined) return
+      result[key] = stripUndefinedDeep(entryValue)
+    })
+
+    return result as T
+  }
+
+  return value
+}
+
 export function buildApplicationFromAvailableJob({
   userId,
   job,
@@ -287,15 +307,13 @@ export async function saveUserApplication(application: ApplicationPayload): Prom
     status: application.status || 'Applied',
   }
 
-  await setDoc(
-    ref,
-    {
-      ...normalizedApplication,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true }
-  )
+  const firestorePayload = stripUndefinedDeep({
+    ...normalizedApplication,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+
+  await setDoc(ref, firestorePayload, { merge: true })
 }
 
 export async function applyToAvailableJob({ userId, job }: BuildApplicationFromAvailableJobParams) {

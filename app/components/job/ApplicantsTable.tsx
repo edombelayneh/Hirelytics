@@ -12,6 +12,11 @@ import {
 import type { Applicant, ApplicationStatus } from '../../types/job'
 import { ApplicationStatusColor } from '../../utils/applicationStatusStyles'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import {
+  EXTERNAL_APPLICATION_STATUSES,
+  getRecruiterManagedStatusOptions,
+  isInternalHirelyticsJob,
+} from '../../utils/applicationStatus'
 
 type ApplicantsTableProps = {
   // List of applicants to display
@@ -83,6 +88,9 @@ export function ApplicantsTable({
                 const fullName = `${a.firstName} ${a.lastName}`.trim() || 'Unnamed'
                 const resumeLabel = a.resumeFileName || 'Download resume'
                 const status = a.applicationStatus ?? 'Applied'
+                const statusOptions = isInternalHirelyticsJob(a.jobSource)
+                  ? getRecruiterManagedStatusOptions()
+                  : EXTERNAL_APPLICATION_STATUSES
 
                 return (
                   <TableRow key={a.id}>
@@ -105,41 +113,20 @@ export function ApplicantsTable({
                         }
                       >
                         <SelectTrigger
-                          className={`w-[130px] ${ApplicationStatusColor[status] ?? ''}`}
+                          className={`w-[320px] ${ApplicationStatusColor[status] ?? ''}`}
                         >
                           <SelectValue placeholder='Status' />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem
-                            value='Applied'
-                            className={ApplicationStatusColor.Applied}
-                          >
-                            Applied
-                          </SelectItem>
-                          <SelectItem
-                            value='Interview'
-                            className={ApplicationStatusColor.Interview}
-                          >
-                            Interview
-                          </SelectItem>
-                          <SelectItem
-                            value='Offer'
-                            className={ApplicationStatusColor.Offer}
-                          >
-                            Offer
-                          </SelectItem>
-                          <SelectItem
-                            value='Rejected'
-                            className={ApplicationStatusColor.Rejected}
-                          >
-                            Rejected
-                          </SelectItem>
-                          <SelectItem
-                            value='Withdrawn'
-                            className={ApplicationStatusColor.Withdrawn}
-                          >
-                            Withdrawn
-                          </SelectItem>
+                          {statusOptions.map((statusOption) => (
+                            <SelectItem
+                              key={statusOption}
+                              value={statusOption}
+                              className={ApplicationStatusColor[statusOption]}
+                            >
+                              {statusOption}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </TableCell>

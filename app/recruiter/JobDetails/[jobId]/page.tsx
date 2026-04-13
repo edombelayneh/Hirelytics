@@ -9,7 +9,13 @@ import { db } from '../../../lib/firebaseClient'
 import { Button } from '../../../components/ui/button'
 import { JobDetailsCard } from '../../../components/job/JobDetailsCard'
 import { ApplicantsTable } from '../../../components/job/ApplicantsTable'
-import type { Applicant, Job, ApplicationStatus } from '../../../types/job'
+import {
+  INTERNAL_APPLICATION_PHASES,
+  type Applicant,
+  type Job,
+  type ApplicationStatus,
+} from '../../../types/job'
+import { getDisplayStatusForApplication } from '../../../utils/applicationStatus'
 
 //status for user applications
 const VALID_STATUSES: ApplicationStatus[] = [
@@ -18,6 +24,7 @@ const VALID_STATUSES: ApplicationStatus[] = [
   'Offer',
   'Rejected',
   'Withdrawn',
+  ...INTERNAL_APPLICATION_PHASES,
 ]
 
 function toApplicationStatus(value: unknown): ApplicationStatus {
@@ -70,6 +77,8 @@ export default function JobDetailsPage() {
 
           const profile = userSnap.exists() ? (userSnap.data()?.profile ?? {}) : {}
           const applicationData = applicationSnap.exists() ? (applicationSnap.data() ?? {}) : {}
+          const resolvedJobSource =
+            typeof applicationData.jobSource === 'string' ? applicationData.jobSource : 'Hirelytics'
 
           return {
             id: uid,
@@ -79,11 +88,11 @@ export default function JobDetailsPage() {
             resumeFileName: profile.resumeFileName,
             linkedinUrl: profile.linkedinUrl,
             portfolioUrl: profile.portfolioUrl,
-            applicationStatus: toApplicationStatus(applicationData.status),
-            jobSource:
-              typeof applicationData.jobSource === 'string'
-                ? applicationData.jobSource
-                : 'Hirelytics',
+            applicationStatus: getDisplayStatusForApplication(
+              toApplicationStatus(applicationData.status),
+              resolvedJobSource
+            ),
+            jobSource: resolvedJobSource,
           } as Applicant
         })
       )

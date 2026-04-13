@@ -146,7 +146,9 @@ vi.mock('../../../app/components/job/ApplicantsTable', () => ({
       </div>
       <div data-testid='first-applicant-status'>{applicants[0]?.applicationStatus}</div>
       <div data-testid='profile-href-a1'>{profileHref('a1')}</div>
-      <button onClick={() => onStatusChange?.('a1', 'Offer')}>mock-change-status</button>
+      <button onClick={() => onStatusChange?.('a1', 'Offers and Negotiations')}>
+        mock-change-status
+      </button>
     </div>
   ),
 }))
@@ -203,7 +205,9 @@ describe('JobDetailsPage', () => {
     render(<JobDetailsPage />)
 
     await waitFor(() => {
-      expect(screen.getByTestId('first-applicant-status').textContent).toBe('Interview')
+      expect(screen.getByTestId('first-applicant-status').textContent).toBe(
+        'Interviews (behavioral or technical)'
+      )
     })
 
     fireEvent.click(screen.getByRole('button', { name: 'mock-change-status' }))
@@ -212,9 +216,11 @@ describe('JobDetailsPage', () => {
       expect(updateDocMock).toHaveBeenCalledTimes(1)
       expect(updateDocMock).toHaveBeenCalledWith(
         { path: [{}, 'users', 'a1', 'applications', 'job-123'] },
-        { status: 'Offer', updatedAt: 'SERVER_TS' }
+        { status: 'Offers and Negotiations', updatedAt: 'SERVER_TS' }
       )
-      expect(screen.getByTestId('first-applicant-status').textContent).toBe('Offer')
+      expect(screen.getByTestId('first-applicant-status').textContent).toBe(
+        'Offers and Negotiations'
+      )
     })
   })
 })
