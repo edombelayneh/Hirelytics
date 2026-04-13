@@ -195,14 +195,29 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                     />
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      aria-label='View application details'
-                      onClick={() => router.push(`/applicant/applications/${String(app.id)}`)}
-                    >
-                      <ExternalLink className='h-4 w-4' />
-                    </Button>
+                    {(() => {
+                      const a = app as unknown as {
+                        recruiterFeedback?: string
+                        recruiterFeedbackSeen?: boolean
+                      }
+                      const hasUnread = !!a.recruiterFeedback && !a.recruiterFeedbackSeen
+                      return (
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          aria-label={
+                            hasUnread ? 'New recruiter feedback' : 'View application details'
+                          }
+                          onClick={() => router.push(`/applicant/applications/${String(app.id)}`)}
+                        >
+                          {hasUnread ? (
+                            <Mail className='h-4 w-4 text-pink-500' />
+                          ) : (
+                            <ExternalLink className='h-4 w-4' />
+                          )}
+                        </Button>
+                      )
+                    })()}
                   </TableCell>
                 </TableRow>
               ))}

@@ -96,6 +96,16 @@ export default function ApplicationDetailsPage() {
     })
   }, [isLoaded, userId, applicationId])
 
+  // Marks recruiter feedback as seen the first time the user opens the Feedback tab
+  const handleTabChange = async (value: string) => {
+    if (value !== 'feedback' || !userId || !recruiterFeedback) return
+    const appData = application as unknown as { recruiterFeedbackSeen?: boolean }
+    if (appData.recruiterFeedbackSeen) return
+    await updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
+      recruiterFeedbackSeen: true,
+    })
+  }
+
   // Persists edited notes back to the user's application document in Firestore
   const handleSaveNotes = async () => {
     if (!userId) return
@@ -218,7 +228,10 @@ export default function ApplicationDetailsPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue='job-posting'>
+        <Tabs
+          defaultValue='job-posting'
+          onValueChange={handleTabChange}
+        >
           {/* Title + tab switcher on the same row */}
           <div className='flex items-start justify-between gap-4'>
             <div>
