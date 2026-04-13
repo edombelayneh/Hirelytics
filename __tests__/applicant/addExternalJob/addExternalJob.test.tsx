@@ -21,7 +21,7 @@ vi.mock('@clerk/nextjs', () => ({
 
 // vi.hoisted ensures these are available inside the vi.mock factory (which is hoisted to top)
 const { saveUserApplicationMock, buildApplicationMock } = vi.hoisted(() => ({
-  saveUserApplicationMock: vi.fn<[], Promise<void>>().mockResolvedValue(undefined),
+  saveUserApplicationMock: vi.fn(() => Promise.resolve()),
   buildApplicationMock: vi.fn().mockReturnValue({
     id: 'mock-id',
     jobId: 'mock-id',

@@ -29,7 +29,6 @@ import {
   Save,
   Briefcase,
   Calendar,
-  CheckCircle2,
 } from 'lucide-react'
 import type { UserProfile } from '../../data/profileData'
 import { toast } from '../../components/ui/sonner'
@@ -84,7 +83,6 @@ export const ProfilePage = memo(function ProfilePage({
   const [jobStartDate, setJobStartDate] = useState('')
   const [jobEndDate, setJobEndDate] = useState('')
   const [jobHistorySaving, setJobHistorySaving] = useState(false)
-  const [jobHistorySuccessMessage, setJobHistorySuccessMessage] = useState('')
   const [editingJobHistoryId, setEditingJobHistoryId] = useState<string | null>(null)
 
   const profilePicInputRef = useRef<HTMLInputElement>(null)
@@ -92,7 +90,7 @@ export const ProfilePage = memo(function ProfilePage({
   const jobHistorySectionRef = useRef<HTMLDivElement>(null)
 
   const [errors, setErrors] = useState<Partial<Record<RequiredFields, string>>>({})
-  const safeJobHistory = jobHistory ?? []
+
   const [jobIsCurrent, setJobIsCurrent] = useState(false)
 
   // Sync Firestore -> form + Clerk autofill for missing fields
@@ -252,7 +250,6 @@ export const ProfilePage = memo(function ProfilePage({
     }
 
     setJobHistorySaving(true)
-    setJobHistorySuccessMessage('')
 
     try {
       const payload = {
@@ -267,11 +264,9 @@ export const ProfilePage = memo(function ProfilePage({
       // If editing, pass the existing jobHistoryId to update; otherwise, add a new entry
       if (editingJobHistoryId) {
         await onEditJobHistory(editingJobHistoryId, payload)
-        setJobHistorySuccessMessage('Job history updated successfully.')
         toast.success('Job history updated successfully')
       } else {
         await onAddJobHistory(payload)
-        setJobHistorySuccessMessage('Job history saved. You can add another one.')
         toast.success('Job history added successfully')
       }
 
@@ -307,6 +302,17 @@ export const ProfilePage = memo(function ProfilePage({
     return `${first}${last}`.trim() || 'U'
   }
 
+  const formatMonthYear = (dateString?: string) => {
+    if (!dateString) return ''
+
+    const date = new Date(dateString)
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      year: 'numeric',
+    })
+  }
+
   return (
     <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8'>
       {/* Header */}
@@ -326,7 +332,7 @@ export const ProfilePage = memo(function ProfilePage({
             <div className='relative'>
               <Avatar className='h-32 w-32'>
                 <AvatarImage
-                  src={formData.profilePicture || ''}
+                  src={formData.profilePicture || undefined}
                   alt='Profile'
                 />
                 <AvatarFallback className='text-2xl'>{getInitials()}</AvatarFallback>
@@ -608,12 +614,6 @@ export const ProfilePage = memo(function ProfilePage({
       </Card>
 
       {/* Job History */}
-      {jobHistorySuccessMessage && (
-        <div className='rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700'>
-          {jobHistorySuccessMessage}
-        </div>
-      )}
-
       <div ref={jobHistorySectionRef}>
         <Card className='p-6'>
           <div className='space-y-1'>
@@ -629,7 +629,7 @@ export const ProfilePage = memo(function ProfilePage({
                 <Label htmlFor='jobCompany'>Company</Label>
                 <Input
                   id='jobCompany'
-                  placeholder='TechCorp'
+                  placeholder='Hirelytics'
                   value={jobCompany}
                   onChange={(e) => setJobCompany(e.target.value)}
                 />
@@ -708,12 +708,12 @@ export const ProfilePage = memo(function ProfilePage({
             </Button>
 
             <div className='space-y-4'>
-              {jobHistoryLoading && safeJobHistory.length === 0 ? (
+              {jobHistoryLoading && jobHistory.length === 0 ? (
                 <p className='text-sm text-muted-foreground'>Loading job history...</p>
-              ) : safeJobHistory.length === 0 ? (
+              ) : jobHistory.length === 0 ? (
                 <p className='text-sm text-muted-foreground'>No job history added yet.</p>
               ) : (
-                safeJobHistory.map((item) => (
+                jobHistory.map((item) => (
                   <div
                     key={item.id}
                     className='rounded-lg border p-4 flex flex-col gap-3'
@@ -737,7 +737,6 @@ export const ProfilePage = memo(function ProfilePage({
                             setJobStartDate(item.startDate)
                             setJobEndDate(item.endDate || '')
                             setJobIsCurrent(item.isCurrent)
-                            setJobHistorySuccessMessage('')
 
                             const yOffset = -120
                             const element = jobHistorySectionRef.current
@@ -777,7 +776,8 @@ export const ProfilePage = memo(function ProfilePage({
                     <p className='text-sm whitespace-pre-wrap'>{item.roleDescription}</p>
 
                     <p className='text-sm text-muted-foreground'>
-                      {item.startDate} - {item.isCurrent ? 'Current' : item.endDate}
+                      {formatMonthYear(item.startDate)} -{' '}
+                      {item.isCurrent ? 'Current' : formatMonthYear(item.endDate)}
                     </p>
                   </div>
                 ))

@@ -4,10 +4,10 @@ import {
   deleteDoc,
   doc,
   getDocs,
-  query,
-  orderBy,
   serverTimestamp,
   updateDoc,
+  deleteField,
+  Timestamp,
 } from 'firebase/firestore'
 import { db } from '../lib/firebaseClient'
 
@@ -20,8 +20,8 @@ export interface JobHistoryItem {
   startDate: string
   endDate?: string
   isCurrent: boolean
-  createdAt?: unknown
-  updatedAt?: unknown
+  createdAt?: Timestamp
+  updatedAt?: Timestamp
 }
 
 const JOB_HISTORY_COLLECTION = 'jobHistory'
@@ -40,13 +40,7 @@ interface AddJobHistoryInput {
 // Fetch all job history entries for a user
 // Ordered by most recent (newest first)
 export async function getJobHistory(uid: string): Promise<JobHistoryItem[]> {
-  const q = query(
-    collection(db, 'users', uid, JOB_HISTORY_COLLECTION),
-    orderBy('isCurrent', 'desc'),
-    orderBy('endDate', 'desc')
-  )
-
-  const snap = await getDocs(q)
+  const snap = await getDocs(collection(db, 'users', uid, JOB_HISTORY_COLLECTION))
 
   // Map Firestore docs into our typed objects
   return snap.docs.map((d) => ({
@@ -80,7 +74,13 @@ export async function updateJobHistory(
   }
 ) {
   await updateDoc(doc(db, 'users', uid, JOB_HISTORY_COLLECTION, jobHistoryId), {
-    ...item,
+    company: item.company,
+    title: item.title,
+    roleDescription: item.roleDescription,
+    startDate: item.startDate,
+    isCurrent: item.isCurrent,
+
+    endDate: item.isCurrent ? deleteField() : item.endDate || '',
     updatedAt: serverTimestamp(),
   })
 }
