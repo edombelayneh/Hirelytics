@@ -208,7 +208,11 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                           aria-label={
                             hasUnread ? 'New recruiter feedback' : 'View application details'
                           }
-                          onClick={() => router.push(`/applicant/applications/${String(app.id)}`)}
+                          onClick={() =>
+                            router.push(
+                              `/applicant/applications/${String(app.id)}${hasUnread ? '?tab=feedback' : ''}`
+                            )
+                          }
                         >
                           {hasUnread ? (
                             <Mail className='h-4 w-4 text-pink-500' />

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
 import { doc, getDoc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore'
@@ -72,6 +72,8 @@ export default function ApplicationDetailsPage() {
   const router = useRouter()
   const { applicationId } = useParams<{ applicationId: string }>()
   const { userId, isLoaded } = useAuth()
+  const searchParams = useSearchParams()
+  const defaultTab = searchParams.get('tab') ?? 'job-posting'
 
   const [application, setApplication] = useState<JobApplication | null>(null)
   // undefined = listener not yet resolved; null = doc doesn't exist
@@ -229,7 +231,7 @@ export default function ApplicationDetailsPage() {
 
         {/* Tabs */}
         <Tabs
-          defaultValue='job-posting'
+          defaultValue={defaultTab}
           onValueChange={handleTabChange}
         >
           {/* Title + tab switcher on the same row */}
