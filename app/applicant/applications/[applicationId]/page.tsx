@@ -19,8 +19,6 @@ import { Textarea } from '@/app/components/ui/textarea'
 import type { JobApplication } from '@/app/data/mockData'
 import { formatDateWithYear } from '@/app/utils/dateFormatter'
 
-// ── helpers copied from jobs/[jobId]/page.tsx ──────────────────────────────
-
 type DetailRecord = Record<string, unknown>
 
 function isDetailRecord(value: unknown): value is DetailRecord {
@@ -72,6 +70,7 @@ export default function ApplicationDetailsPage() {
   const router = useRouter()
   const { applicationId } = useParams<{ applicationId: string }>()
   const { userId, isLoaded } = useAuth()
+  // Reads ?tab= from the URL so deep-links (e.g. from the mail icon) open the correct tab
   const searchParams = useSearchParams()
   const defaultTab = searchParams.get('tab') ?? 'job-posting'
 
@@ -98,8 +97,7 @@ export default function ApplicationDetailsPage() {
     })
   }, [isLoaded, userId, applicationId])
 
-  // Marks feedback seen when the page loads directly on the feedback tab (e.g. via ?tab=feedback).
-  // onValueChange only fires on tab *changes*, so this covers the initial-mount case.
+  // Marks feedback seen on mount when the URL deep-links directly to the Feedback tab
   useEffect(() => {
     if (defaultTab !== 'feedback' || !userId || !application) return
     const appData = application as unknown as {
@@ -202,6 +200,7 @@ export default function ApplicationDetailsPage() {
       : toList(mergedJob.preferredSkills).length > 0
         ? toList(mergedJob.preferredSkills)
         : toList(mergedJob.qualifications)
+  // Sourced from the application doc root — set by the recruiter, not part of mergedJob
   const recruiterFeedback =
     (application as unknown as { recruiterFeedback?: string }).recruiterFeedback ?? null
 
@@ -245,6 +244,7 @@ export default function ApplicationDetailsPage() {
 
         {/* Tabs */}
         <Tabs
+          // Opens on the tab from the URL param; marks feedback seen on every tab switch
           defaultValue={defaultTab}
           onValueChange={handleTabChange}
         >
