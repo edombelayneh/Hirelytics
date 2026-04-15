@@ -153,10 +153,16 @@ export default function JobDetailsPage() {
   const handleRejectionSubmit = async (reason: RejectionReason, explanation: string) => {
     if (!jobId || !rejectionModal.applicantId) return
 
+    // Persist feedback on the rejected applicant's own application record.
     await updateDoc(doc(db, 'users', rejectionModal.applicantId, 'applications', jobId), {
+      // Keep explicit identifiers for downstream reads/auditing.
+      jobId: String(jobId),
+      applicationId: String(jobId),
       status: 'Rejected' as ApplicationStatus,
+      // Structured feedback fields visible to applicant-side listeners/UI.
       rejectionReason: reason,
       rejectionExplanation: explanation,
+      rejectedAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     })
 

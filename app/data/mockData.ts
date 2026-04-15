@@ -4,6 +4,8 @@ import type { ApplicationStatus } from '../types/job'
 
 export interface JobApplication {
   id: string | number
+  jobId?: string
+  applicationId?: string
   company: string
   country: string
   city: string
@@ -16,6 +18,9 @@ export interface JobApplication {
   jobSource: JobSource
   // Stores the Firebase UID of the recruiter who posted the job the user applied to
   recruiterId?: string
+  rejectionReason?: string
+  rejectionExplanation?: string
+  rejectedAt?: unknown
 }
 
 // Load job applications from jobs data file
