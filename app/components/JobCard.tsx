@@ -22,6 +22,14 @@ interface JobCardProps {
   role?: 'applicant' | 'recruiter'
 }
 
+// Adding color classes for different job types (Full-time, Part-time, etc.)
+const JOB_TYPE_COLORS: Record<string, string> = {
+  'Full-time': 'bg-green-200 text-green-800',
+  'Part-time': 'bg-blue-300 text-blue-800',
+  Contract: 'bg-yellow-200 text-yellow-800',
+  Internship: 'bg-purple-200 text-purple-800',
+}
+
 // Memoized JobCard component for rendering job info and apply button
 export const JobCard = memo(function JobCard({
   job,
@@ -58,7 +66,9 @@ export const JobCard = memo(function JobCard({
             </CardDescription>
           </div>
           {/* Show badge for job type (Full-time, Part-time, etc.) */}
-          <Badge variant={job.type === 'Full-time' ? 'default' : 'secondary'}>{job.type}</Badge>
+          <Badge className={JOB_TYPE_COLORS[job.type] ?? 'bg-gray-100 text-gray-800'}>
+            {job.type}
+          </Badge>
         </div>
       </CardHeader>
 
