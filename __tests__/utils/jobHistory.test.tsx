@@ -18,7 +18,7 @@ vi.mock('@clerk/nextjs', () => ({
 }))
 
 // Mock toast
-vi.mock('../../../app/components/ui/sonner', () => ({
+vi.mock('../../app/components/ui/sonner', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
