@@ -73,6 +73,9 @@ const mockProfile = {
 
 // Mock save function
 const mockOnUpdateProfile = vi.fn()
+const mockOnAddJobHistory = vi.fn()
+const mockOnEditJobHistory = vi.fn()
+const mockOnDeleteJobHistory = vi.fn()
 
 /* -------------------------------------------------------------------------- */
 /*                                   TESTS                                    */
@@ -98,6 +101,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -121,6 +129,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -154,6 +167,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -199,6 +217,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -231,6 +254,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -261,6 +289,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -292,6 +325,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -322,6 +360,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -353,6 +396,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -378,6 +426,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -408,6 +461,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -437,6 +495,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -481,6 +544,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -495,6 +563,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -510,6 +583,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -525,6 +603,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -542,6 +625,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -562,6 +650,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -579,6 +672,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -596,6 +694,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
@@ -611,6 +714,11 @@ describe('ProfilePage', () => {
       <ProfilePage
         profile={mockProfile}
         onUpdateProfile={mockOnUpdateProfile}
+        jobHistory={[]}
+        jobHistoryLoading={false}
+        onAddJobHistory={vi.fn()}
+        onEditJobHistory={vi.fn()}
+        onDeleteJobHistory={vi.fn()}
       />
     )
 
