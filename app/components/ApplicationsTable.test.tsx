@@ -370,6 +370,62 @@ describe('ApplicationsTable', () => {
     expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1')
   })
 
+  // --- Unread Feedback Indicator Tests ---
+
+  it('shows ExternalLink icon when no recruiterFeedback is present', () => {
+    // Baseline: app with no feedback field shows the standard link icon
+    render(<ApplicationsTable applications={[mockApplications[0]]} />)
+
+    expect(screen.getByLabelText('View application details')).toBeTruthy()
+    expect(screen.queryByLabelText('New recruiter feedback')).toBeNull()
+  })
+
+  it('shows a mail icon when the application has unread recruiter feedback', () => {
+    // Unread = recruiterFeedback exists and recruiterFeedbackSeen is absent/false
+    const apps = [
+      { ...mockApplications[0], recruiterFeedback: 'Good interview!' },
+    ] as unknown as JobApplication[]
+
+    render(<ApplicationsTable applications={apps} />)
+
+    expect(screen.getByLabelText('New recruiter feedback')).toBeTruthy()
+    expect(screen.queryByLabelText('View application details')).toBeNull()
+  })
+
+  it('shows ExternalLink icon when recruiterFeedback has already been seen', () => {
+    // Seen = recruiterFeedback exists but recruiterFeedbackSeen is true
+    const apps = [
+      { ...mockApplications[0], recruiterFeedback: 'Good interview!', recruiterFeedbackSeen: true },
+    ] as unknown as JobApplication[]
+
+    render(<ApplicationsTable applications={apps} />)
+
+    expect(screen.getByLabelText('View application details')).toBeTruthy()
+    expect(screen.queryByLabelText('New recruiter feedback')).toBeNull()
+  })
+
+  it('navigates to ?tab=feedback when the mail icon is clicked', () => {
+    // Clicking the envelope should deep-link directly to the Feedback tab
+    const apps = [
+      { ...mockApplications[0], recruiterFeedback: 'Good interview!' },
+    ] as unknown as JobApplication[]
+
+    render(<ApplicationsTable applications={apps} />)
+
+    fireEvent.click(screen.getByLabelText('New recruiter feedback'))
+
+    expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1?tab=feedback')
+  })
+
+  it('navigates to the standard URL when no unread feedback exists', () => {
+    // No feedback → normal navigation without any ?tab= param
+    render(<ApplicationsTable applications={[mockApplications[0]]} />)
+
+    fireEvent.click(screen.getByLabelText('View application details'))
+
+    expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1')
+  })
+
   // --- Edge Case Tests ---
 
   it('renders correctly with empty applications array', () => {

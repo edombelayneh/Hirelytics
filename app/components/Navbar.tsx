@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { UserButton, useUser } from '@clerk/nextjs'
 import { Home, Briefcase, BarChart3, User, Menu, X } from 'lucide-react'
+import { useUnreadFeedbackCount } from '../hooks/useUnreadFeedbackCount'
 
 /**
  * User roles that control which navigation links appear.
@@ -28,6 +29,8 @@ type NavItem = {
   href: string
   icon: ElementType
   match: (pathname: string) => boolean
+  /** Notification count shown as a badge next to the label. Hidden when 0. */
+  badge?: number
 }
 
 export function Navbar() {
@@ -92,6 +95,9 @@ export function Navbar() {
    */
   const role = metaRole ?? inferredRole
 
+  /** Count of applications with unread recruiter feedback. Only subscribed for applicants. */
+  const unreadFeedbackCount = useUnreadFeedbackCount(role === 'applicant')
+
   /**
    * Navigation shown to applicants.
    */
@@ -113,6 +119,7 @@ export function Navbar() {
       href: '/applicant/applications',
       icon: BarChart3,
       match: (currentPath) => currentPath.startsWith('/applicant/applications'),
+      badge: unreadFeedbackCount,
     },
   ]
 
@@ -238,7 +245,14 @@ export function Navbar() {
                 }`}
               >
                 <Icon className='h-5 w-5 xl:h-6 xl:w-6' />
-                {item.label}
+                <span className='relative'>
+                  {item.label}
+                  {!!item.badge && (
+                    <span className='absolute -top-3 -right-3 flex h-4 min-w-4 items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold leading-none text-white'>
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  )}
+                </span>
               </Link>
             )
           })}
@@ -299,7 +313,14 @@ export function Navbar() {
                 onClick={handleMobileNavClick}
               >
                 <Icon className='h-5 w-5' />
-                {item.label}
+                <span className='relative'>
+                  {item.label}
+                  {!!item.badge && (
+                    <span className='absolute -top-3 -right-3 flex h-4 min-w-4 items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold leading-none text-white'>
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  )}
+                </span>
               </Link>
             )
           })}

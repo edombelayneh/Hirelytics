@@ -7,7 +7,7 @@ import { Badge } from './ui/badge'
 import { Input } from './ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { ExternalLink, Search, Filter } from 'lucide-react'
+import { ExternalLink, Mail, Search, Filter } from 'lucide-react'
 import { JobApplication } from '../data/mockData'
 import { formatDate } from '../utils/dateFormatter'
 import { ApplicationStatusColor } from '../utils/applicationStatusStyles'
@@ -195,14 +195,35 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                     />
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      aria-label='View application details'
-                      onClick={() => router.push(`/applicant/applications/${String(app.id)}`)}
-                    >
-                      <ExternalLink className='h-4 w-4' />
-                    </Button>
+                    {/* Shows a pink mail icon when the app has unread recruiter feedback, otherwise the standard link */}
+                    {(() => {
+                      const a = app as unknown as {
+                        recruiterFeedback?: string
+                        recruiterFeedbackSeen?: boolean
+                      }
+                      // True when feedback exists but hasn't been viewed yet
+                      const hasUnread = !!a.recruiterFeedback && !a.recruiterFeedbackSeen
+                      return (
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          aria-label={
+                            hasUnread ? 'New recruiter feedback' : 'View application details'
+                          }
+                          onClick={() =>
+                            router.push(
+                              `/applicant/applications/${String(app.id)}${hasUnread ? '?tab=feedback' : ''}`
+                            )
+                          }
+                        >
+                          {hasUnread ? (
+                            <Mail className='h-4 w-4 text-pink-500' />
+                          ) : (
+                            <ExternalLink className='h-4 w-4' />
+                          )}
+                        </Button>
+                      )
+                    })()}
                   </TableCell>
                 </TableRow>
               ))}
