@@ -120,16 +120,22 @@ function parseLocation(location: string): { city: string; country: string } {
   return { city: location.trim(), country: '' }
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== 'object') return false
+
+  const prototype = Object.getPrototypeOf(value)
+  return prototype === Object.prototype || prototype === null
+}
+
 function stripUndefinedDeep<T>(value: T): T {
   if (Array.isArray(value)) {
     return value.map((item) => stripUndefinedDeep(item)) as T
   }
 
-  if (value && typeof value === 'object') {
-    const input = value as Record<string, unknown>
+  if (isPlainObject(value)) {
     const result: Record<string, unknown> = {}
 
-    Object.entries(input).forEach(([key, entryValue]) => {
+    Object.entries(value).forEach(([key, entryValue]) => {
       if (entryValue === undefined) return
       result[key] = stripUndefinedDeep(entryValue)
     })
