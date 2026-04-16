@@ -134,7 +134,7 @@ describe('HeroPanel', () => {
       jobLink: 'https://example.com',
       position: 'Engineer',
       applicationDate: '2026-01-01',
-      status: 'Applied',
+      status: 'APPLIED',
       contactPerson: 'John',
       notes: '',
       jobSource: 'LinkedIn',
@@ -154,9 +154,9 @@ describe('HeroPanel', () => {
   ]
 
   const standardStatusData = [
-    { status: 'Applied', count: 1 },
-    { status: 'Interview', count: 1 },
-    { status: 'Offer', count: 0 },
+    { status: 'APPLIED', count: 1 },
+    { status: 'INTERVIEWS', count: 1 },
+    { status: 'OFFERS', count: 0 },
   ]
 
   beforeEach(() => {
@@ -261,9 +261,9 @@ describe('HeroPanel', () => {
   it('renders status legend dots with correct colors', () => {
     render(<HeroPanel applications={mockApplications} />)
 
-    // Legend labels look like: "Applied (1)", "Interview (1)"
-    const appliedLabel = screen.getByText(/Applied\s*\(\s*1\s*\)/i)
-    const interviewLabel = screen.getByText(/Interview\s*\(\s*1\s*\)/i)
+    // Legend labels look like: "APPLIED (1)", "INTERVIEWS (1)"
+    const appliedLabel = screen.getByText(/APPLIED\s*\(\s*1\s*\)/i)
+    const interviewLabel = screen.getByText(/INTERVIEWS\s*\(\s*1\s*\)/i)
 
     const appliedDot = appliedLabel.previousSibling as HTMLElement
     const interviewDot = interviewLabel.previousSibling as HTMLElement

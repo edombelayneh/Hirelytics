@@ -56,8 +56,7 @@ vi.mock('./ui/select', () => {
   // These are just structural in your component; no-op wrappers are enough.
   const SelectContent = ({ children }: { children: React.ReactNode }) => <>{children}</>
   const SelectTrigger = ({ children }: { children: React.ReactNode }) => <>{children}</>
-  const SelectValue = ({ placeholder }: { placeholder?: string }) =>
-    placeholder ? <span>{placeholder}</span> : null
+  const SelectValue = (_: { placeholder?: string }) => null
 
   return { Select, SelectItem, SelectContent, SelectTrigger, SelectValue }
 })
@@ -77,7 +76,7 @@ describe('ApplicationsTable', () => {
       jobLink: 'https://example.com/job1',
       position: 'Software Engineer',
       applicationDate: '2025-01-15',
-      status: 'Applied',
+      status: 'APPLIED',
       contactPerson: 'John Doe',
       notes: 'Great company culture',
       jobSource: 'LinkedIn',
@@ -90,7 +89,7 @@ describe('ApplicationsTable', () => {
       jobLink: 'https://example.com/job2',
       position: 'Frontend Developer',
       applicationDate: '2025-01-20',
-      status: 'Interview',
+      status: 'INTERVIEWS',
       contactPerson: 'Jane Smith',
       notes: 'Second round scheduled',
       jobSource: 'Indeed',
@@ -103,7 +102,7 @@ describe('ApplicationsTable', () => {
       jobLink: 'https://example.com/job3',
       position: 'Backend Developer',
       applicationDate: '2025-01-10',
-      status: 'Rejected',
+      status: 'REJECTED',
       contactPerson: 'Bob Johnson',
       notes: 'Not a good fit',
       jobSource: 'Company Website',
@@ -276,8 +275,8 @@ describe('ApplicationsTable', () => {
     const comboboxes = screen.getAllByRole('combobox')
     const statusFilterSelect = comboboxes[0]
 
-    // Filter to Interview -> only StartupXYZ remains
-    fireEvent.change(statusFilterSelect, { target: { value: 'Interview' } })
+    // Filter to INTERVIEWS -> only StartupXYZ remains
+    fireEvent.change(statusFilterSelect, { target: { value: 'INTERVIEWS' } })
 
     expect(screen.getByText('StartupXYZ')).toBeTruthy()
     expect(screen.queryByText('TechCorp')).toBeNull()
@@ -351,10 +350,10 @@ describe('ApplicationsTable', () => {
     const comboboxes = screen.getAllByRole('combobox')
     const firstRowStatus = comboboxes[1]
 
-    fireEvent.change(firstRowStatus, { target: { value: 'Interview' } })
+    fireEvent.change(firstRowStatus, { target: { value: 'INTERVIEWS' } })
 
     expect(mockOnStatusChange).toHaveBeenCalledTimes(1)
-    expect(mockOnStatusChange).toHaveBeenCalledWith('1', 'Interview')
+    expect(mockOnStatusChange).toHaveBeenCalledWith('1', 'INTERVIEWS')
   })
 
   // --- External Link Tests ---
@@ -425,7 +424,7 @@ describe('ApplicationsTable', () => {
         jobLink: '',
         position: 'Engineer',
         applicationDate: '2026-01-01',
-        status: 'Applied',
+        status: 'APPLIED',
         contactPerson: '',
         notes: '',
         jobSource: 'Hirelytics',

@@ -16,6 +16,7 @@ import {
   EXTERNAL_APPLICATION_STATUSES,
   getRecruiterManagedStatusOptions,
   isInternalHirelyticsJob,
+  normalizeInternalStatus,
 } from '../../utils/applicationStatus'
 
 type ApplicantsTableProps = {
@@ -87,7 +88,7 @@ export function ApplicantsTable({
               applicants.map((a) => {
                 const fullName = `${a.firstName} ${a.lastName}`.trim() || 'Unnamed'
                 const resumeLabel = a.resumeFileName || 'Download resume'
-                const status = a.applicationStatus ?? 'Applied'
+                const status = normalizeInternalStatus(a.applicationStatus ?? 'APPLIED')
                 const statusOptions = isInternalHirelyticsJob(a.jobSource)
                   ? getRecruiterManagedStatusOptions()
                   : EXTERNAL_APPLICATION_STATUSES
@@ -113,7 +114,7 @@ export function ApplicantsTable({
                         }
                       >
                         <SelectTrigger
-                          className={`w-[320px] ${ApplicationStatusColor[status] ?? ''}`}
+                          className={`w-[160px] ${ApplicationStatusColor[status] ?? ''}`}
                         >
                           <SelectValue placeholder='Status' />
                         </SelectTrigger>

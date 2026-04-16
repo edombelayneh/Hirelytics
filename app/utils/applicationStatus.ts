@@ -1,29 +1,33 @@
-import type { ApplicationStatus, InternalApplicationPhase } from '../types/job'
-import { INTERNAL_APPLICATION_PHASES } from '../types/job'
+import type { ApplicationStatus, InternalApplicationStatus } from '../types/job'
+import { INTERNAL_APPLICATION_STATUSES } from '../types/job'
 import type { JobSource } from '../types/jobSource'
 
-export const EXTERNAL_APPLICATION_STATUSES: Array<ApplicationStatus> = [
-  'resume stage',
-  'assessments',
-  'phone call',
-  'Interviews (behavioral or technical)',
-  'Offers and Negotiations',
-  'Rejected',
-  'Withdrawn',
+export const EXTERNAL_APPLICATION_STATUSES: InternalApplicationStatus[] = [
+  ...INTERNAL_APPLICATION_STATUSES,
 ]
 
-const LEGACY_INTERNAL_TO_PHASE: Partial<Record<ApplicationStatus, InternalApplicationPhase>> = {
-  Applied: 'resume stage',
-  Interview: 'Interviews (behavioral or technical)',
-  Offer: 'Offers and Negotiations',
-}
-
-const LEGACY_PHASE_LABELS: Record<string, InternalApplicationPhase> = {
-  'Phase I: resume stage': 'resume stage',
-  'Phase II: assessments and phone calls': 'assessments',
-  'assessments and phone calls': 'assessments',
-  'Phase III: interviews (behavioral or technical)': 'Interviews (behavioral or technical)',
-  'Phase IV: offers and negotiations': 'Offers and Negotiations',
+const LEGACY_STATUS_TO_CANONICAL: Record<string, InternalApplicationStatus> = {
+  APPLIED: 'APPLIED',
+  SCREENING: 'SCREENING',
+  INTERVIEWS: 'INTERVIEWS',
+  OFFERS: 'OFFERS',
+  REJECTED: 'REJECTED',
+  WITHDRAWN: 'WITHDRAWN',
+  Applied: 'APPLIED',
+  Interview: 'INTERVIEWS',
+  Offer: 'OFFERS',
+  Rejected: 'REJECTED',
+  Withdrawn: 'WITHDRAWN',
+  'resume stage': 'APPLIED',
+  assessments: 'SCREENING',
+  'phone call': 'SCREENING',
+  'Interviews (behavioral or technical)': 'INTERVIEWS',
+  'Offers and Negotiations': 'OFFERS',
+  'Phase I: resume stage': 'APPLIED',
+  'Phase II: assessments and phone calls': 'SCREENING',
+  'assessments and phone calls': 'SCREENING',
+  'Phase III: interviews (behavioral or technical)': 'INTERVIEWS',
+  'Phase IV: offers and negotiations': 'OFFERS',
 }
 
 export function isInternalHirelyticsJob(jobSource: JobSource | string | undefined): boolean {
@@ -31,7 +35,7 @@ export function isInternalHirelyticsJob(jobSource: JobSource | string | undefine
 }
 
 export function normalizeInternalStatus(status: ApplicationStatus): ApplicationStatus {
-  return LEGACY_INTERNAL_TO_PHASE[status] ?? LEGACY_PHASE_LABELS[status] ?? status
+  return LEGACY_STATUS_TO_CANONICAL[status] ?? status
 }
 
 export function getDisplayStatusForApplication(
@@ -42,46 +46,18 @@ export function getDisplayStatusForApplication(
   return normalizeInternalStatus(status)
 }
 
-export function getRecruiterManagedStatusOptions(): InternalApplicationPhase[] {
-  return [...INTERNAL_APPLICATION_PHASES]
-}
-
-function isAppliedStatus(status: ApplicationStatus): boolean {
-  const normalized = status as string
-  return (
-    normalized === 'Applied' ||
-    normalized === 'resume stage' ||
-    normalized === 'Phase I: resume stage'
-  )
-}
-
-function isInterviewStatus(status: ApplicationStatus): boolean {
-  const normalized = status as string
-  return (
-    normalized === 'Interview' ||
-    normalized === 'assessments' ||
-    normalized === 'phone call' ||
-    normalized === 'Interviews (behavioral or technical)' ||
-    normalized === 'assessments and phone calls' ||
-    normalized === 'Phase II: assessments and phone calls' ||
-    normalized === 'Phase III: interviews (behavioral or technical)'
-  )
-}
-
-function isOfferStatus(status: ApplicationStatus): boolean {
-  const normalized = status as string
-  return (
-    normalized === 'Offer' ||
-    normalized === 'Offers and Negotiations' ||
-    normalized === 'Phase IV: offers and negotiations'
-  )
+export function getRecruiterManagedStatusOptions(): InternalApplicationStatus[] {
+  return [...INTERNAL_APPLICATION_STATUSES]
 }
 
 export function summarizeApplicationStatuses(statuses: ApplicationStatus[]) {
-  const applied = statuses.filter(isAppliedStatus).length
-  const interviews = statuses.filter(isInterviewStatus).length
-  const offers = statuses.filter(isOfferStatus).length
-  const rejected = statuses.filter((status) => status === 'Rejected').length
+  const normalized = statuses.map((status) => normalizeInternalStatus(status))
+  const applied = normalized.filter((status) => status === 'APPLIED').length
+  const interviews = normalized.filter(
+    (status) => status === 'SCREENING' || status === 'INTERVIEWS'
+  ).length
+  const offers = normalized.filter((status) => status === 'OFFERS').length
+  const rejected = normalized.filter((status) => status === 'REJECTED').length
 
   return {
     applied,

@@ -3,6 +3,7 @@ import { db } from '../lib/firebaseClient'
 import type { AvailableJob } from '../data/availableJobs'
 import type { JobSource } from '../types/jobSource'
 import { normalizeJobSource } from '../types/jobSource'
+import type { ApplicationStatus } from '../types/job'
 
 type DetailRecord = Record<string, unknown>
 
@@ -32,7 +33,7 @@ type ApplicationPayload = {
   jobSource: JobSource
   jobLink: string
   applicationDate: string
-  status: 'Applied'
+  status: ApplicationStatus
   notes: string
   recruiterId?: string
   visaRequired?: string
@@ -164,7 +165,7 @@ export function buildApplicationFromAvailableJob({
     jobSource: 'Hirelytics',
     jobLink: job.applyLink,
     applicationDate: new Date().toISOString().slice(0, 10),
-    status: 'Applied',
+    status: 'APPLIED',
     notes: '',
     recruiterId: job.recruiterId,
     jobDetails: {
@@ -280,7 +281,7 @@ export function buildApplicationFromJobDetails({
     jobSource: normalizedSource,
     jobLink,
     applicationDate: new Date().toISOString().slice(0, 10),
-    status: 'Applied',
+    status: 'APPLIED',
     notes: '',
     recruiterId,
     ...(visaRequired ? { visaRequired } : {}),
@@ -310,7 +311,7 @@ export async function saveUserApplication(application: ApplicationPayload): Prom
     ...application,
     id: application.id || resolvedJobId,
     jobId: resolvedJobId,
-    status: application.status || 'Applied',
+    status: application.status || 'APPLIED',
   }
 
   const firestorePayload = stripUndefinedDeep({

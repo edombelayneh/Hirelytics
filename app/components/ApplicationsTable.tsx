@@ -16,6 +16,7 @@ import {
   EXTERNAL_APPLICATION_STATUSES,
   getRecruiterManagedStatusOptions,
   isInternalHirelyticsJob,
+  normalizeInternalStatus,
 } from '../utils/applicationStatus'
 
 interface ApplicationsTableProps {
@@ -48,7 +49,8 @@ export const ApplicationsTable = memo(function ApplicationsTable({
       app.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.city.toLowerCase().includes(searchTerm.toLowerCase())
     // Matches status when a specific filter is selected
-    const matchesStatus = statusFilter === 'all' || app.status === statusFilter
+    const matchesStatus =
+      statusFilter === 'all' || normalizeInternalStatus(app.status) === statusFilter
 
     return matchesSearch && matchesStatus
   })
@@ -153,13 +155,14 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                   <TableCell>
                     {(() => {
                       const recruiterManaged = isRecruiterManaged(app)
+                      const currentStatus = normalizeInternalStatus(app.status)
                       const editableStatuses = recruiterManaged
                         ? recruiterManagedStatuses
                         : EXTERNAL_APPLICATION_STATUSES
 
                       return (
                         <Select
-                          value={app.status}
+                          value={currentStatus}
                           disabled={recruiterManaged}
                           onValueChange={(status) => {
                             if (recruiterManaged) return
@@ -167,7 +170,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                           }}
                         >
                           <SelectTrigger
-                            className={`w-[320px] ${ApplicationStatusColor[app.status] ?? ''}`}
+                            className={`w-[160px] ${ApplicationStatusColor[currentStatus] ?? ''}`}
                           >
                             <SelectValue placeholder='Status' />
                           </SelectTrigger>

@@ -66,7 +66,7 @@ function makeApplicant(overrides: Partial<Applicant> = {}): Applicant {
     id: 'a1',
     firstName: 'Jane',
     lastName: 'Doe',
-    applicationStatus: 'Applied',
+    applicationStatus: 'APPLIED',
     ...overrides,
   }
 }
@@ -137,10 +137,10 @@ describe('ApplicantsTable', () => {
 
     const statusSelect = screen.getByRole('combobox') as HTMLSelectElement
     expect(statusSelect.disabled).toBe(true)
-    expect(statusSelect.value).toBe('Applied')
+    expect(statusSelect.value).toBe('APPLIED')
   })
 
-  it('uses Applied as status fallback when applicationStatus is missing', () => {
+  it('uses APPLIED as status fallback when applicationStatus is missing', () => {
     render(
       <ApplicantsTable
         applicants={[makeApplicant({ applicationStatus: undefined })]}
@@ -149,7 +149,7 @@ describe('ApplicantsTable', () => {
     )
 
     const statusSelect = screen.getByRole('combobox') as HTMLSelectElement
-    expect(statusSelect.value).toBe('Applied')
+    expect(statusSelect.value).toBe('APPLIED')
   })
 
   it('calls onStatusChange with applicant id and selected status', () => {
@@ -162,10 +162,10 @@ describe('ApplicantsTable', () => {
       />
     )
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Interview' } })
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'INTERVIEWS' } })
 
     expect(onStatusChange).toHaveBeenCalledTimes(1)
-    expect(onStatusChange).toHaveBeenCalledWith('a1', 'Interview')
+    expect(onStatusChange).toHaveBeenCalledWith('a1', 'INTERVIEWS')
   })
 
   it('renders resume download link when resume exists', () => {
