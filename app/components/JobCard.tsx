@@ -24,10 +24,10 @@ interface JobCardProps {
 
 // Adding color classes for different job types (Full-time, Part-time, etc.)
 const JOB_TYPE_COLORS: Record<string, string> = {
-  'Full-time': 'bg-green-200 text-green-800',
-  'Part-time': 'bg-blue-300 text-blue-800',
-  Contract: 'bg-yellow-200 text-yellow-800',
-  Internship: 'bg-purple-200 text-purple-800',
+  'full-time': 'bg-[var(--accent-teal)] text-black',
+  'part-time': 'bg-[var(--accent-pink)] text-white',
+  contract: 'bg-[var(--accent-gold)] text-black',
+  internship: 'bg-accent text-accent-foreground',
 }
 
 // Memoized JobCard component for rendering job info and apply button
@@ -39,6 +39,7 @@ export const JobCard = memo(function JobCard({
   role = 'applicant',
 }: JobCardProps) {
   const requirements = Array.isArray(job.requirements) ? job.requirements : []
+  const jobTypeKey = (job.type ?? '').trim().toLowerCase()
 
   // Calculate how many days since the job was posted
   const daysSincePosted = Math.floor(
@@ -66,8 +67,8 @@ export const JobCard = memo(function JobCard({
             </CardDescription>
           </div>
           {/* Show badge for job type (Full-time, Part-time, etc.) */}
-          <Badge className={JOB_TYPE_COLORS[job.type] ?? 'bg-gray-100 text-gray-800'}>
-            {job.type}
+          <Badge className={JOB_TYPE_COLORS[jobTypeKey] ?? 'bg-muted text-muted-foreground'}>
+            {job.type ?? 'Unknown'}
           </Badge>
         </div>
       </CardHeader>
