@@ -14,7 +14,7 @@ describe('JobCard', () => {
   // --- Mock job data for testing ---
   // This object simulates a real job and will be passed to the JobCard component
   const mockJob: AvailableJob = {
-    id: 1,
+    id: '1',
     title: 'Software Engineer',
     company: 'TechCorp Inc.',
     location: 'New York, NY',
@@ -31,6 +31,7 @@ describe('JobCard', () => {
     status: 'Open',
     applyLink: '#',
     recruiterId: 'recruiter-uid-1',
+    applicantsId: [],
   }
 
   // --- Mock function for the Apply button ---
@@ -99,6 +100,34 @@ describe('JobCard', () => {
       />
     )
     expect(screen.getByText('Full-time')).toBeTruthy()
+  })
+
+  it('handles job type case-insensitively', () => {
+    const lowerCaseJob = { ...mockJob, type: 'full-time' }
+
+    render(
+      <JobCard
+        job={lowerCaseJob}
+        onApply={mockOnApply}
+        isApplied={false}
+      />
+    )
+
+    expect(screen.getByText('full-time')).toBeTruthy()
+  })
+
+  it('does not crash when job type is undefined', () => {
+    const noTypeJob = { ...mockJob, type: undefined as unknown as string }
+
+    render(
+      <JobCard
+        job={noTypeJob}
+        onApply={mockOnApply}
+        isApplied={false}
+      />
+    )
+
+    expect(screen.getByText('Unknown')).toBeTruthy()
   })
 
   // --- Test that part-time badge is displayed for part-time jobs ---
@@ -299,5 +328,20 @@ describe('JobCard', () => {
     // View Details button should still be there and full width
     const viewButton = within(card).getByRole('link', { name: /View Details/i })
     expect(viewButton).toBeTruthy()
+  })
+
+  it('uses fallback styling when job type is missing', () => {
+    const noTypeJob = { ...mockJob, type: undefined as unknown as string }
+
+    render(
+      <JobCard
+        job={noTypeJob}
+        onApply={mockOnApply}
+        isApplied={false}
+      />
+    )
+
+    const badge = screen.getByText('Unknown')
+    expect(badge.className).toContain('bg-muted')
   })
 })
