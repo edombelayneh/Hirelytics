@@ -17,7 +17,7 @@ async function loadExtractorWithPdfMock() {
     default: (input: Buffer) => mocks.pdfParseMock(input),
   }))
 
-  return import('@/app/utils/resumeTextExtractor')
+  return import('@/app/utils/resume/resumeTextExtractor')
 }
 
 function normalizeResumeText(value: string): string {
@@ -128,7 +128,7 @@ describe('app/utils/resumeTextExtractor', () => {
   })
 
   it('detectResumeFormat prefers contentType over filename', async () => {
-    const { detectResumeFormat } = await import('@/app/utils/resumeTextExtractor')
+    const { detectResumeFormat } = await import('@/app/utils/resume/resumeTextExtractor')
 
     expect(detectResumeFormat({ contentType: 'application/pdf', fileName: 'resume.docx' })).toBe(
       'pdf'
@@ -167,7 +167,7 @@ describe('app/utils/resumeTextExtractor', () => {
   })
 
   it('extractResumeText reports unsupported DOCX files', async () => {
-    const { extractResumeText } = await import('@/app/utils/resumeTextExtractor')
+    const { extractResumeText } = await import('@/app/utils/resume/resumeTextExtractor')
 
     const result = await extractResumeText({
       data: Buffer.from('docx-bytes'),
@@ -180,7 +180,7 @@ describe('app/utils/resumeTextExtractor', () => {
   })
 
   it('extractResumeText reports unsupported file types', async () => {
-    const { extractResumeText } = await import('@/app/utils/resumeTextExtractor')
+    const { extractResumeText } = await import('@/app/utils/resume/resumeTextExtractor')
 
     const result = await extractResumeText({
       data: Buffer.from('txt-bytes'),
@@ -194,13 +194,13 @@ describe('app/utils/resumeTextExtractor', () => {
   it('parses the uploaded sample PDF resume and matches expected text', async () => {
     vi.resetModules()
     vi.doUnmock('pdf-parse')
-    const { parseResumeFile } = await import('@/app/utils/resumeTextExtractor')
+    const { parseResumeFile } = await import('@/app/utils/resume/resumeTextExtractor')
     const currentYear = new Date().getFullYear()
     const basePath = path.resolve(process.cwd(), '__tests__', 'fixtures')
     // The text fixture validates raw OCR/extraction; the JSON fixture validates parsed experience fields.
     const expectedTextPath = path.join(basePath, 'sample_resume_expected.txt')
     const expectedJsonPath = path.join(basePath, 'sample_resume_expected.json')
-    const samplePath = path.resolve(process.cwd(), 'app', 'utils', 'sample_resume.pdf')
+    const samplePath = path.resolve(process.cwd(), 'app', 'utils', 'resume', 'sample_resume.pdf')
 
     const [expectedText, expectedJson, pdfBuffer] = await Promise.all([
       readFile(expectedTextPath, 'utf8'),

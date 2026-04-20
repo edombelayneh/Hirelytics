@@ -11,5 +11,9 @@ export {
   mergeJobHistoryItems,
   mapExperiencesToJobHistory,
   parseResumeTextToExperiences,
-} from './resumeParser'
-export type { JobHistoryItem, JobHistoryMergeOptions, JobHistoryMapOptions } from './resumeParser'
+} from './resume/resumeParser'
+export type {
+  JobHistoryItem,
+  JobHistoryMergeOptions,
+  JobHistoryMapOptions,
+} from './resume/resumeParser'
