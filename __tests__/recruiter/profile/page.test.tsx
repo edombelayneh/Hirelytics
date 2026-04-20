@@ -9,7 +9,6 @@ import type { RecruiterProfile } from '../../../app/utils/userProfiles'
 /* -------------------------------------------------------------------------- */
 
 declare global {
-  // eslint-disable-next-line no-var
   var __mockCurrentUser: { uid: string } | null
 }
 
@@ -20,12 +19,8 @@ globalThis.__mockCurrentUser = { uid: 'uid-123' }
 /* -------------------------------------------------------------------------- */
 
 // Mock the entire userProfiles module to control getRecruiterProfile and saveRecruiterProfile behavior in tests
-const getRecruiterProfileMock = vi.fn(
-  async (_uid: string): Promise<RecruiterProfile | null> => null
-)
-const saveRecruiterProfileMock = vi.fn(
-  async (_uid: string, _profile: RecruiterProfile): Promise<void> => {}
-)
+const getRecruiterProfileMock = vi.fn(async (): Promise<RecruiterProfile | null> => null)
+const saveRecruiterProfileMock = vi.fn(async (): Promise<void> => {})
 
 // Mock the entire firebaseClient module to control firebaseAuth.currentUser behavior in tests
 vi.mock('../../../app/utils/userProfiles', () => {

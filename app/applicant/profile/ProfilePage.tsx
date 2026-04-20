@@ -763,7 +763,7 @@ export const ProfilePage = memo(function ProfilePage({
                             try {
                               await onDeleteJobHistory(item.id)
                               toast.success('Job history deleted successfully')
-                            } catch (error) {
+                            } catch {
                               toast.error('Failed to delete job history. Please try again.')
                             }
                           }}

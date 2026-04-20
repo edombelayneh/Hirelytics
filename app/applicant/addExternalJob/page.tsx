@@ -89,33 +89,6 @@ function inferJobSource(url: string): JobSource {
   }
 }
 
-function normalizeEmploymentType(value: string): EmploymentType {
-  const lower = value.toLowerCase()
-  if (lower.includes('full')) return 'full-time'
-  if (lower.includes('part')) return 'part-time'
-  if (lower.includes('contract')) return 'contract'
-  if (lower.includes('intern')) return 'internship'
-  return ''
-}
-
-function normalizeWorkArrangement(value: string): WorkArrangement {
-  const lower = value.toLowerCase()
-  if (lower.includes('hybrid')) return 'hybrid'
-  if (lower.includes('remote')) return 'remote'
-  if (lower.includes('onsite') || lower.includes('on-site') || lower.includes('in person')) {
-    return 'onsite'
-  }
-  return ''
-}
-
-function normalizePaymentType(value: string): PaymentType {
-  const lower = value.toLowerCase()
-  if (lower.includes('hour')) return 'hourly'
-  if (lower.includes('salary') || lower.includes('year') || lower.includes('annual'))
-    return 'salary'
-  return ''
-}
-
 function sanitizeParsedText(value: unknown) {
   if (typeof value !== 'string') return ''
   return value

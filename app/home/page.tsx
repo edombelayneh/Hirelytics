@@ -14,8 +14,6 @@ import {
   BarChart3,
   Briefcase,
   ClipboardList,
-  CheckCircle2,
-  LineChart,
   ArrowRight,
   Users,
   Sparkles,

@@ -23,7 +23,6 @@ const defaultRecruiterProfile: RecruiterProfile = {
 
 export default function RecruiterProfileRoute() {
   const [profile, setProfile] = useState<RecruiterProfile>(defaultRecruiterProfile)
-  const [loadedOnce, setLoadedOnce] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -32,12 +31,10 @@ export default function RecruiterProfileRoute() {
 
       const saved = await getRecruiterProfile(uid)
       if (saved) setProfile(saved)
-      setLoadedOnce(true)
     }
 
     load().catch((e) => {
       console.error(e)
-      setLoadedOnce(true)
     })
   }, [])
 

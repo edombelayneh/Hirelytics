@@ -1,4 +1,4 @@
-import { arrayUnion, doc, collection, serverTimestamp, setDoc } from 'firebase/firestore'
+import { doc, collection, serverTimestamp, setDoc } from 'firebase/firestore'
 import { db } from '../lib/firebaseClient'
 import type { AvailableJob } from '../data/availableJobs'
 import type { JobSource } from '../types/jobSource'
@@ -238,7 +238,6 @@ export function buildApplicationFromJobDetails({
   description,
   requirements,
   jobPostingStatus,
-  applyLink,
   recruiterId,
   state,
   visaRequired,

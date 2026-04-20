@@ -126,7 +126,8 @@ class MockFileReader {
   public result: string | ArrayBuffer | null = null
   public onloadend: MockFileReaderHandler = null
 
-  public readAsDataURL(_file: File): void {
+  public readAsDataURL(file: File): void {
+    void file
     // Returns a fake base64 image string to simulate successful file reading
     this.result = 'data:image/png;base64,FAKE'
     if (this.onloadend) this.onloadend()
@@ -298,7 +299,7 @@ describe('RecruiterProfilePage', () => {
 
   // Test: Verifies that valid form data is saved and a success notification appears
   it('calls onSave with current form data when valid and shows success toast', async () => {
-    const onSave = vi.fn(async (_profile: RecruiterProfile): Promise<void> => {})
+    const onSave = vi.fn(async (): Promise<void> => {})
 
     render(
       <RecruiterProfilePage
@@ -332,7 +333,7 @@ describe('RecruiterProfilePage', () => {
   it('disables save button and shows "Saving..." while saving', async () => {
     let resolveSaveRef: (() => void) | null = null
 
-    const onSave = vi.fn(async (_profile: RecruiterProfile): Promise<void> => {
+    const onSave = vi.fn(async (): Promise<void> => {
       await new Promise<void>((resolve) => {
         resolveSaveRef = resolve
       })
