@@ -165,7 +165,7 @@ const MONTH_PATTERN =
 const MONTH_YEAR_TOKEN = `(?:${MONTH_PATTERN})\\s+\\d{4}`
 const NUMERIC_MONTH_YEAR_TOKEN = '\\b(?:0?[1-9]|1[0-2])[\\/.-]\\d{4}\\b'
 const YEAR_TOKEN = '\\b(?:19|20)\\d{2}\\b'
-const CURRENT_TOKEN = 'present|current|now'
+const CURRENT_TOKEN = '\\b(?:present|current)\\b'
 
 // Accepts "Jan 2020 - Present", "01/2020 - 12/2021", or "2020 - 2021".
 const DATE_RANGE_REGEX = new RegExp(
