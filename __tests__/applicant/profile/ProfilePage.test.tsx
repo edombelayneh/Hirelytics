@@ -450,6 +450,115 @@ describe('ProfilePage', () => {
     })
   })
 
+  // Test that resume import adds each parsed job to history
+  it('imports job history entries from resume', async () => {
+    const addJobHistoryMock = vi.fn().mockResolvedValue(undefined)
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        jobHistory: [
+          {
+            company: 'Corewell Health',
+            title: 'End User Technology Developer Intern',
+            roleDescription: 'Owned print automation and support workflows.',
+            startDate: '2025-05-01',
+            endDate: '2026-05-01',
+            isCurrent: false,
+          },
+          {
+            company: 'Auch Construction',
+            title: 'Information Technology Intern',
+            roleDescription: 'Supported desktop hardware rollouts.',
+            startDate: '2024-05-01',
+            endDate: '2024-08-01',
+            isCurrent: false,
+          },
+        ],
+      }),
+    })
+
+    vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch)
+
+    type JobHistoryInput = {
+      company: string
+      title: string
+      roleDescription: string
+      startDate: string
+      endDate?: string
+      isCurrent: boolean
+    }
+
+    type JobHistoryState = JobHistoryInput & { id: string }
+
+    const TestWrapper = () => {
+      const [jobHistory, setJobHistory] = React.useState<JobHistoryState[]>([])
+
+      const handleAddJobHistory = async (item: JobHistoryInput) => {
+        addJobHistoryMock(item)
+        setJobHistory((prev) => [
+          ...prev,
+          {
+            id: `job-${prev.length + 1}`,
+            ...item,
+          },
+        ])
+      }
+
+      return (
+        <ProfilePage
+          profile={mockProfile}
+          onUpdateProfile={mockOnUpdateProfile}
+          jobHistory={jobHistory}
+          jobHistoryLoading={false}
+          onAddJobHistory={handleAddJobHistory}
+          onEditJobHistory={vi.fn()}
+          onDeleteJobHistory={vi.fn()}
+        />
+      )
+    }
+
+    render(<TestWrapper />)
+
+    const file = new File(['pdfbytes'], 'resume.pdf', { type: 'application/pdf' })
+    const resumeInput = Array.from(document.querySelectorAll('input[type="file"]')).find((input) =>
+      (input as HTMLInputElement).accept.includes('.pdf')
+    ) as HTMLInputElement
+
+    fireEvent.change(resumeInput, { target: { files: [file] } })
+    fireEvent.click(screen.getByRole('button', { name: /add jobs from resume/i }))
+
+    await waitFor(() => {
+      expect(addJobHistoryMock).toHaveBeenCalledTimes(2)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText('End User Technology Developer Intern')).toBeTruthy()
+      expect(screen.getByText('Corewell Health')).toBeTruthy()
+      expect(screen.getByText('Information Technology Intern')).toBeTruthy()
+      expect(screen.getByText('Auch Construction')).toBeTruthy()
+      expect(screen.getAllByRole('button', { name: /edit/i })).toHaveLength(2)
+      expect(screen.getAllByRole('button', { name: /delete/i })).toHaveLength(2)
+    })
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(addJobHistoryMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        company: 'Corewell Health',
+        title: 'End User Technology Developer Intern',
+      })
+    )
+    expect(addJobHistoryMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        company: 'Auch Construction',
+        title: 'Information Technology Intern',
+      })
+    )
+
+    vi.unstubAllGlobals()
+  })
+
   /* ---------------------------- SAVE BUTTON STATE TESTS ---------------------------- */
 
   // Test that an error message appears when saving fails
