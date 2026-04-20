@@ -59,7 +59,7 @@ vi.mock('firebase/firestore', () => ({
     if (ref.path[1] === 'users' && ref.path[3] === 'applications') {
       return Promise.resolve({
         exists: () => true,
-        data: () => ({ status: 'Interview', jobSource: 'Hirelytics' }),
+        data: () => ({ status: 'INTERVIEWS', jobSource: 'Hirelytics' }),
       })
     }
     return Promise.resolve({
@@ -146,9 +146,7 @@ vi.mock('../../../app/components/job/ApplicantsTable', () => ({
       </div>
       <div data-testid='first-applicant-status'>{applicants[0]?.applicationStatus}</div>
       <div data-testid='profile-href-a1'>{profileHref('a1')}</div>
-      <button onClick={() => onStatusChange?.('a1', 'Offers and Negotiations')}>
-        mock-change-status
-      </button>
+      <button onClick={() => onStatusChange?.('a1', 'OFFERS')}>mock-change-status</button>
     </div>
   ),
 }))
@@ -205,9 +203,7 @@ describe('JobDetailsPage', () => {
     render(<JobDetailsPage />)
 
     await waitFor(() => {
-      expect(screen.getByTestId('first-applicant-status').textContent).toBe(
-        'Interviews (behavioral or technical)'
-      )
+      expect(screen.getByTestId('first-applicant-status').textContent).toBe('INTERVIEWS')
     })
 
     fireEvent.click(screen.getByRole('button', { name: 'mock-change-status' }))
@@ -216,11 +212,9 @@ describe('JobDetailsPage', () => {
       expect(updateDocMock).toHaveBeenCalledTimes(1)
       expect(updateDocMock).toHaveBeenCalledWith(
         { path: [{}, 'users', 'a1', 'applications', 'job-123'] },
-        { status: 'Offers and Negotiations', updatedAt: 'SERVER_TS' }
+        { status: 'OFFERS', updatedAt: 'SERVER_TS' }
       )
-      expect(screen.getByTestId('first-applicant-status').textContent).toBe(
-        'Offers and Negotiations'
-      )
+      expect(screen.getByTestId('first-applicant-status').textContent).toBe('OFFERS')
     })
   })
 })

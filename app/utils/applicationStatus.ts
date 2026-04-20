@@ -1,41 +1,50 @@
 import type { ApplicationStatus, InternalApplicationPhase } from '../types/job'
-import { INTERNAL_APPLICATION_PHASES } from '../types/job'
+import { APPLICATION_STATUSES } from '../types/job'
 import type { JobSource } from '../types/jobSource'
 
 export const EXTERNAL_APPLICATION_STATUSES: Array<ApplicationStatus> = [
-  'resume stage',
-  'assessments',
-  'phone call',
-  'Interviews (behavioral or technical)',
-  'Offers and Negotiations',
-  'Rejected',
-  'Withdrawn',
+  'APPLIED',
+  'SCREENING',
+  'INTERVIEWS',
+  'OFFERS',
+  'REJECTED',
+  'WITHDRAWN',
 ]
 
-const LEGACY_INTERNAL_TO_PHASE: Partial<Record<ApplicationStatus, InternalApplicationPhase>> = {
-  Applied: 'resume stage',
-  Interview: 'Interviews (behavioral or technical)',
-  Offer: 'Offers and Negotiations',
-}
-
-const LEGACY_PHASE_LABELS: Record<string, InternalApplicationPhase> = {
-  'Phase I: resume stage': 'resume stage',
-  'Phase II: assessments and phone calls': 'assessments',
-  'assessments and phone calls': 'assessments',
-  'Phase III: interviews (behavioral or technical)': 'Interviews (behavioral or technical)',
-  'Phase IV: offers and negotiations': 'Offers and Negotiations',
+const LEGACY_STATUS_LABELS: Record<string, ApplicationStatus> = {
+  Applied: 'APPLIED',
+  Interview: 'INTERVIEWS',
+  Offer: 'OFFERS',
+  Rejected: 'REJECTED',
+  Withdrawn: 'WITHDRAWN',
+  'resume stage': 'APPLIED',
+  assessments: 'SCREENING',
+  'phone call': 'SCREENING',
+  'Interviews (behavioral or technical)': 'INTERVIEWS',
+  'Offers and Negotiations': 'OFFERS',
+  'Phase I: resume stage': 'APPLIED',
+  'Phase II: assessments and phone calls': 'SCREENING',
+  'assessments and phone calls': 'SCREENING',
+  'Phase III: interviews (behavioral or technical)': 'INTERVIEWS',
+  'Phase IV: offers and negotiations': 'OFFERS',
 }
 
 export function isInternalHirelyticsJob(jobSource: JobSource | string | undefined): boolean {
   return jobSource === 'Hirelytics'
 }
 
-export function normalizeInternalStatus(status: ApplicationStatus): ApplicationStatus {
-  return LEGACY_INTERNAL_TO_PHASE[status] ?? LEGACY_PHASE_LABELS[status] ?? status
+export function normalizeInternalStatus(status: ApplicationStatus | string): ApplicationStatus {
+  const normalized = LEGACY_STATUS_LABELS[status]
+  if (normalized) return normalized
+
+  const upper = String(status).toUpperCase()
+  return APPLICATION_STATUSES.includes(upper as ApplicationStatus)
+    ? (upper as ApplicationStatus)
+    : 'APPLIED'
 }
 
 export function getDisplayStatusForApplication(
-  status: ApplicationStatus,
+  status: ApplicationStatus | string,
   jobSource: JobSource | string | undefined
 ): ApplicationStatus {
   void jobSource
@@ -43,45 +52,29 @@ export function getDisplayStatusForApplication(
 }
 
 export function getRecruiterManagedStatusOptions(): InternalApplicationPhase[] {
-  return [...INTERNAL_APPLICATION_PHASES]
+  return [...APPLICATION_STATUSES]
 }
 
 function isAppliedStatus(status: ApplicationStatus): boolean {
-  const normalized = status as string
-  return (
-    normalized === 'Applied' ||
-    normalized === 'resume stage' ||
-    normalized === 'Phase I: resume stage'
-  )
+  return normalizeInternalStatus(status) === 'APPLIED'
 }
 
 function isInterviewStatus(status: ApplicationStatus): boolean {
-  const normalized = status as string
-  return (
-    normalized === 'Interview' ||
-    normalized === 'assessments' ||
-    normalized === 'phone call' ||
-    normalized === 'Interviews (behavioral or technical)' ||
-    normalized === 'assessments and phone calls' ||
-    normalized === 'Phase II: assessments and phone calls' ||
-    normalized === 'Phase III: interviews (behavioral or technical)'
-  )
+  const normalized = normalizeInternalStatus(status)
+  return normalized === 'SCREENING' || normalized === 'INTERVIEWS'
 }
 
 function isOfferStatus(status: ApplicationStatus): boolean {
-  const normalized = status as string
-  return (
-    normalized === 'Offer' ||
-    normalized === 'Offers and Negotiations' ||
-    normalized === 'Phase IV: offers and negotiations'
-  )
+  return normalizeInternalStatus(status) === 'OFFERS'
 }
 
 export function summarizeApplicationStatuses(statuses: ApplicationStatus[]) {
   const applied = statuses.filter(isAppliedStatus).length
   const interviews = statuses.filter(isInterviewStatus).length
   const offers = statuses.filter(isOfferStatus).length
-  const rejected = statuses.filter((status) => status === 'Rejected').length
+  const rejected = statuses.filter(
+    (status) => normalizeInternalStatus(status) === 'REJECTED'
+  ).length
 
   return {
     applied,

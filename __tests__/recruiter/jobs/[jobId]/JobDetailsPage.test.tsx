@@ -44,7 +44,7 @@ const defaultJobSnapshotData = {
 const defaultApplicationSnapshotData = {
   id: '1',
   jobId: '1',
-  status: 'Applied',
+  status: 'APPLIED',
   notes: 'Submitted this week',
   jobLink: 'https://example.com/jobs/1',
   createdAt: '2026-01-15T13:30:00.000Z',
@@ -129,7 +129,7 @@ describe('Applicant Job Details Page', () => {
     applicationSnapshotData = {
       id: '1',
       jobId: '1',
-      status: 'Applied',
+      status: 'APPLIED',
     }
 
     render(<JobDetailsPage />)

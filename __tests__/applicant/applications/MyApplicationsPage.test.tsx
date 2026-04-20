@@ -16,7 +16,7 @@ const mockApplications: JobApplication[] = [
     jobLink: 'https://example.com/job1',
     position: 'Software Engineer',
     applicationDate: '2026-01-15',
-    status: 'Applied',
+    status: 'APPLIED',
     contactPerson: 'John Doe',
     notes: 'Initial application submitted',
     jobSource: 'LinkedIn',
@@ -29,7 +29,7 @@ const mockApplications: JobApplication[] = [
     jobLink: 'https://example.com/job2',
     position: 'Data Scientist',
     applicationDate: '2026-01-10',
-    status: 'Interview',
+    status: 'INTERVIEWS',
     contactPerson: 'Jane Smith',
     notes: 'First interview scheduled',
     jobSource: 'Company Website',
@@ -42,7 +42,7 @@ const mockApplications: JobApplication[] = [
     jobLink: 'https://example.com/job3',
     position: 'Full Stack Developer',
     applicationDate: '2026-01-05',
-    status: 'Rejected',
+    status: 'REJECTED',
     contactPerson: 'Bob Johnson',
     notes: 'Not a good fit',
     jobSource: 'Indeed',
@@ -135,7 +135,7 @@ vi.mock('../../../app/components/ApplicationsTable', () => ({
   }) => (
     <div data-testid='applications-table'>
       <div>ApplicationsTable: {applications.length} applications</div>
-      <button onClick={() => onStatusChange('1', 'Interview')}>Change Status</button>
+      <button onClick={() => onStatusChange('1', 'INTERVIEWS')}>Change Status</button>
       <button onClick={() => onNotesChange('1', 'New notes')}>Change Notes</button>
     </div>
   ),
@@ -191,7 +191,7 @@ describe('MyApplicationsPage', () => {
     expect(updateDocMock).toHaveBeenCalledWith(
       expect.any(Object),
       expect.objectContaining({
-        status: 'Interview',
+        status: 'INTERVIEWS',
         updatedAt: 'SERVER_TS',
       })
     )
@@ -238,7 +238,7 @@ describe('MyApplicationsPage', () => {
       jobLink: '',
       position: 'Software Engineer',
       applicationDate: '2026-01-01',
-      status: 'Applied',
+      status: 'APPLIED',
       contactPerson: '',
       notes: '',
       jobSource: 'Hirelytics',

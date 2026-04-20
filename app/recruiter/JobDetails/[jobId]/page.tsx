@@ -10,7 +10,7 @@ import { Button } from '../../../components/ui/button'
 import { JobDetailsCard } from '../../../components/job/JobDetailsCard'
 import { ApplicantsTable } from '../../../components/job/ApplicantsTable'
 import {
-  INTERNAL_APPLICATION_PHASES,
+  APPLICATION_STATUSES,
   type Applicant,
   type Job,
   type ApplicationStatus,
@@ -18,19 +18,12 @@ import {
 import { getDisplayStatusForApplication } from '../../../utils/applicationStatus'
 
 //status for user applications
-const VALID_STATUSES: ApplicationStatus[] = [
-  'Applied',
-  'Interview',
-  'Offer',
-  'Rejected',
-  'Withdrawn',
-  ...INTERNAL_APPLICATION_PHASES,
-]
+const VALID_STATUSES: ApplicationStatus[] = [...APPLICATION_STATUSES]
 
 function toApplicationStatus(value: unknown): ApplicationStatus {
   return VALID_STATUSES.includes(value as ApplicationStatus)
     ? (value as ApplicationStatus)
-    : 'Applied'
+    : 'APPLIED'
 }
 
 export default function JobDetailsPage() {

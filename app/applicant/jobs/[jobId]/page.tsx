@@ -301,7 +301,7 @@ export default function JobDetailsPage() {
             disabled={hasApplied}
             variant={hasApplied ? 'secondary' : 'default'}
           >
-            {hasApplied ? 'Applied' : 'Apply Now'}
+            {hasApplied ? 'APPLIED' : 'Apply Now'}
           </Button>
         </div>
 

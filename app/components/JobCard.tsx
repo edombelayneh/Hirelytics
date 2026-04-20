@@ -124,10 +124,10 @@ export const JobCard = memo(function JobCard({
             variant={isApplied ? 'secondary' : 'default'}
           >
             {isApplied ? (
-              // Show check icon and 'Applied' if already applied
+              // Show check icon and APPLIED if already applied
               <>
                 <CheckCircle2 className='h-4 w-4 mr-2' />
-                Applied
+                APPLIED
               </>
             ) : (
               // Otherwise show 'Apply Now' button

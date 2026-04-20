@@ -167,7 +167,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                           }}
                         >
                           <SelectTrigger
-                            className={`w-[320px] ${ApplicationStatusColor[app.status] ?? ''}`}
+                            className={`w-[200px] ${ApplicationStatusColor[app.status] ?? ''}`}
                           >
                             <SelectValue placeholder='Status' />
                           </SelectTrigger>

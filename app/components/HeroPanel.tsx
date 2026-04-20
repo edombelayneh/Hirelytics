@@ -26,16 +26,12 @@ interface HeroPanelProps {
   applications: JobApplication[]
 }
 const STATUS_COLORS: Record<string, string> = {
-  Applied: '#FEF08A', // yellow
-  Interview: '#3b82f3', //blue
-  Offer: '#1ed361', //green
-  Rejected: '#e32828', //red
-  Withdrawn: '#A855F7', //purple
-  'resume stage': '#FCD34D',
-  assessments: '#38BDF8',
-  'phone call': '#06B6D4',
-  'Interviews (behavioral or technical)': '#818CF8',
-  'Offers and Negotiations': '#34D399',
+  APPLIED: '#FEF08A', // yellow
+  SCREENING: '#3b82f3', // blue
+  INTERVIEWS: '#818CF8', // indigo
+  OFFERS: '#1ed361', // green
+  REJECTED: '#e32828', // red
+  WITHDRAWN: '#A855F7', // purple
 }
 
 // Memoized to avoid unnecessary recalculations when props don’t change

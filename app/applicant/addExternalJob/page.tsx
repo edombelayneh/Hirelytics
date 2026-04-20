@@ -419,7 +419,7 @@ export default function AddExternalJobPage() {
         workArrangement,
         employmentType,
         experienceLevel,
-        status: 'resume stage',
+        status: 'APPLIED',
         notes: '',
         createdAt: new Date().toISOString(),
       }
