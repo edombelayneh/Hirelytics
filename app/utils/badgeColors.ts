@@ -11,6 +11,9 @@ export function getStatusColor(status: JobApplication['status']): string {
       return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100'
     case 'INTERVIEWS':
       return 'bg-indigo-100 text-indigo-800 hover:bg-indigo-100'
+      return 'bg-sky-100 text-sky-800 hover:bg-sky-100'
+    case 'INTERVIEWS':
+      return 'bg-indigo-100 text-indigo-800 hover:bg-indigo-100'
     case 'OFFERS':
       return 'bg-green-100 text-green-800 hover:bg-green-100'
     case 'REJECTED':

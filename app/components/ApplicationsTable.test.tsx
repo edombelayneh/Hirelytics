@@ -56,8 +56,7 @@ vi.mock('./ui/select', () => {
   // These are just structural in your component; no-op wrappers are enough.
   const SelectContent = ({ children }: { children: React.ReactNode }) => <>{children}</>
   const SelectTrigger = ({ children }: { children: React.ReactNode }) => <>{children}</>
-  const SelectValue = ({ placeholder }: { placeholder?: string }) =>
-    placeholder ? <span>{placeholder}</span> : null
+  const SelectValue = (_: { placeholder?: string }) => null
 
   return { Select, SelectItem, SelectContent, SelectTrigger, SelectValue }
 })

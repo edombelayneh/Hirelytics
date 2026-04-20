@@ -16,6 +16,7 @@ import {
   EXTERNAL_APPLICATION_STATUSES,
   getRecruiterManagedStatusOptions,
   isInternalHirelyticsJob,
+  normalizeInternalStatus,
 } from '../../utils/applicationStatus'
 
 type ApplicantsTableProps = {
@@ -87,7 +88,7 @@ export function ApplicantsTable({
               applicants.map((a) => {
                 const fullName = `${a.firstName} ${a.lastName}`.trim() || 'Unnamed'
                 const resumeLabel = a.resumeFileName || 'Download resume'
-                const status = a.applicationStatus ?? 'APPLIED'
+                const status = normalizeInternalStatus(a.applicationStatus ?? 'APPLIED')
                 const statusOptions = isInternalHirelyticsJob(a.jobSource)
                   ? getRecruiterManagedStatusOptions()
                   : EXTERNAL_APPLICATION_STATUSES

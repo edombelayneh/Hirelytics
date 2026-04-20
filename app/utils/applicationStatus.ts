@@ -2,16 +2,15 @@ import type { ApplicationStatus, InternalApplicationPhase } from '../types/job'
 import { APPLICATION_STATUSES } from '../types/job'
 import type { JobSource } from '../types/jobSource'
 
-export const EXTERNAL_APPLICATION_STATUSES: Array<ApplicationStatus> = [
-  'APPLIED',
-  'SCREENING',
-  'INTERVIEWS',
-  'OFFERS',
-  'REJECTED',
-  'WITHDRAWN',
-]
+export const EXTERNAL_APPLICATION_STATUSES: Array<ApplicationStatus> = [...APPLICATION_STATUSES]
 
 const LEGACY_STATUS_LABELS: Record<string, ApplicationStatus> = {
+  APPLIED: 'APPLIED',
+  SCREENING: 'SCREENING',
+  INTERVIEWS: 'INTERVIEWS',
+  OFFERS: 'OFFERS',
+  REJECTED: 'REJECTED',
+  WITHDRAWN: 'WITHDRAWN',
   Applied: 'APPLIED',
   Interview: 'INTERVIEWS',
   Offer: 'OFFERS',
@@ -55,26 +54,14 @@ export function getRecruiterManagedStatusOptions(): InternalApplicationPhase[] {
   return [...APPLICATION_STATUSES]
 }
 
-function isAppliedStatus(status: ApplicationStatus): boolean {
-  return normalizeInternalStatus(status) === 'APPLIED'
-}
-
-function isInterviewStatus(status: ApplicationStatus): boolean {
-  const normalized = normalizeInternalStatus(status)
-  return normalized === 'SCREENING' || normalized === 'INTERVIEWS'
-}
-
-function isOfferStatus(status: ApplicationStatus): boolean {
-  return normalizeInternalStatus(status) === 'OFFERS'
-}
-
 export function summarizeApplicationStatuses(statuses: ApplicationStatus[]) {
-  const applied = statuses.filter(isAppliedStatus).length
-  const interviews = statuses.filter(isInterviewStatus).length
-  const offers = statuses.filter(isOfferStatus).length
-  const rejected = statuses.filter(
-    (status) => normalizeInternalStatus(status) === 'REJECTED'
+  const normalized = statuses.map((status) => normalizeInternalStatus(status))
+  const applied = normalized.filter((status) => status === 'APPLIED').length
+  const interviews = normalized.filter(
+    (status) => status === 'SCREENING' || status === 'INTERVIEWS'
   ).length
+  const offers = normalized.filter((status) => status === 'OFFERS').length
+  const rejected = normalized.filter((status) => status === 'REJECTED').length
 
   return {
     applied,

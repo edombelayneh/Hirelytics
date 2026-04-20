@@ -49,3 +49,7 @@ export const APPLICATION_STATUSES = [
 export type InternalApplicationPhase = (typeof APPLICATION_STATUSES)[number]
 
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
+
+// Backward-compatible aliases while migrating from older naming.
+export const INTERNAL_APPLICATION_STATUSES = APPLICATION_STATUSES
+export type InternalApplicationStatus = ApplicationStatus
