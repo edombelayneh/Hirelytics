@@ -94,6 +94,19 @@ const DEFAULT_STOP_HEADINGS = [
   'interests',
 ]
 
+const NOISE_HEADING_VALUES = [
+  ...DEFAULT_EXPERIENCE_HEADINGS,
+  ...DEFAULT_STOP_HEADINGS,
+  'technical',
+  'technical skills',
+  'core competencies',
+  'competencies',
+  'qualifications',
+  'highlights',
+  'profile',
+  'summary',
+]
+
 // Heuristic keywords to distinguish titles and companies in mixed header lines.
 const TITLE_KEYWORDS = [
   'engineer',
@@ -215,6 +228,8 @@ function normalizeHeading(value: string): string {
   return value.toLowerCase().replace(/[^a-z]/g, '')
 }
 
+const NOISE_HEADING_SET = new Set(NOISE_HEADING_VALUES.map((value) => normalizeHeading(value)))
+
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -235,6 +250,12 @@ function findInlineHeadingMatch(line: string, headings: string[]): { remainder: 
 
 function toHeadingSet(values: string[]): Set<string> {
   return new Set(values.map((item) => normalizeHeading(item)))
+}
+
+function isNoiseHeadingLine(line: string): boolean {
+  const normalized = normalizeHeading(line)
+  if (!normalized) return false
+  return NOISE_HEADING_SET.has(normalized)
 }
 
 function isHeadingLine(line: string, headingSet: Set<string>): boolean {
@@ -364,7 +385,14 @@ function isExperienceHeaderLine(line: string): boolean {
   const cleaned = normalizeToken(removeDateTokens(line))
   if (!cleaned) return false
 
-  return looksLikeTitle(cleaned) || looksLikeCompany(cleaned)
+  if (looksLikeTitle(cleaned) || looksLikeCompany(cleaned)) return true
+
+  const wordCount = cleaned.split(/\s+/).length
+  const reasonableLength = cleaned.length <= 120 && wordCount <= 12
+  const hasDivider = /(\s-\s|\s\u2013\s|\s\u2014\s|\||@)/.test(cleaned)
+  const hasComma = cleaned.includes(',')
+
+  return reasonableLength && (hasDivider || hasComma)
 }
 
 // Split the section into job blocks when each entry starts with a header line.
@@ -382,8 +410,13 @@ function splitByExperienceHeaders(lines: string[], stopHeadings: string[] = []):
     }
 
     if (isExperienceHeaderLine(trimmed) && current.length) {
-      blocks.push(current)
-      current = []
+      const currentHasDate = current.some((line) => hasDateTokens(line))
+      const currentIsShort = current.length <= 2 && !currentHasDate
+
+      if (!currentIsShort) {
+        blocks.push(current)
+        current = []
+      }
     }
 
     current.push(trimmed)
@@ -512,6 +545,13 @@ function looksLikeCompany(value: string): boolean {
   return COMPANY_KEYWORDS.some((keyword) => lower.includes(keyword))
 }
 
+function looksLikeLocation(value: string): boolean {
+  const cleaned = normalizeToken(removeDateTokens(value))
+  if (!cleaned) return false
+  if (/\bremote\b/i.test(cleaned)) return true
+  return /,\s*[A-Z]{2}\b/.test(cleaned)
+}
+
 // Handles headers like "Title | Company" or "Company - Title".
 // Parse "Title | Company" or "Company - Title" headers into structured fields.
 function parseHeaderLine(line: string): { company: string; title: string } | null {
@@ -532,12 +572,16 @@ function parseHeaderLine(line: string): { company: string; title: string } | nul
   const rightTitle = looksLikeTitle(right)
   const leftCompany = looksLikeCompany(left)
   const rightCompany = looksLikeCompany(right)
+  const leftLocation = looksLikeLocation(left)
+  const rightLocation = looksLikeLocation(right)
 
   if (leftTitle && !rightTitle) {
+    if (!rightCompany && !rightLocation && !leftCompany) return null
     return { title: left, company: right }
   }
 
   if (rightTitle && !leftTitle) {
+    if (!leftCompany && !leftLocation && !rightCompany) return null
     return { title: right, company: left }
   }
 
@@ -559,42 +603,99 @@ function extractCompanyTitle(lines: string[]): {
   title: string
   consumedLines: number
 } {
-  const usableLines = lines.filter((line) => !isDateLine(line))
-  const line1 = usableLines[0] || ''
-  const line2 = usableLines[1] || ''
-  const cleanedLine1 = normalizeToken(removeDateTokens(line1))
-  const cleanedLine2 = normalizeToken(removeDateTokens(line2))
+  const indexedLines = lines.map((line, index) => ({
+    line,
+    index,
+    cleaned: normalizeToken(removeDateTokens(line)),
+  }))
+  const usableLines = indexedLines.filter(
+    ({ line }) => !isDateLine(line) && !isNoiseHeadingLine(line)
+  )
+  const line1 = usableLines[0]
+  const line2 = usableLines[1]
+  const line3 = usableLines[2]
+  const cleanedLine1 = line1?.cleaned || ''
+  const cleanedLine2 = line2?.cleaned || ''
+  const cleanedLine3 = line3?.cleaned || ''
 
-  const parsed = line1 ? parseHeaderLine(line1) : null
+  const consumedCount = (...used: Array<typeof line1 | undefined>): number => {
+    const indices = used
+      .filter((item): item is NonNullable<typeof line1> => Boolean(item))
+      .map((item) => item.index)
+
+    return indices.length ? Math.max(...indices) + 1 : 0
+  }
+
+  const mergeCompanyLocation = (company: string, location: string) => {
+    if (!company) return location
+    if (!location) return company
+    if (company.includes(location)) return company
+    return `${company} - ${location}`
+  }
+
+  const parsed = line1?.line ? parseHeaderLine(line1.line) : null
   if (parsed) {
-    return { ...parsed, consumedLines: 1 }
+    return { ...parsed, consumedLines: consumedCount(line1) }
+  }
+
+  if (line1 && line2 && line3 && looksLikeLocation(line2.line) && looksLikeTitle(cleanedLine3)) {
+    const company = mergeCompanyLocation(cleanedLine1 || line1.line, cleanedLine2 || line2.line)
+    return {
+      company,
+      title: cleanedLine3 || line3.line,
+      consumedLines: consumedCount(line1, line2, line3),
+    }
   }
 
   if (line1 && line2) {
     const line1IsTitle =
-      Boolean(cleanedLine1) && (looksLikeTitle(cleanedLine1) || hasDateTokens(line1))
+      Boolean(cleanedLine1) && (looksLikeTitle(cleanedLine1) || hasDateTokens(line1.line))
     const line2IsTitle = Boolean(cleanedLine2) && looksLikeTitle(cleanedLine2)
-    const line1IsCompany = looksLikeCompany(line1)
-    const line2IsCompany = looksLikeCompany(line2) || /,\s*[A-Z]{2}\b/.test(line2)
+    const line3IsLocation = Boolean(line3?.line) && looksLikeLocation(line3.line)
+    const line1IsCompany =
+      Boolean(cleanedLine1) && (looksLikeCompany(cleanedLine1) || looksLikeLocation(cleanedLine1))
+    const line2IsCompany =
+      Boolean(cleanedLine2) && (looksLikeCompany(cleanedLine2) || looksLikeLocation(cleanedLine2))
 
     if (line1IsTitle && !line2IsTitle && (!line1IsCompany || line2IsCompany)) {
-      return { company: line2, title: cleanedLine1 || line1, consumedLines: 2 }
+      const company = line3IsLocation
+        ? mergeCompanyLocation(cleanedLine2 || line2.line, cleanedLine3 || line3?.line || '')
+        : cleanedLine2 || line2.line
+      return {
+        company,
+        title: cleanedLine1 || line1.line,
+        consumedLines: consumedCount(line1, line2, line3IsLocation ? line3 : undefined),
+      }
     }
 
     if (line2IsTitle && !line1IsTitle && (!line2IsCompany || line1IsCompany)) {
-      return { company: line1, title: cleanedLine2 || line2, consumedLines: 2 }
+      return {
+        company: cleanedLine1 || line1.line,
+        title: cleanedLine2 || line2.line,
+        consumedLines: consumedCount(line1, line2),
+      }
     }
 
-    return { company: line1, title: line2, consumedLines: 2 }
+    return {
+      company: cleanedLine1 || line1.line,
+      title: cleanedLine2 || line2.line,
+      consumedLines: consumedCount(line1, line2),
+    }
   }
 
-  return { company: line1, title: '', consumedLines: line1 ? 1 : 0 }
+  return {
+    company: cleanedLine1 || line1?.line || '',
+    title: '',
+    consumedLines: consumedCount(line1),
+  }
 }
 
 // Drop header/date lines and join the remaining bullet-like content.
 // Join bullet-like lines into a normalized role description.
 function buildRoleDescription(lines: string[], consumedLines: number): string {
-  const remaining = lines.slice(consumedLines).filter((line) => !isDateLine(line))
+  const remaining = lines
+    .slice(consumedLines)
+    .filter((line) => !isDateLine(line) && !isNoiseHeadingLine(line))
   const sanitized = remaining
     .map((line) => stripBullet(line))
     .map((line) => normalizeToken(line))
