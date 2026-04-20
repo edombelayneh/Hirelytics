@@ -8,6 +8,9 @@ const docMock = vi.fn((...args: unknown[]): MockRef => ({ __docPath: args, id: '
 const setDocMock = vi.fn()
 const serverTimestampMock = vi.fn(() => 'SERVER_TS')
 const arrayUnionMock = vi.fn((...args: unknown[]) => ({ __arrayUnion: args }))
+const batchSetMock = vi.fn()
+const batchCommitMock = vi.fn()
+const writeBatchMock = vi.fn(() => ({ set: batchSetMock, commit: batchCommitMock }))
 
 // Mock app Firebase client so utility functions can import `db` safely in tests.
 vi.mock('../../app/lib/firebaseClient', () => ({
@@ -21,6 +24,7 @@ vi.mock('firebase/firestore', () => ({
   setDoc: (...args: unknown[]) => setDocMock(...args),
   serverTimestamp: () => serverTimestampMock(),
   arrayUnion: (...args: unknown[]) => arrayUnionMock(...args),
+  writeBatch: (...args: unknown[]) => writeBatchMock(...args),
 }))
 
 describe('app/utils/applicationFirebase', () => {
@@ -171,11 +175,24 @@ describe('app/utils/applicationFirebase', () => {
 
     expect(docMock).toHaveBeenCalledWith(expect.any(Object), 'users', 'user-3', 'applications', '9')
     expect(docMock).toHaveBeenCalledWith(expect.any(Object), 'jobPostings', '9')
-    expect(setDocMock).toHaveBeenCalledTimes(2)
+    expect(writeBatchMock).toHaveBeenCalledWith(expect.any(Object))
+    expect(batchSetMock).toHaveBeenCalledTimes(2)
+    expect(batchCommitMock).toHaveBeenCalledTimes(1)
 
-    const [applicationWrite, jobPostingWrite] = setDocMock.mock.calls
+    const pathForRef = (ref: MockRef) =>
+      Array.isArray(ref.__docPath) ? ref.__docPath.slice(1).map(String).join('/') : ''
 
-    expect(applicationWrite[1]).toEqual(
+    const applicationWrite = batchSetMock.mock.calls.find(
+      (call) => pathForRef(call[0] as MockRef) === 'users/user-3/applications/9'
+    )
+    const jobPostingWrite = batchSetMock.mock.calls.find(
+      (call) => pathForRef(call[0] as MockRef) === 'jobPostings/9'
+    )
+
+    expect(applicationWrite).toBeDefined()
+    expect(jobPostingWrite).toBeDefined()
+
+    expect(applicationWrite?.[1]).toEqual(
       expect.objectContaining({
         id: '9',
         company: 'Fabrikam',
@@ -185,13 +202,13 @@ describe('app/utils/applicationFirebase', () => {
         updatedAt: 'SERVER_TS',
       })
     )
-    expect(applicationWrite[2]).toEqual({ merge: true })
+    expect(applicationWrite?.[2]).toEqual({ merge: true })
 
     expect(arrayUnionMock).toHaveBeenCalledWith('user-3')
-    expect(jobPostingWrite[1]).toEqual(
+    expect(jobPostingWrite?.[1]).toEqual(
       expect.objectContaining({ applicantsId: arrayUnionMock.mock.results[0]?.value })
     )
-    expect(jobPostingWrite[2]).toEqual({ merge: true })
+    expect(jobPostingWrite?.[2]).toEqual({ merge: true })
   })
 
   it('saveExternalJob stores city with state and normalizes dates to ISO', async () => {

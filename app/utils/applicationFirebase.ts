@@ -1,4 +1,11 @@
-import { arrayUnion, doc, collection, serverTimestamp, setDoc } from 'firebase/firestore'
+import {
+  arrayUnion,
+  doc,
+  collection,
+  serverTimestamp,
+  setDoc,
+  writeBatch,
+} from 'firebase/firestore'
 import { db } from '../lib/firebaseClient'
 import type { AvailableJob } from '../data/availableJobs'
 import type { JobSource } from '../types/jobSource'
@@ -19,11 +26,10 @@ type ApplicationJobDetails = {
   applyLink: string
 }
 
-type ApplicationPayload = {
+type ApplicationInput = {
   id: string
   jobId?: string
   userId: string
-  applicantId?: string
   company: string
   position: string
   country: string
@@ -44,6 +50,11 @@ type ApplicationPayload = {
   createdAt?: unknown
   updatedAt?: unknown
   jobDetails: ApplicationJobDetails
+}
+
+type ApplicationDocument = ApplicationInput & {
+  applicantId: string
+  jobId: string
 }
 
 type BuildApplicationFromAvailableJobParams = {
@@ -131,7 +142,7 @@ function parseLocation(location: string): { city: string; country: string } {
 export function buildApplicationFromAvailableJob({
   userId,
   job,
-}: BuildApplicationFromAvailableJobParams): ApplicationPayload {
+}: BuildApplicationFromAvailableJobParams): ApplicationInput {
   const { city, country } = parseLocation(job.location)
   const jobId = String(job.id)
 
@@ -169,7 +180,7 @@ export function buildApplication({
   jobId,
   mergedJob,
   fallback,
-}: BuildApplicationParams): ApplicationPayload {
+}: BuildApplicationParams): ApplicationInput {
   const title = toText(mergedJob.title) || fallback.title
   const company = toText(mergedJob.company) || toText(mergedJob.companyName) || fallback.company
   const location = toText(mergedJob.location) || fallback.location
@@ -247,7 +258,7 @@ export function buildApplicationFromJobDetails({
   preferredSkills,
   workArrangement,
   paymentType,
-}: BuildFromJobDetailsInput): ApplicationPayload {
+}: BuildFromJobDetailsInput): ApplicationInput {
   const normalizedSource = normalizeJobSource(jobSource)
 
   return {
@@ -303,10 +314,10 @@ export async function applyToJobFromDetails({
   await saveUserApplication(application)
 }
 
-export async function saveUserApplication(application: ApplicationPayload): Promise<void> {
+export async function saveUserApplication(application: ApplicationInput): Promise<void> {
   const resolvedJobId = application.jobId || application.id
   const ref = doc(db, 'users', application.userId, 'applications', resolvedJobId)
-  const normalizedApplication = {
+  const normalizedApplication: ApplicationDocument = {
     ...application,
     id: application.id || resolvedJobId,
     jobId: resolvedJobId,
@@ -314,7 +325,9 @@ export async function saveUserApplication(application: ApplicationPayload): Prom
     applicantId: application.userId,
   }
 
-  await setDoc(
+  const batch = writeBatch(db)
+
+  batch.set(
     ref,
     {
       ...normalizedApplication,
@@ -325,7 +338,9 @@ export async function saveUserApplication(application: ApplicationPayload): Prom
   )
 
   const jobRef = doc(db, 'jobPostings', resolvedJobId)
-  await setDoc(jobRef, { applicantsId: arrayUnion(application.userId) }, { merge: true })
+  batch.set(jobRef, { applicantsId: arrayUnion(application.userId) }, { merge: true })
+
+  await batch.commit()
 }
 
 // Type for external job data from the Add External Job form.
