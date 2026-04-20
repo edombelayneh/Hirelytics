@@ -14,8 +14,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@clerk/nextjs'
-import { buildApplication, saveUserApplication } from '../../utils/applicationFirebase'
-import { type JobSource, type JobSourceInput, normalizeJobSource } from '../../types/jobSource'
+import { saveExternalJob } from '../../utils/applicationFirebase'
+import { normalizeJobSource, type JobSource, type JobSourceInput } from '../../types/jobSource'
 
 // Controlled select fields types
 type VisaRequired = 'yes' | 'no' | ''
@@ -375,6 +375,12 @@ export default function AddExternalJobPage() {
     e.preventDefault()
     setMessage(null)
 
+    // Ensure user is authenticated
+    if (!isLoaded || !userId) {
+      setMessage('Please log in to save job applications.')
+      return
+    }
+
     // Basic validation
     if (!jobName.trim() || !companyName.trim() || !description.trim()) {
       setMessage('Please fill in Job Name, Company Name, and Description.')
@@ -385,30 +391,15 @@ export default function AddExternalJobPage() {
     setSaving(true)
 
     try {
-      if (!isLoaded || !userId) {
-        setMessage('Please sign in before saving an external job.')
-        return
-      }
-
-      const applicationId = crypto.randomUUID()
-
-      const mergedJob = {
-        jobId: applicationId,
-        jobLink: jobUrl.trim(),
-        applyLink: jobUrl.trim(),
-        jobSource: jobSource || inferJobSource(jobUrl.trim()),
-        applicationDate,
-        title: jobName.trim(),
-        company: companyName.trim(),
+      // Save to Firebase.
+      await saveExternalJob({
+        userId,
+        jobUrl: jobUrl.trim(),
+        jobName: jobName.trim(),
         companyName: companyName.trim(),
-        contactPerson: companyContact.trim(),
+        companyContact: companyContact.trim(),
         description: description.trim(),
-        generalDescription: description.trim(),
         qualifications: qualifications.trim(),
-        requirements: qualifications
-          .split(/\n|,|;/)
-          .map((item) => item.trim())
-          .filter(Boolean),
         preferredSkills: preferredSkills.trim(),
         country: country.trim(),
         state: stateValue.trim(),
@@ -419,28 +410,11 @@ export default function AddExternalJobPage() {
         workArrangement,
         employmentType,
         experienceLevel,
-        status: 'Applied',
-        notes: '',
-        createdAt: new Date().toISOString(),
-      }
-
-      const application = buildApplication({
-        userId,
-        jobId: applicationId,
-        mergedJob,
-        fallback: {
-          title: jobName.trim(),
-          company: companyName.trim(),
-          location: city.trim(),
-          description: description.trim(),
-          requirements: [],
-          postedDate: applicationDate,
-        },
+        applicationDate,
+        jobSource,
       })
 
-      await saveUserApplication(application)
-
-      setMessage('Saved! Redirecting to My Applications...')
+      setMessage('Saved. Redirecting to My Applications...')
       setRedirecting(true)
 
       // Small delay so user sees the message, then navigate

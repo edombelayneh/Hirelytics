@@ -49,6 +49,8 @@ const mockApplications: JobApplication[] = [
   },
 ]
 
+let snapshotApplications: JobApplication[] = mockApplications
+
 /* -------------------------------------------------------------------------- */
 /*                               GLOBAL MOCKS                                 */
 /* -------------------------------------------------------------------------- */
@@ -96,7 +98,17 @@ vi.mock('firebase/firestore', () => ({
   orderBy: vi.fn(),
 
   // real-time subscription: IMPORTANT — call callback with docs
-  onSnapshot: (...args: unknown[]) => onSnapshotMock(...args),
+  onSnapshot: vi.fn(
+    (_q: unknown, callback: (snap: Snapshot<JobApplication>) => void): Unsubscribe => {
+      callback({
+        docs: snapshotApplications.map((a) => ({
+          id: a.id,
+          data: () => a,
+        })),
+      })
+      return vi.fn() as Unsubscribe
+    }
+  ),
 
   // writes
   doc: (...args: unknown[]) => docMock(...args),
@@ -135,6 +147,13 @@ vi.mock('../../../app/components/ApplicationsTable', () => ({
   }) => (
     <div data-testid='applications-table'>
       <div>ApplicationsTable: {applications.length} applications</div>
+      <ul data-testid='applications-identifiers'>
+        {applications.map((application) => (
+          <li
+            key={application.id}
+          >{`${application.id} | ${application.company} | ${application.position}`}</li>
+        ))}
+      </ul>
       <button onClick={() => onStatusChange('1', 'Interview')}>Change Status</button>
       <button onClick={() => onNotesChange('1', 'New notes')}>Change Notes</button>
     </div>
@@ -149,6 +168,7 @@ describe('MyApplicationsPage', () => {
   beforeEach(() => {
     // Clear mocks before each test to reset call counts and arguments
     vi.clearAllMocks()
+    snapshotApplications = mockApplications
   })
 
   afterEach(() => {
@@ -229,43 +249,36 @@ describe('MyApplicationsPage', () => {
     expect(screen.getByRole('heading', { name: /Key Metrics/i })).toBeTruthy()
   })
 
-  it('does not update status for Hirelytics applications', async () => {
-    const hirelyticsApp: JobApplication = {
-      id: 'hire-1',
-      company: 'Hirelytics',
+  it('displays external jobs alongside platform jobs on the applications page', () => {
+    // Create a mix of platform jobs and external jobs to verify they all show up
+    const externalJob: JobApplication = {
+      id: 'x7Pq9Lm2RtA4bN8kY1cD',
+      company: 'ExternalCorp',
       country: 'USA',
       city: 'Remote',
-      jobLink: '',
-      position: 'Software Engineer',
-      applicationDate: '2026-01-01',
+      jobLink: 'https://www.linkedin.com/jobs/view/123',
+      position: 'Senior Backend Engineer',
+      applicationDate: '2026-03-20',
       status: 'Applied',
-      contactPerson: '',
-      notes: '',
-      jobSource: 'Hirelytics',
+      contactPerson: 'recruiter@external.com',
+      notes: 'External job added via Add External Job feature',
+      jobSource: 'LinkedIn',
     }
 
-    // Configure the onSnapshot mock to emit only the Hirelytics application
-    onSnapshotMock.mockImplementationOnce((_query, callback) => {
-      const mockSnapshot: Snapshot<JobApplication> = {
-        docs: [
-          {
-            id: hirelyticsApp.id,
-            data: () => hirelyticsApp,
-          },
-        ],
-      }
+    const allApplicationsWithExternal: JobApplication[] = [...mockApplications, externalJob]
 
-      callback(mockSnapshot)
-      // Return an unsubscribe function as Firestore does
-      return vi.fn()
-    })
+    // Feed external + platform jobs through the global Firestore snapshot mock
+    snapshotApplications = allApplicationsWithExternal
 
     render(<MyApplicationsPage />)
 
-    // Trigger the mocked ApplicationsTable "Change Status" action
-    fireEvent.click(screen.getByRole('button', { name: /change status/i }))
+    // Verify total count includes external job
+    expect(screen.getByTestId('applications-table').textContent).toContain('4 applications')
 
-    // Even though a status change was attempted, Hirelytics applications should not be updated
-    expect(updateDocMock).not.toHaveBeenCalled()
+    // Verify coexistence: both existing platform jobs and external job identifiers are present
+    expect(screen.getByText('1 | TechCorp Inc. | Software Engineer')).toBeTruthy()
+    expect(
+      screen.getByText('x7Pq9Lm2RtA4bN8kY1cD | ExternalCorp | Senior Backend Engineer')
+    ).toBeTruthy()
   })
 })

@@ -1,4 +1,4 @@
-import { arrayUnion, doc, serverTimestamp, setDoc } from 'firebase/firestore'
+import { arrayUnion, doc, collection, serverTimestamp, setDoc } from 'firebase/firestore'
 import { db } from '../lib/firebaseClient'
 import type { AvailableJob } from '../data/availableJobs'
 import type { JobSource } from '../types/jobSource'
@@ -63,6 +63,13 @@ type BuildApplicationParams = {
     postedDate: string
   }
 }
+
+type ApplyToAvailableJobParams = {
+  userId: string
+  job: AvailableJob
+}
+
+type ApplyToJobFromDetailsParams = BuildApplicationParams
 
 type BuildFromJobDetailsInput = {
   userId: string
@@ -277,6 +284,24 @@ export function buildApplicationFromJobDetails({
   }
 }
 
+export async function applyToAvailableJob({
+  userId,
+  job,
+}: ApplyToAvailableJobParams): Promise<void> {
+  const application = buildApplicationFromAvailableJob({ userId, job })
+  await saveUserApplication(application)
+}
+
+export async function applyToJobFromDetails({
+  userId,
+  jobId,
+  mergedJob,
+  fallback,
+}: ApplyToJobFromDetailsParams): Promise<void> {
+  const application = buildApplication({ userId, jobId, mergedJob, fallback })
+  await saveUserApplication(application)
+}
+
 export async function saveUserApplication(application: ApplicationPayload): Promise<void> {
   const resolvedJobId = application.jobId || application.id
   const ref = doc(db, 'users', application.userId, 'applications', resolvedJobId)
@@ -298,23 +323,116 @@ export async function saveUserApplication(application: ApplicationPayload): Prom
   )
 }
 
-export async function applyToAvailableJob({ userId, job }: BuildApplicationFromAvailableJobParams) {
-  const payload = buildApplicationFromAvailableJob({ userId, job })
-  await saveUserApplication(payload)
-
-  const jobRef = doc(db, 'jobPostings', payload.id)
-  await setDoc(jobRef, { applicantsId: arrayUnion(userId) }, { merge: true })
+// Type for external job data from the Add External Job form.
+export type SaveExternalJobInput = {
+  userId: string
+  jobUrl: string
+  jobName: string
+  companyName: string
+  companyContact: string
+  description: string
+  qualifications: string
+  preferredSkills: string
+  country: string
+  state: string
+  city: string
+  paymentAmount: string
+  paymentType: 'hourly' | 'salary' | ''
+  visaRequired: 'yes' | 'no' | ''
+  workArrangement: 'onsite' | 'remote' | 'hybrid' | ''
+  employmentType: 'full-time' | 'part-time' | 'contract' | 'internship' | ''
+  experienceLevel: 'entry' | 'mid' | 'senior' | 'lead' | ''
+  applicationDate: string
+  jobSource: string
 }
 
-export async function applyToJobFromDetails({
-  userId,
-  jobId,
-  mergedJob,
-  fallback,
-}: BuildApplicationParams) {
-  const payload = buildApplication({ userId, jobId, mergedJob, fallback })
-  await saveUserApplication(payload)
+// Saves an externally-sourced job to user's applications.
+// Creates a unique document in Firestore at users/{userId}/applications/{jobId}.
+// Uses Firebase's auto-generated document ID for both the document path and the id field.
+export async function saveExternalJob(input: SaveExternalJobInput) {
+  const {
+    userId,
+    jobUrl,
+    jobName,
+    companyName,
+    companyContact,
+    description,
+    qualifications,
+    preferredSkills,
+    country,
+    state,
+    city,
+    paymentAmount,
+    paymentType,
+    visaRequired,
+    workArrangement,
+    employmentType,
+    experienceLevel,
+    applicationDate,
+    jobSource,
+  } = input
 
-  const jobRef = doc(db, 'jobPostings', jobId)
-  await setDoc(jobRef, { applicantsId: arrayUnion(userId) }, { merge: true })
+  // Pre-generate the Firestore doc reference so its auto-generated ID can be stored
+  // inside the document itself — no timestamp-based IDs, no race condition.
+  const newDocRef = doc(collection(db, 'users', userId, 'applications'))
+  const jobId = newDocRef.id
+
+  // Build location string.
+  const locationParts = [city, state, country].filter(Boolean)
+  const location = locationParts.join(', ')
+  const cityDisplay = [city, state].filter(Boolean).join(', ')
+
+  // Normalize date-only form input to explicit UTC midnight for stable ordering
+  // and consistent parsing across clients in different timezones.
+  const applicationDateISO = /^\d{4}-\d{2}-\d{2}$/.test(applicationDate)
+    ? `${applicationDate}T00:00:00.000Z`
+    : new Date(applicationDate).toISOString()
+
+  const ref = newDocRef
+
+  await setDoc(
+    ref,
+    {
+      id: jobId,
+      company: companyName,
+      position: jobName,
+      country,
+      city: cityDisplay || city,
+      applicationDate: applicationDateISO,
+      status: 'Applied',
+      contactPerson: companyContact,
+      jobSource,
+      notes: '',
+      jobLink: jobUrl,
+      isExternal: true, // Flag to identify external jobs.
+      jobDetails: {
+        title: jobName,
+        company: companyName,
+        location,
+        type: employmentType || '',
+        postedDate: applicationDateISO,
+        salary: paymentAmount
+          ? `$${paymentAmount}${paymentType === 'hourly' ? '/hr' : paymentType === 'salary' ? '/year' : ''}`
+          : '',
+        description,
+        requirements: qualifications ? qualifications.split('\n').filter(Boolean) : [],
+        status: 'Applied',
+        applyLink: jobUrl,
+        recruiterId: '',
+      },
+      externalJobMetadata: {
+        qualifications,
+        preferredSkills,
+        paymentType,
+        visaRequired,
+        workArrangement,
+        employmentType,
+        experienceLevel,
+        state,
+      },
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  )
 }
