@@ -23,6 +23,7 @@ type ApplicationPayload = {
   id: string
   jobId?: string
   userId: string
+  applicantId?: string
   company: string
   position: string
   country: string
@@ -310,6 +311,7 @@ export async function saveUserApplication(application: ApplicationPayload): Prom
     id: application.id || resolvedJobId,
     jobId: resolvedJobId,
     status: application.status || 'Applied',
+    applicantId: application.userId,
   }
 
   await setDoc(
@@ -321,6 +323,9 @@ export async function saveUserApplication(application: ApplicationPayload): Prom
     },
     { merge: true }
   )
+
+  const jobRef = doc(db, 'jobPostings', resolvedJobId)
+  await setDoc(jobRef, { applicantsId: arrayUnion(application.userId) }, { merge: true })
 }
 
 // Type for external job data from the Add External Job form.

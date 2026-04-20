@@ -7,6 +7,7 @@ type CollectionPath = { __collection: unknown[] }
 const docMock = vi.fn((...args: unknown[]): MockRef => ({ __docPath: args, id: 'mock-doc-id-123' }))
 const setDocMock = vi.fn()
 const serverTimestampMock = vi.fn(() => 'SERVER_TS')
+const arrayUnionMock = vi.fn((...args: unknown[]) => ({ __arrayUnion: args }))
 
 // Mock app Firebase client so utility functions can import `db` safely in tests.
 vi.mock('../../app/lib/firebaseClient', () => ({
@@ -19,6 +20,7 @@ vi.mock('firebase/firestore', () => ({
   doc: (...args: unknown[]) => docMock(...args),
   setDoc: (...args: unknown[]) => setDocMock(...args),
   serverTimestamp: () => serverTimestampMock(),
+  arrayUnion: (...args: unknown[]) => arrayUnionMock(...args),
 }))
 
 describe('app/utils/applicationFirebase', () => {
@@ -168,18 +170,28 @@ describe('app/utils/applicationFirebase', () => {
     })
 
     expect(docMock).toHaveBeenCalledWith(expect.any(Object), 'users', 'user-3', 'applications', '9')
-    expect(setDocMock).toHaveBeenCalledTimes(1)
-    expect(setDocMock).toHaveBeenCalledWith(
-      expect.any(Object),
+    expect(docMock).toHaveBeenCalledWith(expect.any(Object), 'jobPostings', '9')
+    expect(setDocMock).toHaveBeenCalledTimes(2)
+
+    const [applicationWrite, jobPostingWrite] = setDocMock.mock.calls
+
+    expect(applicationWrite[1]).toEqual(
       expect.objectContaining({
         id: '9',
         company: 'Fabrikam',
         status: 'Applied',
+        applicantId: 'user-3',
         createdAt: 'SERVER_TS',
         updatedAt: 'SERVER_TS',
-      }),
-      { merge: true }
+      })
     )
+    expect(applicationWrite[2]).toEqual({ merge: true })
+
+    expect(arrayUnionMock).toHaveBeenCalledWith('user-3')
+    expect(jobPostingWrite[1]).toEqual(
+      expect.objectContaining({ applicantsId: arrayUnionMock.mock.results[0]?.value })
+    )
+    expect(jobPostingWrite[2]).toEqual({ merge: true })
   })
 
   it('saveExternalJob stores city with state and normalizes dates to ISO', async () => {
