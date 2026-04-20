@@ -101,7 +101,7 @@ async function extractPdfTextWithOcr(buffer: Buffer): Promise<string> {
     }
   }
 
-  const worker = (await createWorker()) as OcrWorker
+  const worker = (await createWorker()) as unknown as OcrWorker
   try {
     if (worker.load) await worker.load()
     if (worker.loadLanguage) await worker.loadLanguage(OCR_LANGUAGE)
