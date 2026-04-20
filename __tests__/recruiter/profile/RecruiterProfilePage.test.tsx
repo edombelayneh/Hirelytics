@@ -253,7 +253,7 @@ describe('RecruiterProfilePage', () => {
   // Test: Verifies that empty required fields (company name, email) show error messages and prevent saving
   it('validates required fields and shows toast error when missing', async () => {
     // Override Clerk values so auto-fill DOES NOT populate recruiterEmail
-    useUserMock.mockReturnValueOnce({
+    useUserMock.mockReturnValue({
       isLoaded: true,
       user: {
         id: 'user_123',
