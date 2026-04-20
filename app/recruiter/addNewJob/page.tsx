@@ -346,7 +346,7 @@ export default function AddNewJobPage() {
               className='w-full border rounded p-2'
             >
               <option value=''>Select work arrangement</option>
-              <option value='onsite'>In-person / On-site</option>
+              <option value='onsite'>On-site</option>
               <option value='remote'>Remote</option>
               <option value='hybrid'>Hybrid</option>
             </select>
