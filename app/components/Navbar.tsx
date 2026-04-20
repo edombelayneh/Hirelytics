@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import type { ElementType } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { UserButton, useUser } from '@clerk/nextjs'
 import { Home, Briefcase, BarChart3, User, Menu, X } from 'lucide-react'
@@ -210,10 +211,14 @@ export function Navbar() {
             href='/'
             className='inline-block'
           >
-            <img
+            <Image
               src='/Hirelytics_Logo.png'
               alt='Hirelytics Logo'
+              width={160}
+              height={40}
+              sizes='(min-width: 1024px) 160px, 128px'
               className='h-8 w-auto lg:h-10'
+              priority
             />
           </Link>
         </div>

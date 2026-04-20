@@ -1,5 +1,6 @@
 // __tests__/recruiter/profile/RecruiterProfilePage.test.tsx
 import React, { JSX } from 'react'
+import Image from 'next/image'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
 
@@ -108,9 +109,12 @@ vi.mock('../../../app/components/ui/textarea', () => ({
 vi.mock('../../../app/components/ui/avatar', () => ({
   Avatar: ({ children }: { children: React.ReactNode }): JSX.Element => <div>{children}</div>,
   AvatarImage: ({ alt, src }: { alt?: string; src?: string }): JSX.Element => (
-    <img
+    <Image
       alt={alt ?? ''}
-      src={src ?? ''}
+      src={src ?? 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='}
+      width={48}
+      height={48}
+      unoptimized
     />
   ),
   AvatarFallback: ({ children }: { children: React.ReactNode }): JSX.Element => (

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useAuth, useUser } from '@clerk/nextjs'
 import { protectedAction } from '../utils/protectedAction'
 import { Card } from '../components/ui/card'
+import Image from 'next/image'
 import {
   Brain,
   Clock,
@@ -131,10 +132,14 @@ function HomePage() {
               <span className='text-sm'>Make Hiring Faster, Fairer, and Clearer</span>
             </motion.div>
 
-            <img
+            <Image
               src='/Hirelytics_Logo.png'
               alt='Hirelytics'
+              width={320}
+              height={80}
+              sizes='(min-width: 1024px) 320px, 240px'
               className='mx-auto mb-6 h-25 w-auto'
+              priority
             />
 
             <p className='mx-auto mb-10 max-w-2xl text-xl text-muted-foreground'>
