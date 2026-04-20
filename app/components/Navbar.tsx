@@ -214,9 +214,9 @@ export function Navbar() {
             <Image
               src='/Hirelytics_Logo.png'
               alt='Hirelytics Logo'
-              width={160}
-              height={40}
-              sizes='(min-width: 1024px) 160px, 128px'
+              width={2150}
+              height={300}
+              sizes='(min-width: 1024px) 287px, 230px'
               className='h-8 w-auto lg:h-10'
               priority
             />
