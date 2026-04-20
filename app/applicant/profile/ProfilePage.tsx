@@ -121,7 +121,15 @@ export const ProfilePage = memo(function ProfilePage({
 
       return next
     })
-  }, [profile, isLoaded, user?.id, isEditing])
+  }, [
+    profile,
+    isLoaded,
+    user?.id,
+    user?.firstName,
+    user?.lastName,
+    user?.primaryEmailAddress?.emailAddress,
+    isEditing,
+  ])
 
   // Validate required fields and ensure data logic is correct
   const validate = () => {
