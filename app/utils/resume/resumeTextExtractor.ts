@@ -4,6 +4,12 @@ import pdfParse from 'pdf-parse'
 import type { ResumeParseResult, ResumeParserOptions } from './resumeParser'
 import { parseResumeTextToExperiences } from './resumeParser'
 
+// Server-only resume extraction pipeline:
+// 1) Detect file format.
+// 2) Extract PDF text with pdf-parse.
+// 3) Fall back to OCR when extracted text is likely incomplete.
+// 4) Normalize the output and return warnings for callers to surface.
+
 export type ResumeFileFormat = 'pdf' | 'unknown'
 
 export type ResumeTextExtractionWarning = 'unsupported-file-type' | 'empty-text' | 'ocr-failed'
@@ -20,6 +26,7 @@ export type ResumeTextExtractionResult = {
   format: ResumeFileFormat
 }
 
+// OCR thresholds are intentionally conservative to avoid unnecessary work.
 const OCR_MIN_TEXT_LENGTH = 80
 const OCR_MIN_ALPHA_CHARS = 20
 const OCR_SCALE = 2
@@ -79,6 +86,7 @@ type PdfJsDocument = {
   getPage: (pageNumber: number) => Promise<PdfJsPage>
 }
 
+// Run OCR with pdfjs-dist rendering and tesseract.js, limited to a few pages.
 async function extractPdfTextWithOcr(buffer: Buffer): Promise<string> {
   const [{ createWorker }, pdfjs, canvasModule] = await Promise.all([
     import('tesseract.js'),
@@ -146,6 +154,7 @@ export function detectResumeFormat(input: Pick<ResumeFileInput, 'fileName' | 'co
   return detectFormatFromFileName(input.fileName)
 }
 
+// Extracts raw resume text and returns warnings for unsupported/empty/OCR failures.
 export async function extractResumeText(
   input: ResumeFileInput
 ): Promise<ResumeTextExtractionResult> {
@@ -190,6 +199,7 @@ export async function extractResumeText(
   return { text, warnings, format }
 }
 
+// Convenience helper that combines extraction and parsing for API callers.
 export async function parseResumeFile(
   input: ResumeFileInput,
   options: ResumeParserOptions = {}

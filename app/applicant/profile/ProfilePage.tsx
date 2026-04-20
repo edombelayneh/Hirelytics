@@ -35,6 +35,7 @@ import { toast } from '../../components/ui/sonner'
 import type { JobHistoryItem } from '../../utils/jobHistory'
 
 type RequiredFields = 'firstName' | 'lastName' | 'email'
+type JobHistoryDraft = Omit<JobHistoryItem, 'id' | 'createdAt' | 'updatedAt'>
 
 interface ProfilePageProps {
   profile: UserProfile
@@ -84,6 +85,8 @@ export const ProfilePage = memo(function ProfilePage({
   const [jobEndDate, setJobEndDate] = useState('')
   const [jobHistorySaving, setJobHistorySaving] = useState(false)
   const [editingJobHistoryId, setEditingJobHistoryId] = useState<string | null>(null)
+  // Controls the resume import UX while the server parses and inserts job history.
+  const [resumeParseLoading, setResumeParseLoading] = useState(false)
 
   const profilePicInputRef = useRef<HTMLInputElement>(null)
   const resumeInputRef = useRef<HTMLInputElement>(null)
@@ -198,6 +201,85 @@ export const ProfilePage = memo(function ProfilePage({
       toast.success('Resume uploaded successfully')
     }
     reader.readAsDataURL(file)
+  }
+
+  const scrollToJobHistoryForm = () => {
+    const yOffset = -120
+    const element = jobHistorySectionRef.current
+
+    if (!element) return
+
+    const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset
+    window.scrollTo({
+      top: y,
+      behavior: 'smooth',
+    })
+  }
+
+  // Parse the uploaded resume via the API and append all detected jobs to Firestore.
+  const handleImportJobHistoryFromResume = async () => {
+    if (!formData.resumeFile) {
+      toast.error('Resume not found', {
+        description: 'Upload a PDF resume to auto-fill your job history.',
+      })
+      return
+    }
+
+    setResumeParseLoading(true)
+
+    try {
+      const response = await fetch('/api/resume/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resumeDataUrl: formData.resumeFile,
+          resumeFileName: formData.resumeFileName || undefined,
+        }),
+      })
+
+      const payload = (await response.json()) as {
+        jobHistory?: JobHistoryDraft[]
+        error?: string
+      }
+
+      if (!response.ok) {
+        toast.error('Resume parsing failed', {
+          description: payload.error || 'Please try again.',
+        })
+        return
+      }
+
+      const jobHistory = Array.isArray(payload.jobHistory) ? payload.jobHistory : []
+
+      if (jobHistory.length === 0) {
+        toast.error('No job history found', {
+          description: 'We could not find experience entries in your resume.',
+        })
+        return
+      }
+
+      // Add each parsed job entry so the user can edit details afterward.
+      for (const job of jobHistory) {
+        await onAddJobHistory({
+          company: job.company.trim(),
+          title: job.title.trim(),
+          roleDescription: job.roleDescription.trim(),
+          startDate: job.startDate,
+          ...(job.isCurrent ? {} : { endDate: job.endDate || '' }),
+          isCurrent: job.isCurrent,
+        })
+      }
+
+      toast.success('Resume imported', {
+        description: `Added ${jobHistory.length} job${jobHistory.length === 1 ? '' : 's'} from your resume. You can edit them below.`,
+      })
+      scrollToJobHistoryForm()
+    } catch (error) {
+      console.error('Resume parsing error:', error)
+      toast.error('Resume parsing failed', { description: 'Please try again.' })
+    } finally {
+      setResumeParseLoading(false)
+    }
   }
 
   const handleSave = async () => {
@@ -616,11 +698,25 @@ export const ProfilePage = memo(function ProfilePage({
       {/* Job History */}
       <div ref={jobHistorySectionRef}>
         <Card className='p-6'>
-          <div className='space-y-1'>
-            <h2 className='text-lg font-semibold'>Job History</h2>
-            <p className='text-sm text-muted-foreground'>
-              Add one past job at a time. After saving, the form will reset so you can add another.
-            </p>
+          <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+            <div className='space-y-1'>
+              <h2 className='text-lg font-semibold'>Job History</h2>
+              <p className='text-sm text-muted-foreground'>
+                Add one past job at a time, or import them from your resume. After saving, the form
+                will reset so you can add another.
+              </p>
+            </div>
+            <Button
+              type='button'
+              size='sm'
+              variant='outline'
+              onClick={handleImportJobHistoryFromResume}
+              disabled={resumeParseLoading}
+              className='gap-2'
+            >
+              <FileText className='h-4 w-4' />
+              {resumeParseLoading ? 'Importing jobs...' : 'Add jobs from resume'}
+            </Button>
           </div>
 
           <div className='space-y-6'>
@@ -737,19 +833,7 @@ export const ProfilePage = memo(function ProfilePage({
                             setJobStartDate(item.startDate)
                             setJobEndDate(item.endDate || '')
                             setJobIsCurrent(item.isCurrent)
-
-                            const yOffset = -120
-                            const element = jobHistorySectionRef.current
-
-                            if (element) {
-                              const y =
-                                element.getBoundingClientRect().top + window.pageYOffset + yOffset
-
-                              window.scrollTo({
-                                top: y,
-                                behavior: 'smooth',
-                              })
-                            }
+                            scrollToJobHistoryForm()
                           }}
                         >
                           Edit

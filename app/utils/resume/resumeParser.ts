@@ -1,3 +1,4 @@
+// Parsing warnings are surfaced to callers to explain partial matches.
 type ParseWarning =
   | 'experience-section-not-found'
   | 'experience-section-empty'
@@ -25,6 +26,7 @@ export type ParsedExperience = {
   rawLines: string[]
 }
 
+// High-level parse result with the detected experience section and warnings.
 export type ResumeParseResult = {
   experiences: ParsedExperience[]
   experienceSection: string
@@ -68,6 +70,7 @@ type DateFormatHelpers = {
   formatDate: (date: ParsedDate | null | undefined) => string
 }
 
+// Headings used to locate the experience section in free-form resume text.
 const DEFAULT_EXPERIENCE_HEADINGS = [
   'experience',
   'work experience',
@@ -142,6 +145,7 @@ const COMPANY_KEYWORDS = [
   'studios',
 ]
 
+// Date parsing supports month names, numeric dates, year-only, and "Present".
 const MONTH_PATTERN =
   'jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?'
 
@@ -267,6 +271,7 @@ function isInlineHeadingLine(line: string, headings: string[]): boolean {
   return Boolean(findInlineHeadingMatch(trimmed, headings))
 }
 
+// Returns the lines of the experience section based on heading boundaries.
 function extractExperienceSection(
   text: string,
   headings: string[],
@@ -352,6 +357,7 @@ function splitIntoParagraphs(lines: string[]): string[][] {
   return blocks
 }
 
+// Detect header lines that likely represent a job entry (title/company + dates).
 function isExperienceHeaderLine(line: string): boolean {
   if (!hasDateTokens(line)) return false
 
@@ -361,6 +367,7 @@ function isExperienceHeaderLine(line: string): boolean {
   return looksLikeTitle(cleaned) || looksLikeCompany(cleaned)
 }
 
+// Split the section into job blocks when each entry starts with a header line.
 function splitByExperienceHeaders(lines: string[], stopHeadings: string[] = []): string[][] {
   const blocks: string[][] = []
   let current: string[] = []
@@ -506,6 +513,7 @@ function looksLikeCompany(value: string): boolean {
 }
 
 // Handles headers like "Title | Company" or "Company - Title".
+// Parse "Title | Company" or "Company - Title" headers into structured fields.
 function parseHeaderLine(line: string): { company: string; title: string } | null {
   const cleaned = removeDateTokens(line)
   if (!cleaned) return null
@@ -545,6 +553,7 @@ function parseHeaderLine(line: string): { company: string; title: string } | nul
 }
 
 // Uses the header line first, otherwise treats the first two lines as company/title.
+// Extract company and title, prioritizing header lines and fallback heuristics.
 function extractCompanyTitle(lines: string[]): {
   company: string
   title: string
@@ -583,6 +592,7 @@ function extractCompanyTitle(lines: string[]): {
 }
 
 // Drop header/date lines and join the remaining bullet-like content.
+// Join bullet-like lines into a normalized role description.
 function buildRoleDescription(lines: string[], consumedLines: number): string {
   const remaining = lines.slice(consumedLines).filter((line) => !isDateLine(line))
   const sanitized = remaining
@@ -640,6 +650,7 @@ function buildDateHelpers(options: JobHistoryMapOptions): DateFormatHelpers {
   }
 }
 
+// Main parser: locate experience section -> split into jobs -> map into structured entries.
 export function parseResumeTextToExperiences(
   text: string,
   options: ResumeParserOptions = {}
@@ -652,10 +663,13 @@ export function parseResumeTextToExperiences(
   const paragraphs = splitIntoParagraphs(lines)
   let experienceBlocks = paragraphs.filter((block) => looksLikeExperienceBlock(block))
 
+  const headerLineCount = lines.filter((line) => isExperienceHeaderLine(line)).length
+
   const hasMisalignedBlocks = experienceBlocks.some(
     (block) => block.length > 1 && !isExperienceHeaderLine(block[0])
   )
   const shouldUseHeaderBlocks =
+    headerLineCount > 1 ||
     experienceBlocks.length === 0 ||
     experienceBlocks.every((block) => block.length <= 2) ||
     hasMisalignedBlocks
