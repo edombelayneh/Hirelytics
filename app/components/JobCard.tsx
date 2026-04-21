@@ -88,7 +88,9 @@ export const JobCard = memo(function JobCard({
         </div>
 
         {/* Job description */}
-        <p className='text-sm'>{job.description}</p>
+        <p className='text-sm text-muted-foreground text-left leading-relaxed line-clamp-3 m-0 break-words'>
+          {job.description}
+        </p>
 
         {/* Requirements list (show up to 3) */}
         <div>
