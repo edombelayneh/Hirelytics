@@ -90,7 +90,6 @@ function makeAppSnap(overrides: Record<string, unknown> = {}) {
       jobSource: 'Hirelytics',
       notes: '',
       jobLink: '',
-      contactPerson: '',
       updatedAt: '2026-04-13',
       ...overrides,
     }),

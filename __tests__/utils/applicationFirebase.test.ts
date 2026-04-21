@@ -147,7 +147,6 @@ describe('app/utils/applicationFirebase', () => {
       position: 'Backend Engineer',
       country: 'Canada',
       city: 'Toronto',
-      contactPerson: 'Jane Doe',
       jobSource: 'Hirelytics',
       jobLink: 'https://example.com/jobs/9',
       applicationDate: '2026-02-28',

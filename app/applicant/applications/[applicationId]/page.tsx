@@ -66,13 +66,20 @@ function toList(value: unknown): string[] {
 
 // ── page ──────────────────────────────────────────────────────────────────
 
+const VALID_TABS = ['job-posting', 'my-details', 'feedback'] as const
+type TabValue = (typeof VALID_TABS)[number]
+
 export default function ApplicationDetailsPage() {
   const router = useRouter()
   const { applicationId } = useParams<{ applicationId: string }>()
   const { userId, isLoaded } = useAuth()
-  // Reads ?tab= from the URL so deep-links (e.g. from the mail icon) open the correct tab
+  // Reads ?tab= from the URL so deep-links (e.g. from the mail icon) open the correct tab.
+  // Unknown values fall back to 'job-posting' so Radix always has a valid initial tab.
   const searchParams = useSearchParams()
-  const defaultTab = searchParams.get('tab') ?? 'job-posting'
+  const rawTab = searchParams.get('tab')
+  const defaultTab: TabValue = VALID_TABS.includes(rawTab as TabValue)
+    ? (rawTab as TabValue)
+    : 'job-posting'
 
   const [application, setApplication] = useState<JobApplication | null>(null)
   // undefined = listener not yet resolved; null = doc doesn't exist
@@ -100,21 +107,16 @@ export default function ApplicationDetailsPage() {
   // Marks feedback seen on mount when the URL deep-links directly to the Feedback tab
   useEffect(() => {
     if (defaultTab !== 'feedback' || !userId || !application) return
-    const appData = application as unknown as {
-      recruiterFeedback?: string
-      recruiterFeedbackSeen?: boolean
-    }
-    if (!appData.recruiterFeedback || appData.recruiterFeedbackSeen) return
-    updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
+    if (!application.recruiterFeedback || application.recruiterFeedbackSeen) return
+    void updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
       recruiterFeedbackSeen: true,
-    })
+    }).catch(console.error)
   }, [application, defaultTab, userId, applicationId])
 
   // Marks recruiter feedback as seen when user manually switches to the Feedback tab
   const handleTabChange = async (value: string) => {
-    if (value !== 'feedback' || !userId || !recruiterFeedback) return
-    const appData = application as unknown as { recruiterFeedbackSeen?: boolean }
-    if (appData.recruiterFeedbackSeen) return
+    if (value !== 'feedback' || !userId || !application || !recruiterFeedback) return
+    if (application.recruiterFeedbackSeen) return
     await updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
       recruiterFeedbackSeen: true,
     })
@@ -201,8 +203,7 @@ export default function ApplicationDetailsPage() {
         ? toList(mergedJob.preferredSkills)
         : toList(mergedJob.qualifications)
   // Sourced from the application doc root — set by the recruiter, not part of mergedJob
-  const recruiterFeedback =
-    (application as unknown as { recruiterFeedback?: string }).recruiterFeedback ?? null
+  const recruiterFeedback = application.recruiterFeedback ?? null
 
   const postedDate = toDateOnly(mergedJob.postedAt ?? mergedJob.postedDate ?? mergedJob.createdAt)
   const updatedDate = toDateOnly(mergedJob.updatedAt)
@@ -459,10 +460,8 @@ export default function ApplicationDetailsPage() {
                       <AccordionTrigger className='hover:no-underline'>
                         <div className='flex flex-col gap-0.5 text-left'>
                           <span className='text-sm font-semibold'>
-                            {toDateOnly(
-                              (application as unknown as { updatedAt?: unknown }).updatedAt
-                            ) !== '—'
-                              ? `Received ${toDateOnly((application as unknown as { updatedAt?: unknown }).updatedAt)}`
+                            {toDateOnly(application.recruiterFeedbackAt) !== '—'
+                              ? `Received ${toDateOnly(application.recruiterFeedbackAt)}`
                               : 'Recruiter Feedback'}
                           </span>
                           <span className='text-xs text-muted-foreground'>

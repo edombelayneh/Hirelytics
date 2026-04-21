@@ -28,7 +28,6 @@ type ApplicationPayload = {
   country: string
   city: string
   state?: string
-  contactPerson: string
   jobSource: JobSource
   jobLink: string
   applicationDate: string
@@ -78,7 +77,6 @@ type BuildFromJobDetailsInput = {
   position: string
   country: string
   city: string
-  contactPerson: string
   jobSource?: string
   jobLink: string
   title: string
@@ -141,7 +139,6 @@ export function buildApplicationFromAvailableJob({
     position: job.title,
     country,
     city,
-    contactPerson: '',
     jobSource: 'Hirelytics',
     jobLink: job.applyLink,
     applicationDate: new Date().toISOString().slice(0, 10),
@@ -197,7 +194,6 @@ export function buildApplication({
     position: title,
     country,
     city,
-    contactPerson: toText(mergedJob.contactPerson),
     jobSource,
     jobLink,
     title,
@@ -227,7 +223,6 @@ export function buildApplicationFromJobDetails({
   position,
   country,
   city,
-  contactPerson,
   jobSource = 'Hirelytics',
   jobLink,
   title,
@@ -257,7 +252,6 @@ export function buildApplicationFromJobDetails({
     country,
     city,
     ...(state ? { state } : {}),
-    contactPerson,
     jobSource: normalizedSource,
     jobLink,
     applicationDate: new Date().toISOString().slice(0, 10),
@@ -329,7 +323,6 @@ export type SaveExternalJobInput = {
   jobUrl: string
   jobName: string
   companyName: string
-  companyContact: string
   description: string
   qualifications: string
   preferredSkills: string
@@ -355,7 +348,6 @@ export async function saveExternalJob(input: SaveExternalJobInput) {
     jobUrl,
     jobName,
     companyName,
-    companyContact,
     description,
     qualifications,
     preferredSkills,
@@ -400,7 +392,6 @@ export async function saveExternalJob(input: SaveExternalJobInput) {
       city: cityDisplay || city,
       applicationDate: applicationDateISO,
       status: 'Applied',
-      contactPerson: companyContact,
       jobSource,
       notes: '',
       jobLink: jobUrl,

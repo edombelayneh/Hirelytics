@@ -78,7 +78,6 @@ describe('ApplicationsTable', () => {
       position: 'Software Engineer',
       applicationDate: '2025-01-15',
       status: 'Applied',
-      contactPerson: 'John Doe',
       notes: 'Great company culture',
       jobSource: 'LinkedIn',
     },
@@ -91,7 +90,6 @@ describe('ApplicationsTable', () => {
       position: 'Frontend Developer',
       applicationDate: '2025-01-20',
       status: 'Interview',
-      contactPerson: 'Jane Smith',
       notes: 'Second round scheduled',
       jobSource: 'Indeed',
     },
@@ -104,7 +102,6 @@ describe('ApplicationsTable', () => {
       position: 'Backend Developer',
       applicationDate: '2025-01-10',
       status: 'Rejected',
-      contactPerson: 'Bob Johnson',
       notes: 'Not a good fit',
       jobSource: 'Company Website',
     },
@@ -146,7 +143,6 @@ describe('ApplicationsTable', () => {
       'Position',
       'Application Date',
       'Status',
-      'Contact Person',
       'Job Source',
       'Notes',
       'Job Details',
@@ -171,7 +167,6 @@ describe('ApplicationsTable', () => {
     expect(usaElements.length).toBeGreaterThan(0)
     expect(screen.getByText('San Francisco')).toBeTruthy()
     expect(screen.getByText('Software Engineer')).toBeTruthy()
-    expect(screen.getByText('John Doe')).toBeTruthy()
   })
 
   it('shows empty state when no applications match filter', () => {
@@ -382,9 +377,7 @@ describe('ApplicationsTable', () => {
 
   it('shows a mail icon when the application has unread recruiter feedback', () => {
     // Unread = recruiterFeedback exists and recruiterFeedbackSeen is absent/false
-    const apps = [
-      { ...mockApplications[0], recruiterFeedback: 'Good interview!' },
-    ] as unknown as JobApplication[]
+    const apps = [{ ...mockApplications[0], recruiterFeedback: 'Good interview!' }]
 
     render(<ApplicationsTable applications={apps} />)
 
@@ -396,7 +389,7 @@ describe('ApplicationsTable', () => {
     // Seen = recruiterFeedback exists but recruiterFeedbackSeen is true
     const apps = [
       { ...mockApplications[0], recruiterFeedback: 'Good interview!', recruiterFeedbackSeen: true },
-    ] as unknown as JobApplication[]
+    ]
 
     render(<ApplicationsTable applications={apps} />)
 
@@ -406,9 +399,7 @@ describe('ApplicationsTable', () => {
 
   it('navigates to ?tab=feedback when the mail icon is clicked', () => {
     // Clicking the envelope should deep-link directly to the Feedback tab
-    const apps = [
-      { ...mockApplications[0], recruiterFeedback: 'Good interview!' },
-    ] as unknown as JobApplication[]
+    const apps = [{ ...mockApplications[0], recruiterFeedback: 'Good interview!' }]
 
     render(<ApplicationsTable applications={apps} />)
 
@@ -482,7 +473,6 @@ describe('ApplicationsTable', () => {
         position: 'Engineer',
         applicationDate: '2026-01-01',
         status: 'Applied',
-        contactPerson: '',
         notes: '',
         jobSource: 'Hirelytics',
       },

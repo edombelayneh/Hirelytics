@@ -248,9 +248,17 @@ export function Navbar() {
                 <span className='relative'>
                   {item.label}
                   {!!item.badge && (
-                    <span className='absolute -top-3 -right-3 flex h-4 min-w-4 items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold leading-none text-white'>
-                      {item.badge > 99 ? '99+' : item.badge}
-                    </span>
+                    <>
+                      <span
+                        aria-hidden='true'
+                        className='absolute -top-3 -right-3 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-pink)] px-1 text-[10px] font-bold leading-none text-white'
+                      >
+                        {item.badge > 99 ? '99+' : item.badge}
+                      </span>
+                      <span className='sr-only'>
+                        , {item.badge} unread feedback {item.badge === 1 ? 'item' : 'items'}
+                      </span>
+                    </>
                   )}
                 </span>
               </Link>
@@ -316,9 +324,17 @@ export function Navbar() {
                 <span className='relative'>
                   {item.label}
                   {!!item.badge && (
-                    <span className='absolute -top-3 -right-3 flex h-4 min-w-4 items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold leading-none text-white'>
-                      {item.badge > 99 ? '99+' : item.badge}
-                    </span>
+                    <>
+                      <span
+                        aria-hidden='true'
+                        className='absolute -top-3 -right-3 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-pink)] px-1 text-[10px] font-bold leading-none text-white'
+                      >
+                        {item.badge > 99 ? '99+' : item.badge}
+                      </span>
+                      <span className='sr-only'>
+                        , {item.badge} unread feedback {item.badge === 1 ? 'item' : 'items'}
+                      </span>
+                    </>
                   )}
                 </span>
               </Link>

@@ -11,11 +11,13 @@ export interface JobApplication {
   position: string
   applicationDate: string
   status: ApplicationStatus
-  contactPerson: string
   notes: string
   jobSource: JobSource
   // Stores the Firebase UID of the recruiter who posted the job the user applied to
   recruiterId?: string
+  recruiterFeedback?: string
+  recruiterFeedbackSeen?: boolean
+  recruiterFeedbackAt?: unknown
 }
 
 // Load job applications from jobs data file

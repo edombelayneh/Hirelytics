@@ -114,7 +114,6 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                 <TableHead>Position</TableHead>
                 <TableHead>Application Date</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Contact Person</TableHead>
                 <TableHead>Job Source</TableHead>
                 <TableHead>Notes</TableHead>
                 <TableHead>Job Details</TableHead>
@@ -181,7 +180,6 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                       </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell>{app.contactPerson}</TableCell>
                   <TableCell>
                     <Badge variant='outline'>{app.jobSource}</Badge>
                   </TableCell>
@@ -197,12 +195,8 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                   <TableCell>
                     {/* Shows a pink mail icon when the app has unread recruiter feedback, otherwise the standard link */}
                     {(() => {
-                      const a = app as unknown as {
-                        recruiterFeedback?: string
-                        recruiterFeedbackSeen?: boolean
-                      }
                       // True when feedback exists but hasn't been viewed yet
-                      const hasUnread = !!a.recruiterFeedback && !a.recruiterFeedbackSeen
+                      const hasUnread = !!app.recruiterFeedback && !app.recruiterFeedbackSeen
                       return (
                         <Button
                           variant='ghost'
@@ -217,7 +211,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                           }
                         >
                           {hasUnread ? (
-                            <Mail className='h-4 w-4 text-pink-500' />
+                            <Mail className='h-4 w-4 text-[var(--accent-pink)]' />
                           ) : (
                             <ExternalLink className='h-4 w-4' />
                           )}

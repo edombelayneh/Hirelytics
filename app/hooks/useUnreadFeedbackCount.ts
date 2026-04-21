@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { onAuthStateChanged } from 'firebase/auth'
-import { collection, onSnapshot, query } from 'firebase/firestore'
+import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import { db, firebaseAuth } from '../lib/firebaseClient'
 
 /**
@@ -17,10 +17,7 @@ export function useUnreadFeedbackCount(enabled: boolean): number {
   const [count, setCount] = useState(0)
 
   useEffect(() => {
-    if (!enabled) {
-      setCount(0)
-      return
-    }
+    if (!enabled) return
 
     let unsubFirestore: (() => void) | null = null
 
@@ -35,17 +32,13 @@ export function useUnreadFeedbackCount(enabled: boolean): number {
         return
       }
 
-      const q = query(collection(db, 'users', user.uid, 'applications'))
+      const q = query(
+        collection(db, 'users', user.uid, 'applications'),
+        where('recruiterFeedback', '!=', null)
+      )
 
       unsubFirestore = onSnapshot(q, (snap) => {
-        let unread = 0
-        snap.docs.forEach((d) => {
-          const data = d.data()
-          if (data.recruiterFeedback && !data.recruiterFeedbackSeen) {
-            unread++
-          }
-        })
-        setCount(unread)
+        setCount(snap.docs.filter((d) => !d.data().recruiterFeedbackSeen).length)
       })
     })
 
@@ -55,5 +48,5 @@ export function useUnreadFeedbackCount(enabled: boolean): number {
     }
   }, [enabled])
 
-  return count
+  return enabled ? count : 0
 }
