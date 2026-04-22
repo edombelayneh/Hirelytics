@@ -134,7 +134,7 @@ describe('HeroPanel', () => {
       jobLink: 'https://example.com',
       position: 'Engineer',
       applicationDate: '2026-01-01',
-      status: 'APPLIED',
+      status: 'Applied',
       contactPerson: 'John',
       notes: '',
       jobSource: 'LinkedIn',
@@ -154,9 +154,9 @@ describe('HeroPanel', () => {
   ]
 
   const standardStatusData = [
-    { status: 'APPLIED', count: 1 },
-    { status: 'INTERVIEWS', count: 1 },
-    { status: 'OFFERS', count: 0 },
+    { status: 'Applied', count: 1 },
+    { status: 'Interviews', count: 1 },
+    { status: 'Offer', count: 0 },
   ]
 
   beforeEach(() => {
@@ -261,15 +261,15 @@ describe('HeroPanel', () => {
   it('renders status legend dots with correct colors', () => {
     render(<HeroPanel applications={mockApplications} />)
 
-    // Legend labels look like: "APPLIED (1)", "INTERVIEWS (1)"
-    const appliedLabel = screen.getByText(/APPLIED\s*\(\s*1\s*\)/i)
-    const interviewLabel = screen.getByText(/INTERVIEWS\s*\(\s*1\s*\)/i)
+    // Legend labels look like: "Applied (1)", "Interviews (1)"
+    const appliedLabel = screen.getByText(/Applied\s*\(\s*1\s*\)/i)
+    const interviewLabel = screen.getByText(/Interviews\s*\(\s*1\s*\)/i)
 
     const appliedDot = appliedLabel.previousSibling as HTMLElement
     const interviewDot = interviewLabel.previousSibling as HTMLElement
 
     // Colors from STATUS_COLORS in HeroPanel.tsx
     expect(appliedDot.style.backgroundColor).toBe('rgb(254, 240, 138)') // #FEF08A
-    expect(interviewDot.style.backgroundColor).toBe('rgb(129, 140, 248)') // #818CF8
+    expect(interviewDot.style.backgroundColor).toBe('rgb(29, 78, 216)') // #1D4ED8
   })
 })

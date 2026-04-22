@@ -8,30 +8,30 @@ import {
 import type { ApplicationStatus } from '../../app/types/job'
 
 describe('app/utils/applicationStatus', () => {
-  it('normalizes legacy status labels to canonical uppercase status values', () => {
-    expect(normalizeInternalStatus('Applied')).toBe('APPLIED')
-    expect(normalizeInternalStatus('assessments')).toBe('SCREENING')
-    expect(normalizeInternalStatus('Interviews (behavioral or technical)')).toBe('INTERVIEWS')
-    expect(normalizeInternalStatus('Offers and Negotiations')).toBe('OFFERS')
+  it('normalizes legacy status labels to canonical regular-cased status values', () => {
+    expect(normalizeInternalStatus('Applied')).toBe('Applied')
+    expect(normalizeInternalStatus('assessments')).toBe('Screening')
+    expect(normalizeInternalStatus('Interviews (behavioral or technical)')).toBe('Interviews')
+    expect(normalizeInternalStatus('Offers and Negotiations')).toBe('Offer')
   })
 
   it('returns normalized display status regardless of job source', () => {
     expect(
       getDisplayStatusForApplication('Phase I: resume stage' as ApplicationStatus, 'Hirelytics')
-    ).toBe('APPLIED')
+    ).toBe('Applied')
     expect(getDisplayStatusForApplication('phone call' as ApplicationStatus, 'LinkedIn')).toBe(
-      'SCREENING'
+      'Screening'
     )
   })
 
   it('summarizes statuses using normalized categories', () => {
     const summary = summarizeApplicationStatuses([
-      'APPLIED',
+      'Applied',
       'Applied',
       'assessments',
-      'INTERVIEWS',
+      'Interviews',
       'Offer',
-      'OFFERS',
+      'Offer',
       'Rejected',
       'Withdrawn',
     ] as ApplicationStatus[])

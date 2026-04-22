@@ -151,7 +151,7 @@ describe('app/utils/applicationFirebase', () => {
       jobSource: 'Hirelytics',
       jobLink: 'https://example.com/jobs/9',
       applicationDate: '2026-02-28',
-      status: 'APPLIED',
+      status: 'Applied',
       notes: '',
       jobDetails: {
         title: 'Backend Engineer',
@@ -174,7 +174,7 @@ describe('app/utils/applicationFirebase', () => {
       expect.objectContaining({
         id: '9',
         company: 'Fabrikam',
-        status: 'APPLIED',
+        status: 'Applied',
         createdAt: 'SERVER_TS',
         updatedAt: 'SERVER_TS',
       }),
@@ -196,7 +196,7 @@ describe('app/utils/applicationFirebase', () => {
       jobSource: 'Hirelytics',
       jobLink: 'https://example.com/jobs/10',
       applicationDate: '2026-03-01',
-      status: 'APPLIED',
+      status: 'Applied',
       notes: '',
       recruiterId: undefined,
       jobDetails: {

@@ -76,7 +76,7 @@ describe('ApplicationsTable', () => {
       jobLink: 'https://example.com/job1',
       position: 'Software Engineer',
       applicationDate: '2025-01-15',
-      status: 'APPLIED',
+      status: 'Applied',
       contactPerson: 'John Doe',
       notes: 'Great company culture',
       jobSource: 'LinkedIn',
@@ -89,7 +89,7 @@ describe('ApplicationsTable', () => {
       jobLink: 'https://example.com/job2',
       position: 'Frontend Developer',
       applicationDate: '2025-01-20',
-      status: 'INTERVIEWS',
+      status: 'Interviews',
       contactPerson: 'Jane Smith',
       notes: 'Second round scheduled',
       jobSource: 'Indeed',
@@ -102,7 +102,7 @@ describe('ApplicationsTable', () => {
       jobLink: 'https://example.com/job3',
       position: 'Backend Developer',
       applicationDate: '2025-01-10',
-      status: 'REJECTED',
+      status: 'Rejected',
       contactPerson: 'Bob Johnson',
       notes: 'Not a good fit',
       jobSource: 'Company Website',
@@ -275,8 +275,8 @@ describe('ApplicationsTable', () => {
     const comboboxes = screen.getAllByRole('combobox')
     const statusFilterSelect = comboboxes[0]
 
-    // Filter to INTERVIEWS -> only StartupXYZ remains
-    fireEvent.change(statusFilterSelect, { target: { value: 'INTERVIEWS' } })
+    // Filter to Interviews -> only StartupXYZ remains
+    fireEvent.change(statusFilterSelect, { target: { value: 'Interviews' } })
 
     expect(screen.getByText('StartupXYZ')).toBeTruthy()
     expect(screen.queryByText('TechCorp')).toBeNull()
@@ -350,10 +350,10 @@ describe('ApplicationsTable', () => {
     const comboboxes = screen.getAllByRole('combobox')
     const firstRowStatus = comboboxes[1]
 
-    fireEvent.change(firstRowStatus, { target: { value: 'INTERVIEWS' } })
+    fireEvent.change(firstRowStatus, { target: { value: 'Interviews' } })
 
     expect(mockOnStatusChange).toHaveBeenCalledTimes(1)
-    expect(mockOnStatusChange).toHaveBeenCalledWith('1', 'INTERVIEWS')
+    expect(mockOnStatusChange).toHaveBeenCalledWith('1', 'Interviews')
   })
 
   // --- External Link Tests ---
@@ -424,7 +424,7 @@ describe('ApplicationsTable', () => {
         jobLink: '',
         position: 'Engineer',
         applicationDate: '2026-01-01',
-        status: 'APPLIED',
+        status: 'Applied',
         contactPerson: '',
         notes: '',
         jobSource: 'Hirelytics',

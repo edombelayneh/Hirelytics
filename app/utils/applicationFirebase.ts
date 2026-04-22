@@ -172,7 +172,7 @@ export function buildApplicationFromAvailableJob({
     jobSource: 'Hirelytics',
     jobLink: job.applyLink,
     applicationDate: new Date().toISOString().slice(0, 10),
-    status: 'APPLIED',
+    status: 'Applied',
     notes: '',
     recruiterId: job.recruiterId,
     jobDetails: {
@@ -288,7 +288,7 @@ export function buildApplicationFromJobDetails({
     jobSource: normalizedSource,
     jobLink,
     applicationDate: new Date().toISOString().slice(0, 10),
-    status: 'APPLIED',
+    status: 'Applied',
     notes: '',
     recruiterId,
     ...(visaRequired ? { visaRequired } : {}),
@@ -336,7 +336,7 @@ export async function saveUserApplication(application: ApplicationPayload): Prom
     ...application,
     id: application.id || resolvedJobId,
     jobId: resolvedJobId,
-    status: application.status || 'APPLIED',
+    status: application.status || 'Applied',
   }
 
   const firestorePayload = stripUndefinedDeep({

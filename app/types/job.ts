@@ -38,12 +38,12 @@ export type Applicant = {
 // Represents the lifecycle status of a user's job application
 // ------------------------------------------------
 export const APPLICATION_STATUSES = [
-  'APPLIED',
-  'SCREENING',
-  'INTERVIEWS',
-  'OFFERS',
-  'REJECTED',
-  'WITHDRAWN',
+  'Applied',
+  'Screening',
+  'Interviews',
+  'Offer',
+  'Rejected',
+  'Withdrawn',
 ] as const
 
 export type InternalApplicationPhase = (typeof APPLICATION_STATUSES)[number]

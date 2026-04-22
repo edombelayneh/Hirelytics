@@ -23,7 +23,7 @@ const VALID_STATUSES: ApplicationStatus[] = [...APPLICATION_STATUSES]
 function toApplicationStatus(value: unknown): ApplicationStatus {
   return VALID_STATUSES.includes(value as ApplicationStatus)
     ? (value as ApplicationStatus)
-    : 'APPLIED'
+    : 'Applied'
 }
 
 export default function JobDetailsPage() {
