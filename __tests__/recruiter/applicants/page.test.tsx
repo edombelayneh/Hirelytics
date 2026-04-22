@@ -3,30 +3,32 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import RecruiterApplicantProfilePage from '../../../app/recruiter/applicants/[applicantId]/page'
 
-// Mock next/link
+// Mock next/link - Replace Link component with simple anchor tag for testing
 vi.mock('next/link', () => ({
   default: ({ href, children }: { href: string; children: React.ReactNode }) => (
     <a href={href}>{children}</a>
   ),
 }))
 
-// Mock next/navigation
+// Mock next/navigation - Provide test applicant ID from URL parameters
 vi.mock('next/navigation', () => ({
   useParams: () => ({ applicantId: 'test-applicant-id' }),
 }))
 
 // Mock firebase client - MUST be before importing the page component
+// Provides empty db and firebaseAuth objects for testing
 vi.mock('../../../app/lib/firebaseClient', () => ({
   db: {},
   firebaseAuth: {},
 }))
 
-const mockGetDoc = vi.fn()
-const mockGetDocs = vi.fn()
-const mockDoc = vi.fn()
-const mockCollection = vi.fn()
+// Define mock functions for Firebase Firestore operations
+const mockGetDoc = vi.fn() // Mock for fetching single document (user profile)
+const mockGetDocs = vi.fn() // Mock for fetching document collection (job history)
+const mockDoc = vi.fn() // Mock for creating document reference
+const mockCollection = vi.fn() // Mock for creating collection reference
 
-// Mock firestore
+// Mock firebase/firestore - Replace Firebase functions with test mocks
 vi.mock('firebase/firestore', () => ({
   doc: (...args: unknown[]) => mockDoc(...args),
   collection: (...args: unknown[]) => mockCollection(...args),
@@ -34,7 +36,8 @@ vi.mock('firebase/firestore', () => ({
   getDocs: (...args: unknown[]) => mockGetDocs(...args),
 }))
 
-// Mock profile data
+// Mock profile data - Provide default profile structure for tests
+// All fields initialized as empty strings for default profile testing
 vi.mock('../../../app/data/profileData', () => ({
   defaultProfile: {
     firstName: '',
@@ -55,7 +58,7 @@ vi.mock('../../../app/data/profileData', () => ({
   },
 }))
 
-// Mock UI components
+// Mock Card components - Render as simple divs for testing
 vi.mock('../../../app/components/ui/card', () => ({
   Card: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   CardHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -64,11 +67,13 @@ vi.mock('../../../app/components/ui/card', () => ({
   CardContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }))
 
+// Mock Button component - Render as button element, pass through children if asChild prop
 vi.mock('../../../app/components/ui/button', () => ({
   Button: ({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) =>
     asChild ? <>{children}</> : <button>{children}</button>,
 }))
 
+// Mock Avatar components - Render as divs with image support
 vi.mock('../../../app/components/ui/avatar', () => ({
   Avatar: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   AvatarImage: ({ src, alt }: { src: string; alt: string }) => (
@@ -80,7 +85,7 @@ vi.mock('../../../app/components/ui/avatar', () => ({
   AvatarFallback: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }))
 
-// Mock icons
+// Mock Lucide React icons - Replace with simple span elements for testing
 vi.mock('lucide-react', () => ({
   Mail: () => <span>MailIcon</span>,
   Phone: () => <span>PhoneIcon</span>,
@@ -92,22 +97,29 @@ vi.mock('lucide-react', () => ({
 }))
 
 describe('RecruiterApplicantProfilePage', () => {
+  // Reset all mocks before each test to ensure test isolation
   beforeEach(() => {
     vi.clearAllMocks()
+    // Set default return values for mock functions
     mockDoc.mockReturnValue({ id: 'mock-user-ref' })
     mockCollection.mockReturnValue({ id: 'mock-history-ref' })
   })
 
+  // TEST: Verify that loading state is shown while data is being fetched
   it('shows loading state initially', () => {
+    // Mock Firebase calls to never resolve (simulates loading state)
     mockGetDoc.mockReturnValue(new Promise(() => {}))
     mockGetDocs.mockReturnValue(new Promise(() => {}))
 
     render(<RecruiterApplicantProfilePage />)
 
+    // Verify loading message is displayed
     expect(screen.queryByText('Loading applicant profile...')).not.toBeNull()
   })
 
+  // TEST: Verify error message when applicant profile doesn't exist
   it('shows not found when applicant does not exist', async () => {
+    // Mock Firebase to return that document doesn't exist
     mockGetDoc.mockResolvedValue({
       exists: () => false,
     })
@@ -118,11 +130,14 @@ describe('RecruiterApplicantProfilePage', () => {
 
     render(<RecruiterApplicantProfilePage />)
 
+    // Verify not found message is displayed
     const message = await screen.findByText('Applicant profile not found.')
     expect(message).not.toBeNull()
   })
 
+  // TEST: Verify complete profile data is rendered correctly
   it('renders applicant profile info when data loads successfully', async () => {
+    // Mock successful Firebase response with complete profile data
     mockGetDoc.mockResolvedValue({
       exists: () => true,
       data: () => ({
@@ -146,6 +161,7 @@ describe('RecruiterApplicantProfilePage', () => {
       }),
     })
 
+    // Mock job history data
     mockGetDocs.mockResolvedValue({
       docs: [
         {
@@ -164,6 +180,7 @@ describe('RecruiterApplicantProfilePage', () => {
 
     render(<RecruiterApplicantProfilePage />)
 
+    // Verify all profile data is rendered on the page
     const nameElements = await screen.findAllByText('Emma Storm')
     expect(nameElements.length).toBeGreaterThan(0)
     expect(screen.getAllByText('Software Developer').length).toBeGreaterThan(0)
@@ -178,7 +195,9 @@ describe('RecruiterApplicantProfilePage', () => {
     expect(screen.getAllByText('Emma_Resume.pdf').length).toBeGreaterThan(0)
   })
 
+  // TEST: Verify job history entries are displayed correctly
   it('renders employment history entries', async () => {
+    // Mock basic profile data
     mockGetDoc.mockResolvedValue({
       exists: () => true,
       data: () => ({
@@ -189,6 +208,7 @@ describe('RecruiterApplicantProfilePage', () => {
       }),
     })
 
+    // Mock multiple job history entries
     mockGetDocs.mockResolvedValue({
       docs: [
         {
@@ -218,7 +238,8 @@ describe('RecruiterApplicantProfilePage', () => {
 
     render(<RecruiterApplicantProfilePage />)
 
-    expect(await screen.findByText('Employment history')).not.toBeNull()
+    // Verify job history section title and all job entries are visible
+    expect(await screen.findByText('Job History')).not.toBeNull()
     expect(screen.queryByText('Media Services Technician')).not.toBeNull()
     expect(screen.queryByText('CMU')).not.toBeNull()
     expect(screen.queryByText('Provided classroom and media support.')).not.toBeNull()
@@ -227,7 +248,9 @@ describe('RecruiterApplicantProfilePage', () => {
     expect(screen.queryByText('Worked on internal systems and data validation.')).not.toBeNull()
   })
 
+  // TEST: Verify empty state message when no job history exists
   it('shows message when no job history exists', async () => {
+    // Mock profile without job history
     mockGetDoc.mockResolvedValue({
       exists: () => true,
       data: () => ({
@@ -238,16 +261,20 @@ describe('RecruiterApplicantProfilePage', () => {
       }),
     })
 
+    // Mock empty job history collection
     mockGetDocs.mockResolvedValue({
       docs: [],
     })
 
     render(<RecruiterApplicantProfilePage />)
 
-    expect(await screen.findByText('No job history entries available.')).not.toBeNull()
+    // Verify empty state message is displayed
+    expect(await screen.findByText('No job history added yet.')).not.toBeNull()
   })
 
+  // TEST: Verify fallback text appears for missing optional profile fields
   it('shows fallback text when optional profile fields are missing', async () => {
+    // Mock profile with only required fields
     mockGetDoc.mockResolvedValue({
       exists: () => true,
       data: () => ({
@@ -264,6 +291,7 @@ describe('RecruiterApplicantProfilePage', () => {
 
     render(<RecruiterApplicantProfilePage />)
 
+    // Verify all fallback messages for empty fields are displayed
     await waitFor(() => {
       expect(screen.getAllByText('No email saved').length).toBeGreaterThan(0)
       expect(screen.getAllByText('No phone saved').length).toBeGreaterThan(0)
@@ -276,7 +304,9 @@ describe('RecruiterApplicantProfilePage', () => {
     expect(screen.getAllByText('Not provided').length).toBeGreaterThan(0)
   })
 
+  // TEST: Verify navigation back link to recruiter jobs page works
   it('renders back link to recruiter jobs page', async () => {
+    // Mock profile data
     mockGetDoc.mockResolvedValue({
       exists: () => true,
       data: () => ({
@@ -293,12 +323,15 @@ describe('RecruiterApplicantProfilePage', () => {
 
     render(<RecruiterApplicantProfilePage />)
 
+    // Verify back button is rendered with correct href
     const backLinks = await screen.findAllByText('Back to my jobs')
     expect(backLinks.length).toBeGreaterThan(0)
     expect(backLinks[0].getAttribute('href')).toBe('/recruiter/myJobs')
   })
 
+  // TEST: Verify social and portfolio links are rendered when available
   it('renders social and portfolio links when provided', async () => {
+    // Mock profile with social links
     mockGetDoc.mockResolvedValue({
       exists: () => true,
       data: () => ({
@@ -318,6 +351,7 @@ describe('RecruiterApplicantProfilePage', () => {
 
     render(<RecruiterApplicantProfilePage />)
 
+    // Verify all social links are rendered
     const linkedinElements = await screen.findAllByText('LinkedIn')
     const portfolioElements = screen.getAllByText('Portfolio')
     const githubElements = screen.getAllByText('GitHub')

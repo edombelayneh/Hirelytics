@@ -19,53 +19,76 @@ import { defaultProfile, type UserProfile } from '../../../data/profileData'
 import type { JobHistoryItem } from '../../../utils/jobHistory'
 
 export default function RecruiterApplicantProfilePage() {
+  // Extract applicant ID from URL parameters
   const { applicantId } = useParams() as { applicantId?: string }
 
-  const [profile, setProfile] = useState<UserProfile>(defaultProfile)
-  const [jobHistory, setJobHistory] = useState<JobHistoryItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [notFound, setNotFound] = useState(false)
+  // State management for profile data and UI states
+  const [profile, setProfile] = useState<UserProfile>(defaultProfile) // Applicant's profile information
+  const [jobHistory, setJobHistory] = useState<JobHistoryItem[]>([]) // Array of applicant's work experience
+  const [loading, setLoading] = useState(true) // Loading state while fetching data
+  const [notFound, setNotFound] = useState(false) // Error state if applicant doesn't exist
 
+  // Load applicant profile and job history from Firebase when component mounts
+  // This effect runs once on mount and whenever applicantId changes
   useEffect(() => {
+    // Don't attempt to load if no applicant ID is provided
     if (!applicantId) return
 
+    /**
+     * Async function to fetch applicant data from Firebase
+     * Handles both profile information and job history collection
+     */
     const loadProfile = async () => {
+      // Reset states for fresh data load
       setLoading(true)
       setNotFound(false)
 
       try {
+        // Step 1: Fetch main user profile document
         const userRef = doc(db, 'users', applicantId)
         const userSnap = await getDoc(userRef)
 
+        // Handle case where applicant doesn't exist
         if (!userSnap.exists()) {
           setNotFound(true)
           return
         }
 
+        // Extract and merge profile data with defaults
         const userData = userSnap.data() as { profile?: UserProfile }
         setProfile({ ...defaultProfile, ...(userData.profile ?? {}) })
 
+        // Step 2: Fetch job history subcollection
+        // Job history is stored as a subcollection under each user document
         const historySnap = await getDocs(collection(db, 'users', applicantId, 'jobHistory'))
+
+        // Transform Firestore documents into JobHistoryItem array
         setJobHistory(
           historySnap.docs.map((docItem) => ({
-            id: docItem.id,
-            ...(docItem.data() as Omit<JobHistoryItem, 'id'>),
+            id: docItem.id, // Firestore document ID
+            ...(docItem.data() as Omit<JobHistoryItem, 'id'>), // Document data without ID
           }))
         )
       } catch (error) {
+        // Log error for debugging and set not found state
         console.error('Failed to load applicant profile:', error)
         setNotFound(true)
       } finally {
+        // Always stop loading regardless of success/failure
         setLoading(false)
       }
     }
 
+    // Execute the data loading function
     loadProfile()
-  }, [applicantId])
+  }, [applicantId]) // Re-run effect if applicantId changes
 
   return (
+    // Main page container with full height and white background
     <div className='min-h-screen bg-white'>
+      {/* Centered content container with responsive padding */}
       <main className='mx-auto w-full max-w-[1100px] px-4 py-6 sm:px-6'>
+        {/* Navigation: Back button to return to recruiter's job dashboard */}
         <div className='mb-6'>
           <Button
             asChild
@@ -75,20 +98,25 @@ export default function RecruiterApplicantProfilePage() {
           </Button>
         </div>
 
+        {/* Conditional rendering based on data loading state */}
         {loading ? (
+          // Loading state: Show loading message while data is being fetched
           <div className='rounded-md border bg-card p-6 text-sm text-muted-foreground'>
             Loading applicant profile...
           </div>
         ) : notFound ? (
+          // Error state: Show error message if applicant profile doesn't exist
           <div className='rounded-md border bg-card p-6 text-sm text-muted-foreground'>
             Applicant profile not found.
           </div>
         ) : (
+          // Success state: Render the complete applicant profile
           <div className='space-y-6'>
+            {/* MAIN PROFILE CARD - Contains sidebar and main content areas */}
             <Card>
               <CardHeader>
-                <CardTitle>
-                  {`${profile.firstName} ${profile.lastName}`.trim() || 'Applicant profile'}
+                <CardTitle className='text-lg font-semibold text-primary'>
+                  Candidate Profile
                 </CardTitle>
                 <CardDescription>
                   Candidate profile pulled from the user&apos;s account.
@@ -96,9 +124,11 @@ export default function RecruiterApplicantProfilePage() {
               </CardHeader>
 
               <CardContent>
+                {/* Two-column layout: Sidebar (photo/contact) and Main content (about/experience) */}
                 <div className='grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]'>
-                  {/* LEFT SIDEBAR */}
+                  {/* LEFT SIDEBAR - Profile photo and contact information */}
                   <div className='space-y-4 rounded-xl border p-4'>
+                    {/* Profile photo and name section */}
                     <div className='flex flex-col items-center gap-4 text-center'>
                       <Avatar className='h-24 w-24'>
                         {profile.profilePicture ? (
@@ -107,12 +137,14 @@ export default function RecruiterApplicantProfilePage() {
                             alt='Applicant photo'
                           />
                         ) : (
+                          // Fallback to first letter of first name
                           <AvatarFallback>
                             {(profile.firstName?.[0] ?? 'A').toUpperCase()}
                           </AvatarFallback>
                         )}
                       </Avatar>
 
+                      {/* Applicant name and current title */}
                       <div>
                         <p className='text-lg font-semibold'>
                           {`${profile.firstName} ${profile.lastName}`.trim() || 'Unnamed candidate'}
@@ -123,8 +155,9 @@ export default function RecruiterApplicantProfilePage() {
                       </div>
                     </div>
 
-                    {/* CONTACT INFO */}
+                    {/* CONTACT INFORMATION SECTION */}
                     <div className='space-y-3 text-sm'>
+                      {/* Email contact */}
                       <div className='flex items-center gap-2 text-muted-foreground'>
                         <Mail
                           className='h-4 w-4'
@@ -132,6 +165,8 @@ export default function RecruiterApplicantProfilePage() {
                         />
                         <span>{profile.email || 'No email saved'}</span>
                       </div>
+
+                      {/* Phone contact */}
                       <div className='flex items-center gap-2 text-muted-foreground'>
                         <Phone
                           className='h-4 w-4'
@@ -139,6 +174,8 @@ export default function RecruiterApplicantProfilePage() {
                         />
                         <span>{profile.phone || 'No phone saved'}</span>
                       </div>
+
+                      {/* Location */}
                       <div className='flex items-center gap-2 text-muted-foreground'>
                         <MapPin
                           className='h-4 w-4'
@@ -146,6 +183,8 @@ export default function RecruiterApplicantProfilePage() {
                         />
                         <span>{profile.location || 'No location saved'}</span>
                       </div>
+
+                      {/* Availability status */}
                       <div className='flex items-center gap-2 text-muted-foreground'>
                         <Globe
                           className='h-4 w-4'
@@ -156,32 +195,39 @@ export default function RecruiterApplicantProfilePage() {
                     </div>
                   </div>
 
-                  {/* RIGHT CONTENT */}
+                  {/* RIGHT CONTENT - Main profile information and details */}
                   <div className='space-y-6'>
+                    {/* ABOUT SECTION - Professional bio and key information */}
                     <div className='grid gap-4 rounded-xl border p-6'>
                       <div>
-                        <h3 className='text-base font-semibold'>About</h3>
-                        <p className='mt-2 text-sm leading-6 text-muted-foreground'>
+                        <h2 className='text-lg font-semibold text-primary mb-3'>About</h2>
+                        <p className='text-sm leading-6 text-muted-foreground'>
                           {profile.bio || 'No bio available for this applicant.'}
                         </p>
                       </div>
 
+                      {/* EXPERIENCE SUMMARY CARDS */}
                       <div className='grid gap-3 sm:grid-cols-2'>
+                        {/* Years of experience card */}
                         <div className='rounded-xl border p-4'>
-                          <p className='text-sm font-semibold'>Experience</p>
-                          <p className='mt-2 text-sm text-muted-foreground'>
+                          <h3 className='text-base font-semibold text-primary mb-2'>Experience</h3>
+                          <p className='text-sm text-muted-foreground'>
                             {profile.yearsOfExperience || 'Not provided'}
                           </p>
                         </div>
+
+                        {/* Current role card */}
                         <div className='rounded-xl border p-4'>
-                          <p className='text-sm font-semibold'>Current role</p>
-                          <p className='mt-2 text-sm text-muted-foreground'>
+                          <h3 className='text-base font-semibold text-primary mb-2'>
+                            Current role
+                          </h3>
+                          <p className='text-sm text-muted-foreground'>
                             {profile.currentTitle || 'Not provided'}
                           </p>
                         </div>
                       </div>
 
-                      {/* LINKS */}
+                      {/* PROFESSIONAL LINKS SECTION */}
                       <div className='grid gap-3 sm:grid-cols-3'>
                         {profile.linkedinUrl && (
                           <a
@@ -253,42 +299,47 @@ export default function RecruiterApplicantProfilePage() {
               </CardContent>
             </Card>
 
-            {/* JOB HISTORY */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Employment history</CardTitle>
-                <CardDescription>Past positions saved by the applicant.</CardDescription>
-              </CardHeader>
+            {/* JOB HISTORY SECTION - Displays applicant's work experience */}
+            <Card className='p-6'>
+              {/* Section header with title and description */}
+              <div className='space-y-2'>
+                <h2 className='text-lg font-semibold text-primary'>Job History</h2>
+                <p className='text-sm text-muted-foreground'>
+                  Past positions saved by the applicant.
+                </p>
+              </div>
 
-              <CardContent>
+              {/* Job history content area */}
+              <div className='mt-4 space-y-4'>
+                {/* Handle empty state when no job history exists */}
                 {jobHistory.length === 0 ? (
-                  <p className='text-sm text-muted-foreground'>No job history entries available.</p>
+                  <p className='text-sm text-muted-foreground'>No job history added yet.</p>
                 ) : (
-                  <div className='space-y-4'>
-                    {jobHistory.map((item) => (
-                      <div
-                        key={item.id}
-                        className='rounded-xl border p-4'
-                      >
-                        <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
-                          <div>
-                            <p className='text-sm font-semibold'>{item.title}</p>
-                            <p className='text-sm text-muted-foreground'>{item.company}</p>
-                          </div>
-                          <span className='text-sm text-muted-foreground'>
-                            {item.startDate} -{' '}
-                            {item.isCurrent ? 'Present' : item.endDate || 'Ended'}
-                          </span>
+                  // Render each job history item
+                  jobHistory.map((item) => (
+                    <div
+                      key={item.id}
+                      className='rounded-lg border p-4 space-y-3'
+                    >
+                      {/* Job title, company and date header */}
+                      <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between'>
+                        <div>
+                          <h3 className='text-base font-semibold'>{item.title}</h3>
+                          <p className='text-sm text-muted-foreground'>{item.company}</p>
                         </div>
 
-                        <p className='mt-3 text-sm leading-6 text-muted-foreground'>
-                          {item.roleDescription}
-                        </p>
+                        {/* Employment date range */}
+                        <span className='text-sm text-muted-foreground'>
+                          {item.startDate} - {item.isCurrent ? 'Current' : item.endDate || 'Ended'}
+                        </span>
                       </div>
-                    ))}
-                  </div>
+
+                      {/* Job role description */}
+                      <p className='text-sm whitespace-pre-wrap'>{item.roleDescription}</p>
+                    </div>
+                  ))
                 )}
-              </CardContent>
+              </div>
             </Card>
           </div>
         )}
