@@ -27,12 +27,15 @@ function toApplicationStatus(value: unknown): ApplicationStatus {
 }
 
 export default function JobDetailsPage() {
-  const { jobId } = useParams<{ jobId: string }>() // Job posting data fetched from jobPostings collection
+  const { jobId } = useParams<{ jobId: string }>()
 
-  const [job, setJob] = useState<Job | null>(null) // Applicant profiles resolved from users/{uid}.profile for each id in applicantsId
+  // Job posting data fetched from jobPostings collection
+  const [job, setJob] = useState<Job | null>(null)
+  // Applicant profiles resolved from users/{uid}.profile for each id in applicantsId
   const [applicants, setApplicants] = useState<Applicant[]>([])
-  const [loadingJob, setLoadingJob] = useState(true) // Subscribe to the job posting in real-time
+  const [loadingJob, setLoadingJob] = useState(true)
 
+  // Subscribe to the job posting in real-time
   useEffect(() => {
     if (!jobId) return
 
@@ -52,10 +55,12 @@ export default function JobDetailsPage() {
         type: data.workArrangement ?? data.jobType ?? data.type ?? '',
         postedAt: data.postedDate,
         description: data.description,
-      }) // Fetch profile for each applicant userId stored in applicantsId
+      })
 
-      const applicantIds: string[] = Array.isArray(data.applicantsId) ? data.applicantsId : [] // Fetch each applicant's profile from users/{uid}.profile in parallel
+      // Fetch profile for each applicant userId stored in applicantsId
+      const applicantIds: string[] = Array.isArray(data.applicantsId) ? data.applicantsId : []
 
+      // Fetch each applicant's profile from users/{uid}.profile in parallel
       const profiles = await Promise.all(
         applicantIds.map(async (uid) => {
           const [userSnap, applicationSnap] = await Promise.all([
@@ -93,7 +98,7 @@ export default function JobDetailsPage() {
   if (loadingJob) {
     return (
       <div className='min-h-screen bg-background flex items-center justify-center'>
-                <p className='text-sm text-muted-foreground'>Loading job details...</p>     {' '}
+        <p className='text-sm text-muted-foreground'>Loading job details...</p>
       </div>
     )
   }
@@ -101,7 +106,7 @@ export default function JobDetailsPage() {
   if (!job) {
     return (
       <div className='min-h-screen bg-background flex items-center justify-center'>
-                <p className='text-sm text-muted-foreground'>Job not found.</p>     {' '}
+        <p className='text-sm text-muted-foreground'>Job not found.</p>
       </div>
     )
   }
@@ -128,33 +133,26 @@ export default function JobDetailsPage() {
 
   return (
     <div className='min-h-screen bg-background'>
-           {' '}
       <main className='mr-auto w-full max-w-[1400px] px-4 sm:px-6 py-6 space-y-6'>
-               {' '}
         <div>
-                   {' '}
           <Button
             asChild
             variant='outline'
           >
-                        <Link href='/recruiter/myJobs'>Return to my jobs</Link>         {' '}
+            <Link href='/recruiter/myJobs'>Return to my jobs</Link>
           </Button>
-                 {' '}
         </div>
-               {' '}
+
         <div className='grid gap-6 md:grid-cols-[340px_minmax(0,1fr)]'>
-                    <JobDetailsCard job={job} />
-                   {' '}
+          <JobDetailsCard job={job} />
+
           <ApplicantsTable
             applicants={applicants}
             profileHref={(applicantId) => `/recruiter/applicants/${applicantId}`}
             onStatusChange={handleApplicantStatusChange}
           />
-                 {' '}
         </div>
-             {' '}
       </main>
-         {' '}
     </div>
   )
 }

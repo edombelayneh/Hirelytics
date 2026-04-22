@@ -1,5 +1,10 @@
 'use client'
 
+// A form page that lets recruiters submit new jobs.
+// - Collect job information
+// - Shows a redirecting overlay and then sends the user to the "Job Details" page using hash navigation.
+// - Saves job data to Firebase in the 'jobPostings' collection and checks user role (recruiter only)
+
 import { type FormEvent, useEffect, useState } from 'react'
 import { useUser } from '@clerk/nextjs'
 import Link from 'next/link'
@@ -8,8 +13,11 @@ import { collection, doc, setDoc } from 'firebase/firestore'
 import { db, firebaseAuth } from '../../lib/firebaseClient'
 import { getRecruiterProfile } from '../../utils/userProfiles'
 
+// Matches the AvailableJob interface shape so the document is readable by the applicant job list,
+// plus extra recruiter-only fields saved alongside it.
 type RecruiterJobPayload = {
   id: string
+  // AvailableJob fields
   title: string
   company: string
   location: string
@@ -22,6 +30,7 @@ type RecruiterJobPayload = {
   applyLink: string
   recruiterId: string
   applicantsId: string[]
+  // Extra fields from the form
   recruiterEmail: string
   preferredSkills: string
   country: string
@@ -39,6 +48,7 @@ type RecruiterJobPayload = {
   createdAt: string
 }
 
+// Page for recruiters to create a new job
 export default function AddNewJobPage() {
   const router = useRouter()
   const { user, isLoaded } = useUser()
@@ -49,6 +59,7 @@ export default function AddNewJobPage() {
   const userRole: 'recruiter' | 'applicant' =
     metadataRole === 'applicant' ? 'applicant' : 'recruiter'
 
+  // Form field state
   const [jobName, setJobName] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [recruiterEmail, setRecruiterEmail] = useState('')
@@ -71,78 +82,111 @@ export default function AddNewJobPage() {
     ''
   )
   const [applicationDeadline, setApplicationDeadline] = useState('')
+  // UI state
+
   const [message, setMessage] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [showSuccessToast, setShowSuccessToast] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
   const [hasEditedRecruiterEmail, setHasEditedRecruiterEmail] = useState(false)
 
+  // Redirects applicants away from this page.
   useEffect(() => {
     if (userRole !== 'recruiter') {
-      router.replace('/')
+      router.replace('/') // Send applicant users back to the home page.
     }
   }, [userRole, router])
 
+  // Pre-fill the recruiter email field.
+  // Prefers the email stored in the Firebase recruiter profile over the Clerk primary email.
+  // Skips the update if the user has already manually edited the field.
   useEffect(() => {
-    if (!isLoaded) return
+    if (!isLoaded) return // Wait until Clerk has finished loading the user.
+
     let isCancelled = false
+
     const hydrateRecruiterEmail = async () => {
-      const clerkEmail = user?.primaryEmailAddress?.emailAddress ?? ''
-      const uid = firebaseAuth.currentUser?.uid
-      let preferredEmail = clerkEmail
+      const clerkEmail = user?.primaryEmailAddress?.emailAddress ?? '' // Fallback email from Clerk.
+      const uid = firebaseAuth.currentUser?.uid // Firebase UID for profile lookup.
+
+      let preferredEmail = clerkEmail // Start with Clerk email as the default.
+
       if (uid) {
         try {
           const recruiterProfile = await getRecruiterProfile(uid)
-          preferredEmail = recruiterProfile?.recruiterEmail?.trim() || clerkEmail
+          preferredEmail = recruiterProfile?.recruiterEmail?.trim() || clerkEmail // Prefer Firebase profile email if available
         } catch (error) {
           console.error('Failed to load recruiter profile email:', error)
         }
       }
-      if (isCancelled || hasEditedRecruiterEmail || !preferredEmail) return
-      setRecruiterEmail((currentEmail) => currentEmail || preferredEmail)
+
+      if (isCancelled || hasEditedRecruiterEmail || !preferredEmail) return // Bail if stale, user-edited, or empty.
+
+      setRecruiterEmail((currentEmail) => currentEmail || preferredEmail) // Only set if field is still empty.
     }
+
     hydrateRecruiterEmail().catch((error) => {
       console.error('Failed to hydrate recruiter email:', error)
     })
+
     return () => {
-      isCancelled = true
+      isCancelled = true // Mark as cancelled on cleanup.
     }
   }, [isLoaded, user?.id, user?.primaryEmailAddress?.emailAddress, hasEditedRecruiterEmail])
 
+  // handleSubmit
+  // This prevents the form from default submission.
+  // Saves the job data to the 'jobPostings' Firestore collection.
+  // Show a short success message and redirect overlay.
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+    e.preventDefault() // Prevent page reload
+
     if (userRole !== 'recruiter') {
       setMessage('Unauthorized access')
       return
     }
+
     setMessage(null)
+
+    // Basic validation for required fields.
     if (!jobName || !companyName || !description || !recruiterEmail) {
       setMessage('Please fill in Job Name, Company Name, Description, and Recruiter Email.')
       return
     }
+
     const currentRecruiterId = user?.id?.trim()
+
     if (!currentRecruiterId) {
       setMessage('Unable to identify recruiter account. Please sign in again.')
       return
     }
+
     setSubmitting(true)
 
+    // Build location string from individual fields
     const location = [city, stateValue, country].filter(Boolean).join(', ')
+
+    // Build salary display string
     const salaryDisplay =
       paymentAmount !== ''
         ? paymentType === 'hourly'
           ? `$${paymentAmount}/hr`
           : `$${Number(paymentAmount).toLocaleString()}/yr`
         : ''
+
+    // Split qualifications by newline into a requirements array
     const requirements = qualifications
       .split('\n')
       .map((s) => s.trim())
       .filter(Boolean)
 
+    // Pre-generate the Firestore doc reference so its ID can be stored
+    // inside the document itself — no max-ID calculation, no race condition.
     const newDocRef = doc(collection(db, 'jobPostings'))
 
     const jobData: RecruiterJobPayload = {
       id: newDocRef.id,
+      // AvailableJob fields
       title: jobName,
       company: companyName,
       location,
@@ -155,6 +199,7 @@ export default function AddNewJobPage() {
       applyLink: '#',
       recruiterId: currentRecruiterId,
       applicantsId: [],
+      // Extra fields
       recruiterEmail,
       preferredSkills,
       country,
@@ -183,10 +228,14 @@ export default function AddNewJobPage() {
 
     setMessage('Job submitted. Redirecting to Job Details...')
     setShowSuccessToast(true)
+
+    // Show success toast first, then show redirect overlay
     setTimeout(() => {
       setShowSuccessToast(false)
       setRedirecting(true)
     }, 1400)
+
+    // Small delay so user sees toast and overlay before navigation
     setTimeout(() => {
       router.push(`/recruiter/JobDetails/${newDocRef.id}`)
     }, 3400)
@@ -194,7 +243,6 @@ export default function AddNewJobPage() {
 
   return (
     <main className='min-h-screen bg-gray-50'>
-      {/* Toast and overlay unchanged */}
       {showSuccessToast && (
         <div className='fixed bottom-4 right-4 z-[60]'>
           <div className='flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-lg'>
@@ -217,6 +265,8 @@ export default function AddNewJobPage() {
           </div>
         </div>
       )}
+
+      {/* Overlay shown during redirect */}
       {redirecting && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
           <div className='bg-white rounded-lg px-6 py-4 shadow-lg text-center'>
@@ -241,8 +291,9 @@ export default function AddNewJobPage() {
           Fill in the job details below. This information will be sent for review.
         </p>
 
+        {/* Validation / status message. */}
         {message && <div className='rounded border p-3 text-sm mb-4'>{message}</div>}
-
+        {/* Job form */}
         <form
           onSubmit={handleSubmit}
           className='space-y-5'
@@ -313,6 +364,7 @@ export default function AddNewJobPage() {
                     setPaymentAmount('')
                     return
                   }
+
                   const parsedValue = parseInt(value, 10)
                   if (!Number.isNaN(parsedValue)) {
                     setPaymentAmount(parsedValue)
@@ -324,6 +376,7 @@ export default function AddNewJobPage() {
                 className='w-full border rounded p-2'
               />
             </div>
+
             <div>
               <label className='block text-sm mb-1'>Payment Type</label>
               <select
@@ -337,7 +390,6 @@ export default function AddNewJobPage() {
             </div>
           </div>
 
-          {/* The Work Arrangement field */}
           <div>
             <label className='block text-sm mb-1'>Work Arrangement</label>
             <select
@@ -452,12 +504,13 @@ export default function AddNewJobPage() {
               />
             </div>
           </div>
-
           <div>
             <label className='block text-sm mb-1'>Visa Sponsorship Available?</label>
             <select
               value={String(visaRequired)}
-              onChange={(e) => setVisaRequired(e.target.value === 'true')}
+              onChange={(e) => {
+                setVisaRequired(e.target.value === 'true')
+              }}
               className='w-full border rounded p-2'
             >
               <option value='true'>Yes, we can sponsor visas</option>
@@ -476,6 +529,7 @@ export default function AddNewJobPage() {
             />
           </div>
 
+          {/* Submit button - only visible to recruiters */}
           {userRole === 'recruiter' && (
             <button
               type='submit'
