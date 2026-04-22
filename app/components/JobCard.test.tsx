@@ -344,4 +344,56 @@ describe('JobCard', () => {
     const badge = screen.getByText('Unknown')
     expect(badge.className).toContain('bg-muted')
   })
+
+  it('applies teal styling for full-time jobs', () => {
+    render(
+      <JobCard
+        job={{ ...mockJob, type: 'Full-time' }}
+        onApply={mockOnApply}
+        isApplied={false}
+      />
+    )
+
+    const badge = screen.getByText('Full-time')
+    expect(badge.className).toContain('bg-[var(--accent-teal)]')
+  })
+
+  it('applies pink styling for part-time jobs', () => {
+    render(
+      <JobCard
+        job={{ ...mockJob, type: 'Part-time' }}
+        onApply={mockOnApply}
+        isApplied={false}
+      />
+    )
+
+    const badge = screen.getByText('Part-time')
+    expect(badge.className).toContain('bg-[var(--accent-pink)]')
+  })
+
+  it('applies gold styling for contract jobs', () => {
+    render(
+      <JobCard
+        job={{ ...mockJob, type: 'Contract' }}
+        onApply={mockOnApply}
+        isApplied={false}
+      />
+    )
+
+    const badge = screen.getByText('Contract')
+    expect(badge.className).toContain('bg-[var(--accent-gold)]')
+  })
+
+  it('applies accent styling for internship jobs', () => {
+    render(
+      <JobCard
+        job={{ ...mockJob, type: 'Internship' }}
+        onApply={mockOnApply}
+        isApplied={false}
+      />
+    )
+
+    const badge = screen.getByText('Internship')
+    expect(badge.className).toContain('bg-accent')
+  })
 })
