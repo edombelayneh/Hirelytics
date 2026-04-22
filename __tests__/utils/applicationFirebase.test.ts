@@ -34,7 +34,7 @@ describe('app/utils/applicationFirebase', () => {
     const payload = buildApplicationFromAvailableJob({
       userId: 'user-1',
       job: {
-        id: 7,
+        id: '7',
         title: 'Frontend Engineer',
         company: 'Acme',
         location: 'Remote',

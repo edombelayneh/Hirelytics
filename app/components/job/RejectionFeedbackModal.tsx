@@ -76,9 +76,13 @@ export function RejectionFeedbackModal({
   onSubmit,
   onCancel,
 }: RejectionFeedbackModalProps) {
+  // Form state for recruiter-selected reason and custom explanation text.
   const [selectedReason, setSelectedReason] = useState<RejectionReason | ''>('')
   const [explanation, setExplanation] = useState('')
+  // Tracks request lifecycle and submit-time failures shown inline in the modal.
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  // Controls suggestion popover visibility and rotation through templates.
   const [isSuggestionOpen, setIsSuggestionOpen] = useState(false)
   const [suggestionIndex, setSuggestionIndex] = useState(0)
 
@@ -91,12 +95,21 @@ export function RejectionFeedbackModal({
     if (!selectedReason || !explanation.trim()) return
 
     setIsSubmitting(true)
+    setSubmitError('')
     try {
+      // Parent performs Firestore write; modal resets only after successful save.
       await onSubmit(selectedReason, explanation)
       setSelectedReason('')
       setExplanation('')
       setSuggestionIndex(0)
       setIsSuggestionOpen(false)
+    } catch (error) {
+      // Keep user input intact on failure so recruiter can retry quickly.
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Unable to submit rejection feedback. Check your connection and try again.'
+      setSubmitError(message)
     } finally {
       setIsSubmitting(false)
     }
@@ -105,6 +118,7 @@ export function RejectionFeedbackModal({
   const handleCancel = () => {
     setSelectedReason('')
     setExplanation('')
+    setSubmitError('')
     setSuggestionIndex(0)
     setIsSuggestionOpen(false)
     onCancel()
@@ -112,6 +126,7 @@ export function RejectionFeedbackModal({
 
   const handleReasonChange = (value: string) => {
     setSelectedReason(value as RejectionReason)
+    setSubmitError('')
     setSuggestionIndex(0)
     setIsSuggestionOpen(false)
   }
@@ -119,6 +134,7 @@ export function RejectionFeedbackModal({
   const handleUseSuggestion = () => {
     if (!currentSuggestion) return
 
+    // Inserts selected template into the editable explanation field.
     setExplanation(currentSuggestion)
     setIsSuggestionOpen(false)
   }
@@ -220,9 +236,21 @@ export function RejectionFeedbackModal({
               id='explanation'
               placeholder='Add any additional feedback or explanation for the candidate...'
               value={explanation}
-              onChange={(e) => setExplanation(e.target.value)}
+              onChange={(e) => {
+                setExplanation(e.target.value)
+                // Hide stale submit error once recruiter updates input.
+                if (submitError) setSubmitError('')
+              }}
               className='min-h-[120px]'
             />
+            {submitError ? (
+              <p
+                role='alert'
+                className='text-sm text-red-600'
+              >
+                {submitError}
+              </p>
+            ) : null}
           </div>
         </div>
 
