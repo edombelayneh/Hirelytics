@@ -135,10 +135,10 @@ function HomePage() {
             <Image
               src='/Hirelytics_Logo.png'
               alt='Hirelytics'
-              width={320}
-              height={80}
-              sizes='(min-width: 1024px) 320px, 240px'
-              className='mx-auto mb-6 h-25 w-auto'
+              width={2150}
+              height={300}
+              sizes='(min-width: 768px) 688px, (min-width: 640px) 573px, 516px'
+              className='mx-auto mb-6 h-[72px] w-auto sm:h-[80px] md:h-[96px]'
               priority
             />
 
