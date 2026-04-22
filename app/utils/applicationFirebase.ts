@@ -38,6 +38,7 @@ type ApplicationInput = {
   contactPerson: string
   jobSource: JobSource
   jobLink: string
+  isExternal?: boolean
   applicationDate: string
   status: 'Applied'
   notes: string
@@ -337,8 +338,10 @@ export async function saveUserApplication(application: ApplicationInput): Promis
     { merge: true }
   )
 
-  const jobRef = doc(db, 'jobPostings', resolvedJobId)
-  batch.set(jobRef, { applicantsId: arrayUnion(application.userId) }, { merge: true })
+  if (!application.isExternal) {
+    const jobRef = doc(db, 'jobPostings', resolvedJobId)
+    batch.set(jobRef, { applicantsId: arrayUnion(application.userId) }, { merge: true })
+  }
 
   await batch.commit()
 }

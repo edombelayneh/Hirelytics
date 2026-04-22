@@ -211,6 +211,51 @@ describe('app/utils/applicationFirebase', () => {
     expect(jobPostingWrite?.[2]).toEqual({ merge: true })
   })
 
+  it('saveUserApplication skips jobPostings for external applications', async () => {
+    const { saveUserApplication } = await import('@/app/utils/applicationFirebase')
+
+    await saveUserApplication({
+      id: 'ext-1',
+      userId: 'user-10',
+      company: 'External Co',
+      position: 'QA Engineer',
+      country: 'USA',
+      city: 'Austin',
+      contactPerson: 'Pat Recruiter',
+      jobSource: 'Other',
+      jobLink: 'https://example.com/external-job',
+      isExternal: true,
+      applicationDate: '2026-03-12',
+      status: 'Applied',
+      notes: '',
+      jobDetails: {
+        title: 'QA Engineer',
+        company: 'External Co',
+        location: 'Austin, TX',
+        type: 'Full-time',
+        postedDate: '2026-03-12',
+        salary: '$100,000',
+        description: 'Test workflows',
+        requirements: ['Playwright'],
+        status: 'Applied',
+        applyLink: 'https://example.com/external-job',
+      },
+    })
+
+    expect(docMock).toHaveBeenCalledWith(
+      expect.any(Object),
+      'users',
+      'user-10',
+      'applications',
+      'ext-1'
+    )
+    expect(docMock.mock.calls.some((call) => call[1] === 'jobPostings')).toBe(false)
+    expect(writeBatchMock).toHaveBeenCalledWith(expect.any(Object))
+    expect(batchSetMock).toHaveBeenCalledTimes(1)
+    expect(batchCommitMock).toHaveBeenCalledTimes(1)
+    expect(arrayUnionMock).not.toHaveBeenCalled()
+  })
+
   it('saveExternalJob stores city with state and normalizes dates to ISO', async () => {
     const { saveExternalJob } = await import('@/app/utils/applicationFirebase')
 
