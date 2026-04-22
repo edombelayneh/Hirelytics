@@ -12,14 +12,30 @@ type ImageWithFallbackProps = Omit<ImageProps, 'src' | 'alt'> & {
 export function ImageWithFallback(props: ImageWithFallbackProps) {
   const [didError, setDidError] = useState(false)
 
-  const { src, alt = '', style, className, width, height, unoptimized, onError, ...rest } = props
+  const {
+    src,
+    alt = '',
+    style,
+    className,
+    width,
+    height,
+    fill,
+    unoptimized,
+    onError,
+    ...rest
+  } = props
 
-  const resolvedWidth = typeof width === 'number' ? width : 88
-  const resolvedHeight = typeof height === 'number' ? height : 88
+  const isFill = Boolean(fill)
+  const resolvedWidth = !isFill && typeof width === 'number' ? width : 88
+  const resolvedHeight = !isFill && typeof height === 'number' ? height : 88
   const resolvedAlt = didError ? 'Error loading image' : alt
   const resolvedSrc = didError || !src ? ERROR_IMG_SRC : src
   const resolvedUnoptimized = unoptimized ?? didError
   const dataOriginalUrl = typeof src === 'string' ? src : undefined
+  const dimensionProps = isFill ? { fill: true } : { width: resolvedWidth, height: resolvedHeight }
+  const wrapperClassName = `inline-block bg-gray-100 text-center align-middle ${
+    isFill ? 'relative' : ''
+  } ${className ?? ''}`
 
   const handleError: ImageProps['onError'] = (event) => {
     onError?.(event)
@@ -28,15 +44,14 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
 
   return didError || !src ? (
     <div
-      className={`inline-block bg-gray-100 text-center align-middle ${className ?? ''}`}
+      className={wrapperClassName}
       style={style}
     >
       <div className='flex items-center justify-center w-full h-full'>
         <Image
           src={resolvedSrc}
           alt={resolvedAlt}
-          width={resolvedWidth}
-          height={resolvedHeight}
+          {...dimensionProps}
           unoptimized={resolvedUnoptimized}
           data-original-url={dataOriginalUrl}
           {...rest}
@@ -47,8 +62,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
     <Image
       src={resolvedSrc}
       alt={resolvedAlt}
-      width={resolvedWidth}
-      height={resolvedHeight}
+      {...dimensionProps}
       className={className}
       style={style}
       unoptimized={resolvedUnoptimized}

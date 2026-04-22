@@ -89,7 +89,6 @@ type BuildFromJobDetailsInput = {
   description: string
   requirements: string[]
   jobPostingStatus: string
-  applyLink: string
   recruiterId?: string
   state?: string
   visaRequired?: string
@@ -209,7 +208,6 @@ export function buildApplication({
       toText(mergedJob.description) || toText(mergedJob.generalDescription) || fallback.description,
     requirements,
     jobPostingStatus: toText(mergedJob.status) || 'Open',
-    applyLink: jobLink,
     recruiterId: toText(mergedJob.recruiterId) || undefined,
     ...(state ? { state } : {}),
     ...(visaRequired ? { visaRequired } : {}),

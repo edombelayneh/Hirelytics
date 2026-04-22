@@ -42,6 +42,18 @@ vi.mock('../../../app/lib/firebaseClient', () => {
   }
 })
 
+const onAuthStateChangedMock = vi.fn(
+  (_auth: unknown, callback: (user: { uid: string } | null) => void) => {
+    callback(globalThis.__mockCurrentUser)
+    return () => {}
+  }
+)
+
+vi.mock('firebase/auth', () => ({
+  onAuthStateChanged: (...args: Parameters<typeof onAuthStateChangedMock>) =>
+    onAuthStateChangedMock(...args),
+}))
+
 // Mock child page so we can inspect props and trigger save
 vi.mock('../../../app/recruiter/profile/RecruiterProfilePage', () => ({
   RecruiterProfilePage: ({

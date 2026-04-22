@@ -1,11 +1,14 @@
 // __tests__/recruiter/profile/RecruiterProfilePage.test.tsx
 import React, { JSX } from 'react'
-import Image from 'next/image'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
 
 import { RecruiterProfilePage } from '../../../app/recruiter/profile/RecruiterProfilePage' // <-- adjust path
 import type { RecruiterProfile } from '../../../app/utils/userProfiles'
+
+vi.mock('next/image', () => ({
+  default: (props: JSX.IntrinsicElements['img']) => React.createElement('img', props),
+}))
 
 // Checks if an element exists on the page (is visible to the user)
 const expectInDoc = (el: unknown): void => {
@@ -108,15 +111,13 @@ vi.mock('../../../app/components/ui/textarea', () => ({
 // Mock Avatar components - render user profile images or initials
 vi.mock('../../../app/components/ui/avatar', () => ({
   Avatar: ({ children }: { children: React.ReactNode }): JSX.Element => <div>{children}</div>,
-  AvatarImage: ({ alt, src }: { alt?: string; src?: string }): JSX.Element => (
-    <Image
-      alt={alt ?? ''}
-      src={src ?? 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=='}
-      width={48}
-      height={48}
-      unoptimized
-    />
-  ),
+  AvatarImage: ({ alt, src }: { alt?: string; src?: string }): JSX.Element =>
+    React.createElement('img', {
+      alt: alt ?? '',
+      src: src ?? 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==',
+      width: 48,
+      height: 48,
+    }),
   AvatarFallback: ({ children }: { children: React.ReactNode }): JSX.Element => (
     <div>{children}</div>
   ),

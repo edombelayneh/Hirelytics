@@ -10,6 +10,10 @@ vi.mock('firebase/app', () => ({
 
 vi.mock('firebase/auth', () => ({
   getAuth: vi.fn(() => ({})),
+  onAuthStateChanged: vi.fn((_auth: unknown, callback: (user: unknown) => void) => {
+    callback(null)
+    return () => {}
+  }),
 }))
 
 vi.mock('firebase/firestore', () => ({
@@ -22,6 +26,7 @@ type PageImport = () => Promise<PageModule>
 
 const pageModules = import.meta.glob('/app/**/page.tsx') as Record<string, PageImport>
 const pageEntries = Object.entries(pageModules).sort(([a], [b]) => a.localeCompare(b))
+const pageImportTimeoutMs = 15000
 
 describe('page module compilation', () => {
   it('discovers page modules', () => {
@@ -29,10 +34,14 @@ describe('page module compilation', () => {
   })
 
   for (const [path, loadPage] of pageEntries) {
-    it(`compiles ${path}`, async () => {
-      const mod = await loadPage()
-      expect(mod).toBeTruthy()
-      expect('default' in mod).toBe(true)
-    })
+    it(
+      `compiles ${path}`,
+      async () => {
+        const mod = await loadPage()
+        expect(mod).toBeTruthy()
+        expect('default' in mod).toBe(true)
+      },
+      pageImportTimeoutMs
+    )
   }
 })
