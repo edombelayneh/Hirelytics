@@ -2,7 +2,7 @@ import type { ApplicationStatus } from '../types/job'
 
 export const ApplicationStatusColor: Record<ApplicationStatus, string> = {
   Applied: '!bg-yellow-200',
-  Screening: '!bg-sky-200',
+  Screening: '!bg-[#F59E0B]',
   Interviews: '!bg-blue-200',
   Offer: '!bg-green-200',
   Rejected: '!bg-red-200',
