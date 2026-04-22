@@ -5,7 +5,6 @@ import type { ApplicationStatus } from '../types/job'
 export interface JobApplication {
   id: string | number
   jobId?: string
-  applicationId?: string
   company: string
   country: string
   city: string
