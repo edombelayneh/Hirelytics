@@ -155,9 +155,8 @@ export default function JobDetailsPage() {
 
     // Persist feedback on the rejected applicant's own application record.
     await updateDoc(doc(db, 'users', rejectionModal.applicantId, 'applications', jobId), {
-      // Keep explicit identifiers for downstream reads/auditing.
+      // Keep the explicit job identifier for downstream reads/auditing.
       jobId: String(jobId),
-      applicationId: String(jobId),
       status: 'Rejected' as ApplicationStatus,
       // Structured feedback fields visible to applicant-side listeners/UI.
       rejectionReason: reason,
