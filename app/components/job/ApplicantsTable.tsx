@@ -88,7 +88,7 @@ export function ApplicantsTable({
               applicants.map((a) => {
                 const fullName = `${a.firstName} ${a.lastName}`.trim() || 'Unnamed'
                 const resumeLabel = a.resumeFileName || 'Download resume'
-                const status = normalizeInternalStatus(a.applicationStatus ?? 'APPLIED')
+                const status = normalizeInternalStatus(a.applicationStatus ?? 'Applied')
                 const statusOptions = isInternalHirelyticsJob(a.jobSource)
                   ? getRecruiterManagedStatusOptions()
                   : EXTERNAL_APPLICATION_STATUSES
@@ -125,7 +125,7 @@ export function ApplicantsTable({
                               value={statusOption}
                               className={ApplicationStatusColor[statusOption]}
                             >
-                              {statusOption}
+                              {normalizeInternalStatus(statusOption)}
                             </SelectItem>
                           ))}
                         </SelectContent>
