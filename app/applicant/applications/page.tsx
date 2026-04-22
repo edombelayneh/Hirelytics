@@ -14,29 +14,26 @@ import {
   orderBy,
   updateDoc,
   serverTimestamp,
+  deleteDoc,
 } from 'firebase/firestore'
 import { useAuth } from '@clerk/nextjs'
 import { useEffect, useState } from 'react'
 
 const MyApplicationsPage = memo(function MyApplicationsPage() {
   // Get authenticated user and loading state from Clerk
-  const { userId, isLoaded } = useAuth()
+  const { userId, isLoaded } = useAuth() // Store live application data from Firestore
 
-  // Store live application data from Firestore
-  const [liveApplications, setLiveApplications] = useState<JobApplication[]>([])
+  const [liveApplications, setLiveApplications] = useState<JobApplication[]>([]) // Listen in real-time to this user's applications
 
-  // Listen in real-time to this user's applications
   useEffect(() => {
     // Wait until Clerk finishes loading and user exists
-    if (!isLoaded || !userId) return
+    if (!isLoaded || !userId) return // Query this user's applications ordered by newest first
 
-    // Query this user's applications ordered by newest first
     const q = query(
       collection(db, 'users', userId, 'applications'),
       orderBy('applicationDate', 'desc')
-    )
+    ) // Subscribe to real-time updates
 
-    // Subscribe to real-time updates
     const unsub = onSnapshot(q, (snap) => {
       const next = snap.docs.map((d) => {
         const data = d.data() as JobApplication
@@ -44,70 +41,78 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
           ...data,
           id: data.id ?? d.id, // Ensure every record has an id
         }
-      })
+      }) // Update UI state with latest data
 
-      // Update UI state with latest data
       setLiveApplications(next)
-    })
+    }) // Cleanup listener when component unmounts
 
-    // Cleanup listener when component unmounts
     return () => unsub()
-  }, [isLoaded, userId])
+  }, [isLoaded, userId]) // Handle status updates from the table
 
-  // Handle status updates from the table
   const handleStatusChange = async (id: string, status: JobApplication['status']) => {
-    if (!isLoaded || !userId) return
-    // Update user status
-    const target = liveApplications.find((app) => app.id === id)
-    if (!target) return
+    if (!isLoaded || !userId) return // Update user status
 
-    // Hirelytics-hosted jobs are recruiter-managed, User cannot update status
-    if (target.jobSource === 'Hirelytics') return
-    // Update status in Firestore
+    const target = liveApplications.find((app) => app.id === id)
+    if (!target) return // Hirelytics-hosted jobs are recruiter-managed, User cannot update status
+
+    if (target.jobSource === 'Hirelytics') return // Update status in Firestore
+
     await updateDoc(doc(db, 'users', userId, 'applications', id), {
       status,
       updatedAt: serverTimestamp(),
     })
-  }
+  } // Handle notes updates from the table
 
-  // Handle notes updates from the table
   const handleNotesChange = async (id: string, notes: string) => {
-    if (!isLoaded || !userId) return
-    // Update notes in Firestore
+    if (!isLoaded || !userId) return // Update notes in Firestore
+
     await updateDoc(doc(db, 'users', userId, 'applications', id), {
       notes,
       updatedAt: serverTimestamp(),
     })
+  } // Handle deleting an application from the user's applications subcollection
+
+  const handleDeleteApplication = async (id: string) => {
+    if (!isLoaded || !userId) return
+
+    await deleteDoc(doc(db, 'users', userId, 'applications', id))
   }
 
   return (
     <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-8'>
+           {' '}
       <div className='space-y-8'>
-        {/* Dashboard overview section */}
+                {/* Dashboard overview section */}       {' '}
         <section className='space-y-4'>
+                   {' '}
           <div>
-            <h2 className='text-2xl font-bold mb-1'>Dashboard Overview</h2>
+                        <h2 className='text-2xl font-bold mb-1'>Dashboard Overview</h2>       
+             {' '}
           </div>
-          <HeroPanel applications={liveApplications} />
+                    <HeroPanel applications={liveApplications} />       {' '}
         </section>
-
-        {/* Summary metrics section */}
+                {/* Summary metrics section */}       {' '}
         <section className='space-y-4'>
+                   {' '}
           <div>
-            <h2 className='text-2xl font-bold mb-1'>Key Metrics</h2>
+                        <h2 className='text-2xl font-bold mb-1'>Key Metrics</h2>         {' '}
           </div>
-          <SummaryCards applications={liveApplications} />
+                    <SummaryCards applications={liveApplications} />       {' '}
         </section>
-
-        {/* Applications table section */}
+                {/* Applications table section */}       {' '}
         <section>
+                   {' '}
           <ApplicationsTable
             applications={liveApplications}
             onStatusChange={handleStatusChange}
             onNotesChange={handleNotesChange}
+            onDeleteApplication={handleDeleteApplication}
           />
+                 {' '}
         </section>
+             {' '}
       </div>
+         {' '}
     </div>
   )
 })

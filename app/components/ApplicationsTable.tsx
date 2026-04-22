@@ -7,7 +7,7 @@ import { Badge } from './ui/badge'
 import { Input } from './ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { ExternalLink, Search, Filter } from 'lucide-react'
+import { ExternalLink, Search, Filter, Trash2 } from 'lucide-react'
 import { JobApplication } from '../data/mockData'
 import { formatDate } from '../utils/dateFormatter'
 import { ApplicationStatusColor } from '../utils/applicationStatusStyles'
@@ -21,6 +21,7 @@ interface ApplicationsTableProps {
   onStatusChange?: (id: string, status: JobApplication['status']) => void
   onNotesChange?: (id: string, notes: string) => void
   onAddApplication?: (add: JobApplication) => void
+  onDeleteApplication?: (id: string) => void
 }
 
 // Memoized to avoid re-rendering when props don’t change
@@ -28,6 +29,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
   applications,
   onStatusChange,
   onNotesChange,
+  onDeleteApplication,
 }: ApplicationsTableProps) {
   // UI filter state
   const [searchTerm, setSearchTerm] = useState('')
@@ -118,6 +120,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                 <TableHead>Job Source</TableHead>
                 <TableHead>Notes</TableHead>
                 <TableHead>Job Details</TableHead>
+                <TableHead>Delete</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -204,13 +207,23 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                       <ExternalLink className='h-4 w-4' />
                     </Button>
                   </TableCell>
+                  <TableCell>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      aria-label='Delete application'
+                      onClick={() => onDeleteApplication?.(String(app.id))}
+                    >
+                      <Trash2 className='h-4 w-4 text-black' />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
               {/* Empty state when filters return no matches */}
               {filteredApplications.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={9}
+                    colSpan={10}
                     className='text-center py-8 text-muted-foreground'
                   >
                     No applications found matching your criteria
