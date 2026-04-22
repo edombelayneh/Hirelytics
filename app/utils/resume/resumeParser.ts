@@ -1,3 +1,5 @@
+import type { JobHistoryItem as AppJobHistoryItem } from '../jobHistory'
+
 // Parsing warnings are surfaced to callers to explain partial matches.
 type ParseWarning =
   | 'experience-section-not-found'
@@ -39,16 +41,7 @@ export type ResumeParserOptions = {
   maxExperienceItems?: number
 }
 
-export interface JobHistoryItem {
-  id: string
-  company: string
-  title: string
-  roleDescription: string
-  startDate: string
-  endDate: string
-  createdAt?: unknown
-  updatedAt?: unknown
-}
+export type JobHistoryItem = AppJobHistoryItem
 
 export type JobHistoryMapOptions = {
   dateFormat?: 'yyyy-mm' | 'yyyy-mm-dd' | 'raw'
@@ -825,6 +818,8 @@ export function mapExperiencesToJobHistory(
 
   return experiences.map((experience) => {
     const dates = helpers.formatDateRange(experience.dateRange)
+    const isCurrent = Boolean(experience.dateRange?.end?.isCurrent)
+    const endDate = isCurrent ? '' : dates.endDate
 
     return {
       id: idFactory(),
@@ -832,7 +827,8 @@ export function mapExperiencesToJobHistory(
       title: experience.title,
       roleDescription: experience.roleDescription,
       startDate: dates.startDate,
-      endDate: dates.endDate,
+      endDate,
+      isCurrent,
     }
   })
 }

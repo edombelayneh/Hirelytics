@@ -6,6 +6,9 @@ import type { ParsedDate, ParsedExperience } from '@/app/utils/resume/resumePars
 // Server-only API to parse a resume data URL into job history drafts.
 export const runtime = 'nodejs'
 
+const MAX_RESUME_BYTES = 10 * 1024 * 1024
+const MAX_BASE64_LENGTH = Math.ceil((MAX_RESUME_BYTES * 4) / 3)
+
 type ResumeParseRequest = {
   resumeDataUrl?: string
   resumeFileName?: string
@@ -76,28 +79,72 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  let body: ResumeParseRequest
-
-  try {
-    body = (await request.json()) as ResumeParseRequest
-  } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
-  }
-
-  if (!body.resumeDataUrl || typeof body.resumeDataUrl !== 'string') {
-    return NextResponse.json({ error: 'Resume data is required' }, { status: 400 })
-  }
-
+  const contentTypeHeader = request.headers.get('content-type') || ''
   let buffer: Buffer
   let contentType: string | undefined
+  let fileName: string | undefined
 
-  try {
-    const decoded = decodeResumeData(body.resumeDataUrl)
-    buffer = decoded.buffer
-    contentType = decoded.contentType
-  } catch (error) {
-    console.error('Resume decode error:', error)
-    return NextResponse.json({ error: 'Invalid resume data' }, { status: 400 })
+  if (contentTypeHeader.includes('multipart/form-data')) {
+    let formData: FormData
+
+    try {
+      formData = await request.formData()
+    } catch {
+      return NextResponse.json({ error: 'Invalid multipart form data' }, { status: 400 })
+    }
+
+    const resumeFile = formData.get('resume')
+    if (!(resumeFile instanceof File)) {
+      return NextResponse.json({ error: 'Resume file is required' }, { status: 400 })
+    }
+
+    if (resumeFile.size > MAX_RESUME_BYTES) {
+      return NextResponse.json({ error: 'Resume exceeds 10MB limit' }, { status: 413 })
+    }
+
+    const resumeFileName = formData.get('resumeFileName')
+    fileName =
+      typeof resumeFileName === 'string' && resumeFileName.trim()
+        ? resumeFileName.trim()
+        : resumeFile.name
+    contentType = resumeFile.type || undefined
+
+    buffer = Buffer.from(await resumeFile.arrayBuffer())
+  } else {
+    let body: ResumeParseRequest
+
+    try {
+      body = (await request.json()) as ResumeParseRequest
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
+
+    if (!body.resumeDataUrl || typeof body.resumeDataUrl !== 'string') {
+      return NextResponse.json({ error: 'Resume data is required' }, { status: 400 })
+    }
+
+    const trimmed = body.resumeDataUrl.trim()
+    const dataUrlMatch = trimmed.match(/^data:([^;]+);base64,(.+)$/)
+    const base64Payload = dataUrlMatch ? dataUrlMatch[2] : trimmed
+
+    // Base64 payloads are ~33% larger than the raw file, so enforce limits early.
+    if (base64Payload.length > MAX_BASE64_LENGTH) {
+      return NextResponse.json({ error: 'Resume exceeds 10MB limit' }, { status: 413 })
+    }
+
+    try {
+      const decoded = decodeResumeData(trimmed)
+      buffer = decoded.buffer
+      contentType = decoded.contentType
+      fileName = body.resumeFileName
+    } catch (error) {
+      console.error('Resume decode error:', error)
+      return NextResponse.json({ error: 'Invalid resume data' }, { status: 400 })
+    }
+
+    if (buffer.length > MAX_RESUME_BYTES) {
+      return NextResponse.json({ error: 'Resume exceeds 10MB limit' }, { status: 413 })
+    }
   }
 
   if (!buffer.length) {
@@ -107,7 +154,7 @@ export async function POST(request: Request) {
   try {
     const result = await parseResumeFile({
       data: buffer,
-      fileName: body.resumeFileName,
+      fileName,
       contentType,
     })
 

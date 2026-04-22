@@ -9,6 +9,30 @@ const mocks = vi.hoisted(() => {
   return { pdfParseMock }
 })
 
+type ExpectedExperience = {
+  company: string
+  title: string
+  roleDescription: string
+  rawLines: string[]
+  dateRange?: {
+    raw: string
+    start: {
+      year: number | null
+      month?: number
+      day?: number
+      raw: string
+      isCurrent?: boolean
+    } | null
+    end: {
+      year: number | null
+      month?: number
+      day?: number
+      raw: string
+      isCurrent?: boolean
+    } | null
+  }
+}
+
 vi.mock('server-only', () => ({}))
 
 async function loadExtractorWithPdfMock() {
@@ -100,9 +124,19 @@ function normalizeExperience<
   }
 }
 
-function applyCurrentYear<
-  T extends { dateRange?: { end?: { year?: number | null; isCurrent?: boolean } } },
->(experiences: T[], currentYear: number): T[] {
+type ExperienceWithCurrentEnd = {
+  dateRange?: {
+    end?: {
+      year?: number | null
+      isCurrent?: boolean
+    } | null
+  } | null
+}
+
+function applyCurrentYear<T extends ExperienceWithCurrentEnd>(
+  experiences: T[],
+  currentYear: number
+): T[] {
   return experiences.map((experience) => {
     const end = experience.dateRange?.end
     if (!end || !end.isCurrent || end.year !== null) return experience
@@ -200,7 +234,7 @@ describe('app/utils/resumeTextExtractor', () => {
     // The text fixture validates raw OCR/extraction; the JSON fixture validates parsed experience fields.
     const expectedTextPath = path.join(basePath, 'sample_resume_expected.txt')
     const expectedJsonPath = path.join(basePath, 'sample_resume_expected.json')
-    const samplePath = path.resolve(process.cwd(), 'app', 'utils', 'resume', 'sample_resume.pdf')
+    const samplePath = path.resolve(process.cwd(), '__tests__', 'fixtures', 'sample_resume.pdf')
 
     const [expectedText, expectedJson, pdfBuffer] = await Promise.all([
       readFile(expectedTextPath, 'utf8'),
@@ -209,9 +243,7 @@ describe('app/utils/resumeTextExtractor', () => {
     ])
 
     const expectedExperiences = applyCurrentYear(
-      JSON.parse(expectedJson) as Array<{
-        dateRange?: { end?: { year?: number | null; isCurrent?: boolean } }
-      }>,
+      JSON.parse(expectedJson) as ExpectedExperience[],
       currentYear
     )
 

@@ -453,28 +453,37 @@ describe('ProfilePage', () => {
   // Test that resume import adds each parsed job to history
   it('imports job history entries from resume', async () => {
     const addJobHistoryMock = vi.fn().mockResolvedValue(undefined)
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        jobHistory: [
-          {
-            company: 'Corewell Health',
-            title: 'End User Technology Developer Intern',
-            roleDescription: 'Owned print automation and support workflows.',
-            startDate: '2025-05-01',
-            endDate: '2026-05-01',
-            isCurrent: false,
-          },
-          {
-            company: 'Auch Construction',
-            title: 'Information Technology Intern',
-            roleDescription: 'Supported desktop hardware rollouts.',
-            startDate: '2024-05-01',
-            endDate: '2024-08-01',
-            isCurrent: false,
-          },
-        ],
-      }),
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (typeof input === 'string' && input.startsWith('data:')) {
+        return {
+          ok: true,
+          blob: async () => new Blob(['pdfbytes'], { type: 'application/pdf' }),
+        }
+      }
+
+      return {
+        ok: true,
+        json: async () => ({
+          jobHistory: [
+            {
+              company: 'Corewell Health',
+              title: 'End User Technology Developer Intern',
+              roleDescription: 'Owned print automation and support workflows.',
+              startDate: '2025-05-01',
+              endDate: '2026-05-01',
+              isCurrent: false,
+            },
+            {
+              company: 'Auch Construction',
+              title: 'Information Technology Intern',
+              roleDescription: 'Supported desktop hardware rollouts.',
+              startDate: '2024-05-01',
+              endDate: '2024-08-01',
+              isCurrent: false,
+            },
+          ],
+        }),
+      }
     })
 
     vi.stubGlobal('fetch', fetchMock as unknown as typeof fetch)
@@ -540,7 +549,7 @@ describe('ProfilePage', () => {
       expect(screen.getAllByRole('button', { name: /delete/i })).toHaveLength(2)
     })
 
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(addJobHistoryMock).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({

@@ -228,13 +228,25 @@ export const ProfilePage = memo(function ProfilePage({
     setResumeParseLoading(true)
 
     try {
+      const resumeBlob = await fetch(formData.resumeFile).then(async (response) => {
+        if (!response.ok) {
+          throw new Error('Failed to read resume file')
+        }
+        return response.blob()
+      })
+
+      const resumeFileName = formData.resumeFileName || 'resume.pdf'
+      const resumeFile = new File([resumeBlob], resumeFileName, {
+        type: resumeBlob.type || 'application/pdf',
+      })
+
+      const requestBody = new FormData()
+      requestBody.append('resume', resumeFile)
+      requestBody.append('resumeFileName', resumeFileName)
+
       const response = await fetch('/api/resume/parse', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          resumeDataUrl: formData.resumeFile,
-          resumeFileName: formData.resumeFileName || undefined,
-        }),
+        body: requestBody,
       })
 
       const payload = (await response.json()) as {
