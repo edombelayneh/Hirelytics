@@ -447,7 +447,7 @@ function parseDateToken(token: string): ParsedDate | null {
   if (!trimmed) return null
 
   const lower = trimmed.toLowerCase()
-  if (/(present|current|now)/i.test(lower)) {
+  if (/(present|current)/i.test(lower)) {
     return { year: new Date().getFullYear(), raw: trimmed, isCurrent: true }
   }
 
