@@ -978,7 +978,23 @@ export function mergeJobHistoryItems(
     if (!match.title) match.title = incomingItem.title
     if (!match.roleDescription) match.roleDescription = incomingItem.roleDescription
     if (!match.startDate) match.startDate = incomingItem.startDate
-    if (!match.endDate) match.endDate = incomingItem.endDate
+
+    // Treat endDate and isCurrent as a coupled pair to prevent inconsistent states
+    const matchIsCurrentMissing = typeof match.isCurrent === 'undefined'
+    const incomingHasIsCurrent = typeof incomingItem.isCurrent !== 'undefined'
+
+    if (!match.endDate) {
+      match.endDate = incomingItem.endDate
+      if (incomingHasIsCurrent) match.isCurrent = incomingItem.isCurrent
+    } else if (matchIsCurrentMissing && incomingHasIsCurrent) {
+      match.isCurrent = incomingItem.isCurrent
+      if (incomingItem.isCurrent) match.endDate = incomingItem.endDate
+    }
+
+    // Ensure that if the job is current, the end date behaves correctly
+    if (match.isCurrent) {
+      match.endDate = incomingItem.isCurrent ? incomingItem.endDate : undefined
+    }
   }
 
   return merged
