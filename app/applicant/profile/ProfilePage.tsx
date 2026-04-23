@@ -36,6 +36,14 @@ import type { JobHistoryItem } from '../../utils/jobHistory'
 
 type RequiredFields = 'firstName' | 'lastName' | 'email'
 type JobHistoryDraft = Omit<JobHistoryItem, 'id' | 'createdAt' | 'updatedAt'>
+type JobHistoryPayload = {
+  company: string
+  title: string
+  roleDescription: string
+  startDate: string
+  endDate?: string
+  isCurrent: boolean
+}
 
 interface ProfilePageProps {
   profile: UserProfile
@@ -95,6 +103,35 @@ export const ProfilePage = memo(function ProfilePage({
   const [errors, setErrors] = useState<Partial<Record<RequiredFields, string>>>({})
 
   const [jobIsCurrent, setJobIsCurrent] = useState(false)
+
+  const normalizeForJobKey = (value?: string) =>
+    value?.toLowerCase().replace(/\s+/g, ' ').trim() || ''
+
+  const buildJobHistoryKey = (item: JobHistoryPayload) => {
+    return [
+      normalizeForJobKey(item.company),
+      normalizeForJobKey(item.title),
+      normalizeForJobKey(item.startDate),
+      item.isCurrent ? 'current' : normalizeForJobKey(item.endDate),
+    ].join('|')
+  }
+
+  const hasDuplicateJob = (item: JobHistoryPayload, excludeId?: string) => {
+    const targetKey = buildJobHistoryKey(item)
+    return jobHistory.some((existing) => {
+      if (excludeId && existing.id === excludeId) return false
+      return (
+        buildJobHistoryKey({
+          company: existing.company,
+          title: existing.title,
+          roleDescription: existing.roleDescription,
+          startDate: existing.startDate,
+          endDate: existing.endDate,
+          isCurrent: existing.isCurrent,
+        }) === targetKey
+      )
+    })
+  }
 
   // Sync Firestore -> form + Clerk autofill for missing fields
   useEffect(() => {
@@ -261,29 +298,66 @@ export const ProfilePage = memo(function ProfilePage({
         return
       }
 
-      const jobHistory = Array.isArray(payload.jobHistory) ? payload.jobHistory : []
+      const parsedJobs = Array.isArray(payload.jobHistory) ? payload.jobHistory : []
 
-      if (jobHistory.length === 0) {
+      if (parsedJobs.length === 0) {
         toast.error('No job history found', {
           description: 'We could not find experience entries in your resume.',
         })
         return
       }
 
-      // Add each parsed job entry so the user can edit details afterward.
-      for (const job of jobHistory) {
-        await onAddJobHistory({
+      // Skip duplicates already present in saved job history.
+      const seenKeys = new Set(
+        jobHistory.map((existing) =>
+          buildJobHistoryKey({
+            company: existing.company,
+            title: existing.title,
+            roleDescription: existing.roleDescription,
+            startDate: existing.startDate,
+            endDate: existing.endDate,
+            isCurrent: existing.isCurrent,
+          })
+        )
+      )
+
+      let addedCount = 0
+      let skippedCount = 0
+
+      for (const job of parsedJobs) {
+        const normalizedJob: JobHistoryPayload = {
           company: job.company.trim(),
           title: job.title.trim(),
           roleDescription: job.roleDescription.trim(),
           startDate: job.startDate,
           ...(job.isCurrent ? {} : { endDate: job.endDate || '' }),
           isCurrent: job.isCurrent,
-        })
+        }
+
+        const jobKey = buildJobHistoryKey(normalizedJob)
+        if (seenKeys.has(jobKey)) {
+          skippedCount += 1
+          continue
+        }
+
+        await onAddJobHistory(normalizedJob)
+        seenKeys.add(jobKey)
+        addedCount += 1
       }
 
+      if (addedCount === 0) {
+        toast.error('No new jobs added', {
+          description: 'All parsed jobs already exist in your job history.',
+        })
+        return
+      }
+
+      const skippedText =
+        skippedCount > 0
+          ? ` Skipped ${skippedCount} duplicate job${skippedCount === 1 ? '' : 's'}.`
+          : ''
       toast.success('Resume imported', {
-        description: `Added ${jobHistory.length} job${jobHistory.length === 1 ? '' : 's'} from your resume. You can edit them below.`,
+        description: `Added ${addedCount} job${addedCount === 1 ? '' : 's'} from your resume.${skippedText}`,
       })
       scrollToJobHistoryForm()
     } catch (error) {
@@ -346,13 +420,20 @@ export const ProfilePage = memo(function ProfilePage({
     setJobHistorySaving(true)
 
     try {
-      const payload = {
+      const payload: JobHistoryPayload = {
         company: jobCompany.trim(),
         title: jobTitle.trim(),
         roleDescription: jobRoleDescription.trim(),
         startDate: jobStartDate,
         ...(jobIsCurrent ? {} : { endDate: jobEndDate }),
         isCurrent: jobIsCurrent,
+      }
+
+      if (hasDuplicateJob(payload, editingJobHistoryId || undefined)) {
+        toast.error('Duplicate job history entry', {
+          description: 'This job already exists in your history.',
+        })
+        return
       }
 
       // If editing, pass the existing jobHistoryId to update; otherwise, add a new entry
