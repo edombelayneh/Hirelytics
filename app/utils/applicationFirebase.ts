@@ -94,6 +94,7 @@ type BuildFromJobDetailsInput = {
   contactPerson: string
   jobSource?: string
   jobLink: string
+  applyLink?: string
   title: string
   location: string
   type: string
@@ -102,7 +103,6 @@ type BuildFromJobDetailsInput = {
   description: string
   requirements: string[]
   jobPostingStatus: string
-  applyLink: string
   recruiterId?: string
   state?: string
   visaRequired?: string
@@ -200,7 +200,8 @@ export function buildApplication({
   const preferredSkills = toText(mergedJob.preferredSkills) || undefined
   const workArrangement = toText(mergedJob.workArrangement) || undefined
   const paymentType = toText(mergedJob.paymentType) || undefined
-  const jobLink = toText(mergedJob.applyLink) || toText(mergedJob.jobLink)
+  const applyLink = toText(mergedJob.applyLink)
+  const jobLink = toText(mergedJob.jobLink) || applyLink
   const jobSource = normalizeJobSource(toText(mergedJob.jobSource) || 'Hirelytics')
 
   return buildApplicationFromJobDetails({
@@ -213,6 +214,7 @@ export function buildApplication({
     contactPerson: toText(mergedJob.contactPerson),
     jobSource,
     jobLink,
+    applyLink: applyLink || undefined,
     title,
     location,
     type: toText(mergedJob.type) || toText(mergedJob.employmentType),
@@ -222,7 +224,6 @@ export function buildApplication({
       toText(mergedJob.description) || toText(mergedJob.generalDescription) || fallback.description,
     requirements,
     jobPostingStatus: toText(mergedJob.status) || 'Open',
-    applyLink: jobLink,
     recruiterId: toText(mergedJob.recruiterId) || undefined,
     ...(state ? { state } : {}),
     ...(visaRequired ? { visaRequired } : {}),
@@ -243,6 +244,7 @@ export function buildApplicationFromJobDetails({
   contactPerson,
   jobSource = 'Hirelytics',
   jobLink,
+  applyLink,
   title,
   location,
   type,
@@ -251,7 +253,6 @@ export function buildApplicationFromJobDetails({
   description,
   requirements,
   jobPostingStatus,
-  applyLink,
   recruiterId,
   state,
   visaRequired,
@@ -261,6 +262,7 @@ export function buildApplicationFromJobDetails({
   paymentType,
 }: BuildFromJobDetailsInput): ApplicationInput {
   const normalizedSource = normalizeJobSource(jobSource)
+  const resolvedApplyLink = applyLink || jobLink
 
   return {
     userId,
@@ -292,7 +294,7 @@ export function buildApplicationFromJobDetails({
       description,
       requirements,
       status: jobPostingStatus,
-      applyLink: jobLink,
+      applyLink: resolvedApplyLink,
     },
   }
 }
