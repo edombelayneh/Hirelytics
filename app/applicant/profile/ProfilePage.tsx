@@ -261,10 +261,14 @@ export const ProfilePage = memo(function ProfilePage({
     if (!element) return
 
     const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset
-    window.scrollTo({
-      top: y,
-      behavior: 'smooth',
-    })
+    try {
+      window.scrollTo({
+        top: y,
+        behavior: 'smooth',
+      })
+    } catch {
+      // Fallback for browsers that don't support smooth scrolling
+    }
   }
 
   // Parse the uploaded resume via the API and append all detected jobs to Firestore.
