@@ -262,4 +262,45 @@ describe('app/utils/resumeTextExtractor', () => {
     )
     expect(normalizeInlineText(result.text)).toContain(normalizeInlineText(expectedText))
   }, 30000)
+
+  it('correctly parses complex company and location formats', async () => {
+    const { parseResumeTextToExperiences } = await import('@/app/utils/resume/resumeParser')
+
+    // Put dates on the same line as the header so the parser's block splitter recognizes them as header boundaries
+    const mockResumeText = `
+Experience
+
+Software Engineer | Auto Owners Insurance, Grand Rapids, MI   Jan 2020 - Present
+• Did some coding
+
+Frontend Developer | Corewell Health, Grand Rapids, Michigan   Jan 2018 - Jan 2020
+• Did some frontend work
+
+Backend Developer | Startup Inc., San Francisco, CA   Jan 2016 - Jan 2018
+• Did some backend work
+
+Remote Dev | Global Tech, Remote   Jan 2014 - Jan 2016
+• Did remote work
+    `
+
+    const result = parseResumeTextToExperiences(mockResumeText)
+
+    expect(result.experiences).toHaveLength(4)
+
+    // Test 1: Standard abbreviation with comma
+    expect(result.experiences[0].company).toBe('Auto Owners Insurance')
+    expect(result.experiences[0].location).toBe('Grand Rapids, MI')
+
+    // Test 2: Full state name
+    expect(result.experiences[1].company).toBe('Corewell Health')
+    expect(result.experiences[1].location).toBe('Grand Rapids, Michigan')
+
+    // Test 3: Corporate suffix handling
+    expect(result.experiences[2].company).toBe('Startup Inc.')
+    expect(result.experiences[2].location).toBe('San Francisco, CA')
+
+    // Test 4: Remote handling
+    expect(result.experiences[3].company).toBe('Global Tech')
+    expect(result.experiences[3].location).toBe('Remote')
+  })
 })

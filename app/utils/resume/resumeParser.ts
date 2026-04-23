@@ -543,13 +543,38 @@ function looksLikeLocation(value: string): boolean {
   const cleaned = normalizeToken(removeDateTokens(value))
   if (!cleaned) return false
   if (/\bremote\b/i.test(cleaned)) return true
-  return /,\s*[A-Z]{2}\b/.test(cleaned)
+
+  // If the entire value is exactly a 2-letter state code (e.g., "CA" or "NY")
+  if (/^[A-Z]{2}$/.test(cleaned)) return true
+
+  // Match standard ", ST" (two uppercase letters) anywhere in the string
+  if (/,\s*[A-Z]{2}\b/.test(cleaned)) return true
+
+  // Match ", State" or ", Country" (capitalized word, min 3 chars)
+  const wordMatch = cleaned.match(/,\s*([A-Z][a-zA-Z]{2,})\b/)
+  if (wordMatch) {
+    const word = wordMatch[1].toLowerCase()
+    // Ensure the word isn't a known company suffix
+    if (!COMPANY_KEYWORDS.includes(word)) return true
+  }
+
+  return false
 }
 
-// Handles headers like "Title | Company" or "Company - Title".
-// Extract company and location from a single line if they're separated by comma or pipe
-// e.g., "Acme Corp, San Francisco, CA" or "Acme Corp | San Francisco, CA"
-// -> { company: "Acme Corp", location: "San Francisco, CA" }
+/**
+ * Extracts company and location from a combined string, handling various delimiters and formats.
+ * * Supported formats include:
+ * - Pipe delimited: "Acme Corp | San Francisco, CA" -> { company: "Acme Corp", location: "San Francisco, CA" }
+ * - Two-part comma: "Acme Corp, CA" -> { company: "Acme Corp", location: "CA" }
+ * - Three-part comma: "Acme Corp, San Francisco, California" -> { company: "Acme Corp", location: "San Francisco, California" }
+ * - Entity suffixes: "Acme Corp, Inc., MI" -> { company: "Acme Corp, Inc.", location: "MI" }
+ * * Mechanism:
+ * Splits the string by pipe or comma. For commas, evaluates the trailing segments to see if they
+ * match location patterns (state codes, capitalized names, 'remote'). Safely ignores common
+ * corporate suffixes (Inc., LLC, Ltd.) to prevent misclassifying them as cities.
+ * * @param text - The combined string containing company and optionally location.
+ * @returns An object with the separated company name and location.
+ */
 function extractCompanyAndLocation(text: string): {
   company: string
   location?: string
@@ -563,7 +588,6 @@ function extractCompanyAndLocation(text: string): {
     const beforePipe = text_trimmed.substring(0, pipeIndex).trim()
     const afterPipe = text_trimmed.substring(pipeIndex + 1).trim()
 
-    // Check if the part after the pipe looks like a location
     if (looksLikeLocation(afterPipe)) {
       return {
         company: beforePipe,
@@ -572,31 +596,41 @@ function extractCompanyAndLocation(text: string): {
     }
   }
 
-  // For comma-separated format: look for a comma where the remaining part looks like a location
-  // e.g., "Company Name, City, State" should split to "Company Name" | "City, State"
-  const commas = []
-  let idx = 0
-  while ((idx = text_trimmed.indexOf(',', idx)) !== -1) {
-    commas.push(idx)
-    idx++
-  }
+  // Split by commas to analyze the trailing parts
+  const parts = text_trimmed.split(',').map((p) => p.trim())
 
-  // Try each comma from right to left (prefer rightmost valid split)
-  for (let i = commas.length - 2; i >= 0; i--) {
-    const commaIdx = commas[i]
-    const beforeComma = text_trimmed.substring(0, commaIdx).trim()
-    const afterComma = text_trimmed.substring(commaIdx + 1).trim()
+  if (parts.length >= 2) {
+    const lastPart = parts[parts.length - 1]
+    const secondLastPart = parts[parts.length - 2]
 
-    // Check if the part after this comma looks like a location
-    if (looksLikeLocation(afterComma)) {
+    // Function to catch "Inc.", "LLC", etc., so we don't accidentally treat them as cities
+    const isCorpSuffix = (str: string) =>
+      /^(inc\.?|llc\.?|ltd\.?|corp\.?|corporation|co\.?)$/i.test(str)
+
+    // Validate if the last segment acts like a state, country, or remote indicator
+    const isStateCode = /^[A-Z]{2}$/.test(lastPart)
+    const isRemote = /^remote$/i.test(lastPart)
+    // Checks for capitalized names (e.g., "Michigan", "United States", "St. Louis")
+    const isCapitalizedName = /^[A-Z][a-zA-Z\s\.\-]+$/.test(lastPart) && !isCorpSuffix(lastPart)
+
+    if (isStateCode || isRemote || isCapitalizedName) {
+      // If there are 3+ parts and the second-to-last part isn't a corporate suffix, group them as "City, State"
+      if (parts.length >= 3 && !isCorpSuffix(secondLastPart)) {
+        return {
+          company: parts.slice(0, parts.length - 2).join(', '),
+          location: `${secondLastPart}, ${lastPart}`,
+        }
+      }
+
+      // Otherwise, it's a format like "Company, State" or "Acme, Inc., MI"
       return {
-        company: beforeComma,
-        location: afterComma,
+        company: parts.slice(0, parts.length - 1).join(', '),
+        location: lastPart,
       }
     }
   }
 
-  // If neither delimiter found or part after delimiter doesn't look like location, return whole thing as company
+  // Fallback: Return the whole string as the company
   return { company: text_trimmed }
 }
 
