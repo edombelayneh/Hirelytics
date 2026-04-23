@@ -139,7 +139,7 @@ describe('ApplicationsTable', () => {
 
     ;[
       'Company',
-      'Country/City',
+      'City/Country',
       'Position',
       'Application Date',
       'Status',
