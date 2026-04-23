@@ -178,6 +178,8 @@ export default function ApplicationDetailsPage() {
     )
   }
 
+  const isExternalJob = application.isExternal === true
+
   // Job posting derived values
   const title =
     formatValue(mergedJob.title) !== '—'
@@ -258,7 +260,7 @@ export default function ApplicationDetailsPage() {
             <TabsList className='shrink-0'>
               <TabsTrigger value='job-posting'>Job Posting</TabsTrigger>
               <TabsTrigger value='my-details'>My Details</TabsTrigger>
-              <TabsTrigger value='feedback'>Feedback</TabsTrigger>
+              {!isExternalJob && <TabsTrigger value='feedback'>Feedback</TabsTrigger>}
             </TabsList>
           </div>
 
@@ -425,61 +427,63 @@ export default function ApplicationDetailsPage() {
           </TabsContent>
 
           {/* ── Feedback tab ── */}
-          <TabsContent
-            value='feedback'
-            className='mt-4'
-          >
-            {!recruiterFeedback ? (
-              <Card className='rounded-2xl border shadow-sm'>
-                <CardContent className='py-16 flex flex-col items-center justify-center text-center space-y-3'>
-                  <h3 className='font-semibold text-base'>No feedback yet</h3>
-                  <p className='text-sm text-muted-foreground max-w-xs'>
-                    Recruiter feedback will appear here once it has been shared with you.
-                  </p>
-                  <p className='text-xs text-muted-foreground'>
-                    You&apos;ll be notified when feedback is available.
-                  </p>
-                  <div className='rounded-lg border bg-muted/20 px-4 py-2 text-sm'>
-                    <span className='text-muted-foreground'>Current status: </span>
-                    <span className='font-medium'>{application.status}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className='rounded-2xl border shadow-sm'>
-                <CardContent className='p-5'>
-                  <Accordion
-                    type='single'
-                    collapsible
-                    defaultValue='feedback-0'
-                  >
-                    <AccordionItem
-                      value='feedback-0'
-                      className='rounded-xl border bg-muted/20 px-5 last:border-b'
+          {!isExternalJob && (
+            <TabsContent
+              value='feedback'
+              className='mt-4'
+            >
+              {!recruiterFeedback ? (
+                <Card className='rounded-2xl border shadow-sm'>
+                  <CardContent className='py-16 flex flex-col items-center justify-center text-center space-y-3'>
+                    <h3 className='font-semibold text-base'>No feedback yet</h3>
+                    <p className='text-sm text-muted-foreground max-w-xs'>
+                      Recruiter feedback will appear here once it has been shared with you.
+                    </p>
+                    <p className='text-xs text-muted-foreground'>
+                      You&apos;ll be notified when feedback is available.
+                    </p>
+                    <div className='rounded-lg border bg-muted/20 px-4 py-2 text-sm'>
+                      <span className='text-muted-foreground'>Current status: </span>
+                      <span className='font-medium'>{application.status}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className='rounded-2xl border shadow-sm'>
+                  <CardContent className='p-5'>
+                    <Accordion
+                      type='single'
+                      collapsible
+                      defaultValue='feedback-0'
                     >
-                      <AccordionTrigger className='hover:no-underline'>
-                        <div className='flex flex-col gap-0.5 text-left'>
-                          <span className='text-sm font-semibold'>
-                            {toDateOnly(application.recruiterFeedbackAt) !== '—'
-                              ? `Received ${toDateOnly(application.recruiterFeedbackAt)}`
-                              : 'Recruiter Feedback'}
-                          </span>
-                          <span className='text-xs text-muted-foreground'>
-                            Status when received: {application.status}
-                          </span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <p className='text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed'>
-                          {recruiterFeedback}
-                        </p>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+                      <AccordionItem
+                        value='feedback-0'
+                        className='rounded-xl border bg-muted/20 px-5 last:border-b'
+                      >
+                        <AccordionTrigger className='hover:no-underline'>
+                          <div className='flex flex-col gap-0.5 text-left'>
+                            <span className='text-sm font-semibold'>
+                              {toDateOnly(application.recruiterFeedbackAt) !== '—'
+                                ? `Received ${toDateOnly(application.recruiterFeedbackAt)}`
+                                : 'Recruiter Feedback'}
+                            </span>
+                            <span className='text-xs text-muted-foreground'>
+                              Status when received: {application.status}
+                            </span>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <p className='text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed'>
+                            {recruiterFeedback}
+                          </p>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>

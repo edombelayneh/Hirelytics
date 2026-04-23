@@ -18,6 +18,7 @@ export interface JobApplication {
   recruiterFeedback?: string
   recruiterFeedbackSeen?: boolean
   recruiterFeedbackAt?: unknown
+  isExternal?: boolean
 }
 
 // Load job applications from jobs data file
