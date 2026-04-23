@@ -172,6 +172,17 @@ export async function POST(request: Request) {
       contentType,
     })
 
+    // Check for unsupported file types and return a 415 response
+    if (
+      result.format === 'unknown' ||
+      result.extractionWarnings.includes('unsupported-file-type')
+    ) {
+      return NextResponse.json(
+        { error: 'Unsupported file type. Please upload a PDF.' },
+        { status: 415 }
+      )
+    }
+
     const jobHistory = result.experiences
       .map(mapExperienceToJobHistory)
       .filter((item): item is JobHistoryDraft => Boolean(item))
