@@ -798,7 +798,7 @@ describe('ProfilePage', () => {
       />
     )
 
-    const locationInput = screen.getByLabelText(/location/i)
+    const locationInput = screen.getByPlaceholderText('San Francisco, CA')
     fireEvent.change(locationInput, { target: { value: 'New York, NY' } })
 
     expect((locationInput as HTMLInputElement).value).toBe('New York, NY')

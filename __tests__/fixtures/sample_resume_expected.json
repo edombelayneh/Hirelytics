@@ -1,6 +1,7 @@
 [
   {
-    "company": "Summit Ridge Insurance Group, Columbus, OH",
+    "company": "Summit Ridge Insurance Group",
+    "location": "Columbus, OH",
     "title": "Software Development Intern",
     "roleDescription": "Built and maintained Duck Creek XML and React.js with TypeScript across 100+ shared repository files.\nDelivered 125+ Agile sprint tasks using SourceTree and Jira for version control and workflow management.\nWorked in CI/CD pipelines with Jenkins and feature toggles across DEV and PROD environments.\nPartnered with cross-functional teams (QA, BA, UX, Data) to deliver system-wide features and improvements.\nConducted code reviews and regression testing in layered repositories to ensure code quality and system stability.",
     "dateRange": {
@@ -19,7 +20,8 @@
     ]
   },
   {
-    "company": "Lakeview State University IT Media Services, Columbus, OH",
+    "company": "Lakeview State University IT Media Services",
+    "location": "Columbus, OH",
     "title": "Media Services Student Technician",
     "roleDescription": "Delivered on-call classroom support, troubleshooting audio/visual technology campus-wide.\nCollaborated with technicians to install and maintain A/V equipment in 20+ buildings.\nEnsured minimal disruption by resolving issues within 10 minutes and updating management on status.",
     "dateRange": {

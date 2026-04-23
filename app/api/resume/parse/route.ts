@@ -17,6 +17,7 @@ type ResumeParseRequest = {
 
 type JobHistoryDraft = {
   company: string
+  location?: string
   title: string
   roleDescription: string
   startDate: string
@@ -55,6 +56,7 @@ function formatDateForInput(date?: ParsedDate | null): string {
 // Map a parsed experience block into a job history draft entry.
 function mapExperienceToJobHistory(experience: ParsedExperience): JobHistoryDraft | null {
   const company = experience.company?.trim() || ''
+  const location = experience.location?.trim() || ''
   const title = experience.title?.trim() || ''
   const roleDescription = experience.roleDescription?.trim() || ''
 
@@ -62,11 +64,12 @@ function mapExperienceToJobHistory(experience: ParsedExperience): JobHistoryDraf
   const isCurrent = Boolean(experience.dateRange?.end?.isCurrent)
   const endDate = isCurrent ? '' : formatDateForInput(experience.dateRange?.end)
 
-  const hasContent = [company, title, roleDescription, startDate, endDate].some(Boolean)
+  const hasContent = [company, location, title, roleDescription, startDate, endDate].some(Boolean)
   if (!hasContent) return null
 
   return {
     company,
+    ...(location ? { location } : {}),
     title,
     roleDescription,
     startDate,

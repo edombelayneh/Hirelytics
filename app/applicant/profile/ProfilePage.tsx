@@ -38,6 +38,7 @@ type RequiredFields = 'firstName' | 'lastName' | 'email'
 type JobHistoryDraft = Omit<JobHistoryItem, 'id' | 'createdAt' | 'updatedAt'>
 type JobHistoryPayload = {
   company: string
+  location?: string
   title: string
   roleDescription: string
   startDate: string
@@ -52,6 +53,7 @@ interface ProfilePageProps {
   jobHistoryLoading: boolean
   onAddJobHistory: (item: {
     company: string
+    location?: string
     title: string
     roleDescription: string
     startDate: string
@@ -62,6 +64,7 @@ interface ProfilePageProps {
     jobHistoryId: string,
     item: {
       company: string
+      location?: string
       title: string
       roleDescription: string
       startDate: string
@@ -87,6 +90,7 @@ export const ProfilePage = memo(function ProfilePage({
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [jobCompany, setJobCompany] = useState('')
+  const [jobLocation, setJobLocation] = useState('')
   const [jobTitle, setJobTitle] = useState('')
   const [jobRoleDescription, setJobRoleDescription] = useState('')
   const [jobStartDate, setJobStartDate] = useState('')
@@ -110,6 +114,7 @@ export const ProfilePage = memo(function ProfilePage({
   const buildJobHistoryKey = (item: JobHistoryPayload) => {
     return [
       normalizeForJobKey(item.company),
+      normalizeForJobKey(item.location),
       normalizeForJobKey(item.title),
       normalizeForJobKey(item.startDate),
       item.isCurrent ? 'current' : normalizeForJobKey(item.endDate),
@@ -123,6 +128,7 @@ export const ProfilePage = memo(function ProfilePage({
       return (
         buildJobHistoryKey({
           company: existing.company,
+          location: existing.location,
           title: existing.title,
           roleDescription: existing.roleDescription,
           startDate: existing.startDate,
@@ -312,6 +318,7 @@ export const ProfilePage = memo(function ProfilePage({
         jobHistory.map((existing) =>
           buildJobHistoryKey({
             company: existing.company,
+            location: existing.location,
             title: existing.title,
             roleDescription: existing.roleDescription,
             startDate: existing.startDate,
@@ -327,6 +334,7 @@ export const ProfilePage = memo(function ProfilePage({
       for (const job of parsedJobs) {
         const normalizedJob: JobHistoryPayload = {
           company: job.company.trim(),
+          ...(job.location ? { location: job.location.trim() } : {}),
           title: job.title.trim(),
           roleDescription: job.roleDescription.trim(),
           startDate: job.startDate,
@@ -409,6 +417,9 @@ export const ProfilePage = memo(function ProfilePage({
       return
     }
 
+    // Ensure location is trimmed but allow empty (optional field)
+    const trimmedLocation = jobLocation.trim()
+
     // Ensure start date is not after end date when job is not current
     if (!jobIsCurrent && jobStartDate && jobEndDate && jobStartDate > jobEndDate) {
       toast.error('Invalid job history dates', {
@@ -422,6 +433,7 @@ export const ProfilePage = memo(function ProfilePage({
     try {
       const payload: JobHistoryPayload = {
         company: jobCompany.trim(),
+        ...(trimmedLocation ? { location: trimmedLocation } : {}),
         title: jobTitle.trim(),
         roleDescription: jobRoleDescription.trim(),
         startDate: jobStartDate,
@@ -446,6 +458,7 @@ export const ProfilePage = memo(function ProfilePage({
       }
 
       setJobCompany('')
+      setJobLocation('')
       setJobTitle('')
       setJobRoleDescription('')
       setJobStartDate('')
@@ -834,6 +847,16 @@ export const ProfilePage = memo(function ProfilePage({
                 />
               </div>
 
+              <div className='space-y-2'>
+                <Label htmlFor='jobLocation'>Location</Label>
+                <Input
+                  id='jobLocation'
+                  placeholder='Mount Pleasant, Michigan'
+                  value={jobLocation}
+                  onChange={(e) => setJobLocation(e.target.value)}
+                />
+              </div>
+
               <div className='space-y-2 md:col-span-2'>
                 <Label htmlFor='jobRoleDescription'>Role Description</Label>
                 <Textarea
@@ -910,7 +933,10 @@ export const ProfilePage = memo(function ProfilePage({
                     <div className='flex items-start justify-between gap-4'>
                       <div>
                         <h3 className='font-semibold'>{item.title}</h3>
-                        <p className='text-sm text-muted-foreground'>{item.company}</p>
+                        <p className='text-sm text-muted-foreground'>
+                          {item.company}
+                          {item.location && ` | ${item.location}`}
+                        </p>
                       </div>
 
                       <div className='flex items-center gap-2'>
@@ -921,6 +947,7 @@ export const ProfilePage = memo(function ProfilePage({
                           onClick={() => {
                             setEditingJobHistoryId(item.id)
                             setJobCompany(item.company)
+                            setJobLocation(item.location || '')
                             setJobTitle(item.title)
                             setJobRoleDescription(item.roleDescription)
                             setJobStartDate(item.startDate)

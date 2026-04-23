@@ -22,6 +22,7 @@ export type ParsedDateRange = {
 
 export type ParsedExperience = {
   company: string
+  location?: string
   title: string
   roleDescription: string
   dateRange?: ParsedDateRange
@@ -546,8 +547,63 @@ function looksLikeLocation(value: string): boolean {
 }
 
 // Handles headers like "Title | Company" or "Company - Title".
+// Extract company and location from a single line if they're separated by comma or pipe
+// e.g., "Acme Corp, San Francisco, CA" or "Acme Corp | San Francisco, CA"
+// -> { company: "Acme Corp", location: "San Francisco, CA" }
+function extractCompanyAndLocation(text: string): {
+  company: string
+  location?: string
+} {
+  const text_trimmed = text.trim()
+  if (!text_trimmed) return { company: '' }
+
+  // First try to split by pipe (|) delimiter
+  const pipeIndex = text_trimmed.indexOf('|')
+  if (pipeIndex !== -1) {
+    const beforePipe = text_trimmed.substring(0, pipeIndex).trim()
+    const afterPipe = text_trimmed.substring(pipeIndex + 1).trim()
+
+    // Check if the part after the pipe looks like a location
+    if (looksLikeLocation(afterPipe)) {
+      return {
+        company: beforePipe,
+        location: afterPipe,
+      }
+    }
+  }
+
+  // For comma-separated format: look for a comma where the remaining part looks like a location
+  // e.g., "Company Name, City, State" should split to "Company Name" | "City, State"
+  const commas = []
+  let idx = 0
+  while ((idx = text_trimmed.indexOf(',', idx)) !== -1) {
+    commas.push(idx)
+    idx++
+  }
+
+  // Try each comma from right to left (prefer rightmost valid split)
+  for (let i = commas.length - 2; i >= 0; i--) {
+    const commaIdx = commas[i]
+    const beforeComma = text_trimmed.substring(0, commaIdx).trim()
+    const afterComma = text_trimmed.substring(commaIdx + 1).trim()
+
+    // Check if the part after this comma looks like a location
+    if (looksLikeLocation(afterComma)) {
+      return {
+        company: beforeComma,
+        location: afterComma,
+      }
+    }
+  }
+
+  // If neither delimiter found or part after delimiter doesn't look like location, return whole thing as company
+  return { company: text_trimmed }
+}
+
 // Parse "Title | Company" or "Company - Title" headers into structured fields.
-function parseHeaderLine(line: string): { company: string; title: string } | null {
+function parseHeaderLine(
+  line: string
+): { company: string; location?: string; title: string } | null {
   const cleaned = removeDateTokens(line)
   if (!cleaned) return null
 
@@ -560,6 +616,7 @@ function parseHeaderLine(line: string): { company: string; title: string } | nul
 
   const left = parts[0]
   const right = parts[1]
+  const third = parts[2]
 
   const leftTitle = looksLikeTitle(left)
   const rightTitle = looksLikeTitle(right)
@@ -567,32 +624,49 @@ function parseHeaderLine(line: string): { company: string; title: string } | nul
   const rightCompany = looksLikeCompany(right)
   const leftLocation = looksLikeLocation(left)
   const rightLocation = looksLikeLocation(right)
+  const thirdLocation = third ? looksLikeLocation(third) : false
+
+  // Handle case with all three parts: Title | Company | Location
+  if (parts.length >= 3 && thirdLocation) {
+    if (leftTitle && rightCompany) {
+      return { title: left, company: right, location: third }
+    }
+    if (rightTitle && leftCompany) {
+      return { title: right, company: left, location: third }
+    }
+  }
 
   if (leftTitle && !rightTitle) {
     if (!rightCompany && !rightLocation && !leftCompany) return null
-    return { title: left, company: right }
+    const companyLocation = extractCompanyAndLocation(right)
+    return { title: left, ...companyLocation }
   }
 
   if (rightTitle && !leftTitle) {
     if (!leftCompany && !leftLocation && !rightCompany) return null
-    return { title: right, company: left }
+    const companyLocation = extractCompanyAndLocation(left)
+    return { title: right, ...companyLocation }
   }
 
   if (rightCompany && !leftCompany) {
-    return { title: left, company: right }
+    const companyLocation = extractCompanyAndLocation(right)
+    return { title: left, ...companyLocation }
   }
 
   if (leftCompany && !rightCompany) {
-    return { title: right, company: left }
+    const companyLocation = extractCompanyAndLocation(left)
+    return { title: right, ...companyLocation }
   }
 
-  return { title: left, company: right }
+  const companyLocation = extractCompanyAndLocation(right)
+  return { title: left, ...companyLocation }
 }
 
 // Uses the header line first, otherwise treats the first two lines as company/title.
-// Extract company and title, prioritizing header lines and fallback heuristics.
+// Extract company, location, and title, prioritizing header lines and fallback heuristics.
 function extractCompanyTitle(lines: string[]): {
   company: string
+  location?: string
   title: string
   consumedLines: number
 } {
@@ -619,22 +693,15 @@ function extractCompanyTitle(lines: string[]): {
     return indices.length ? Math.max(...indices) + 1 : 0
   }
 
-  const mergeCompanyLocation = (company: string, location: string) => {
-    if (!company) return location
-    if (!location) return company
-    if (company.includes(location)) return company
-    return `${company} - ${location}`
-  }
-
   const parsed = line1?.line ? parseHeaderLine(line1.line) : null
   if (parsed) {
     return { ...parsed, consumedLines: consumedCount(line1) }
   }
 
   if (line1 && line2 && line3 && looksLikeLocation(line2.line) && looksLikeTitle(cleanedLine3)) {
-    const company = mergeCompanyLocation(cleanedLine1 || line1.line, cleanedLine2 || line2.line)
     return {
-      company,
+      company: cleanedLine1 || line1.line,
+      location: cleanedLine2 || line2.line,
       title: cleanedLine3 || line3.line,
       consumedLines: consumedCount(line1, line2, line3),
     }
@@ -651,33 +718,39 @@ function extractCompanyTitle(lines: string[]): {
       Boolean(cleanedLine2) && (looksLikeCompany(cleanedLine2) || looksLikeLocation(cleanedLine2))
 
     if (line1IsTitle && !line2IsTitle && (!line1IsCompany || line2IsCompany)) {
-      const company = line3IsLocation
-        ? mergeCompanyLocation(cleanedLine2 || line2.line, cleanedLine3 || line3?.line || '')
-        : cleanedLine2 || line2.line
+      const companyText = removeDateTokens(line2.line)
+      const companyLocation = extractCompanyAndLocation(companyText)
       return {
-        company,
+        ...companyLocation,
+        location: line3IsLocation ? removeDateTokens(line3.line) : companyLocation.location,
         title: cleanedLine1 || line1.line,
         consumedLines: consumedCount(line1, line2, line3IsLocation ? line3 : undefined),
       }
     }
 
     if (line2IsTitle && !line1IsTitle && (!line2IsCompany || line1IsCompany)) {
+      const companyText = removeDateTokens(line1.line)
+      const companyLocation = extractCompanyAndLocation(companyText)
       return {
-        company: cleanedLine1 || line1.line,
+        ...companyLocation,
         title: cleanedLine2 || line2.line,
         consumedLines: consumedCount(line1, line2),
       }
     }
 
+    const companyText = removeDateTokens(line1.line)
+    const companyLocation = extractCompanyAndLocation(companyText)
     return {
-      company: cleanedLine1 || line1.line,
+      ...companyLocation,
       title: cleanedLine2 || line2.line,
       consumedLines: consumedCount(line1, line2),
     }
   }
 
+  const companyText = removeDateTokens(line1?.line || '')
+  const companyLocation = extractCompanyAndLocation(companyText)
   return {
-    company: cleanedLine1 || line1?.line || '',
+    ...companyLocation,
     title: '',
     consumedLines: consumedCount(line1),
   }
@@ -782,11 +855,12 @@ export function parseResumeTextToExperiences(
   const maxItems = options.maxExperienceItems || experienceBlocks.length
   const experiences = experienceBlocks.slice(0, maxItems).map((block) => {
     const dateRange = extractDateRange(block.join(' ')) || undefined
-    const { company, title, consumedLines } = extractCompanyTitle(block)
+    const { company, location, title, consumedLines } = extractCompanyTitle(block)
     const roleDescription = buildRoleDescription(block, consumedLines)
 
     return {
       company,
+      ...(location ? { location } : {}),
       title,
       roleDescription,
       dateRange,
