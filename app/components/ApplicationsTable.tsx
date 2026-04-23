@@ -110,13 +110,13 @@ export const ApplicationsTable = memo(function ApplicationsTable({
             <TableHeader>
               <TableRow>
                 <TableHead>Company</TableHead>
-                <TableHead>Country/City</TableHead>
                 <TableHead>Position</TableHead>
-                <TableHead>Application Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Job Source</TableHead>
-                <TableHead>Notes</TableHead>
-                <TableHead>Job Details</TableHead>
+                <TableHead className='text-center'>City/Country</TableHead>
+                <TableHead className='text-center'>Application Date</TableHead>
+                <TableHead className='text-center'>Status</TableHead>
+                <TableHead className='text-center'>Job Source</TableHead>
+                <TableHead className='text-center'>Notes</TableHead>
+                <TableHead className='text-center'>Job Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -124,15 +124,15 @@ export const ApplicationsTable = memo(function ApplicationsTable({
               {filteredApplications.map((app) => (
                 <TableRow key={app.id}>
                   <TableCell className='font-medium'>{app.company}</TableCell>
-                  <TableCell>
+                  <TableCell>{app.position}</TableCell>
+                  <TableCell className='text-center'>
                     <div className='text-sm'>
                       <div>{app.country}</div>
                       <div className='text-muted-foreground'>{app.city}</div>
                     </div>
                   </TableCell>
-                  <TableCell>{app.position}</TableCell>
-                  <TableCell>{formatDate(app.applicationDate)}</TableCell>
-                  <TableCell>
+                  <TableCell className='text-center'>{formatDate(app.applicationDate)}</TableCell>
+                  <TableCell className='text-center [&>*]:mx-auto'>
                     <Select
                       value={app.status}
                       disabled={isRecruiterManaged(app)}
@@ -180,10 +180,10 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                       </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className='text-center [&>*]:mx-auto'>
                     <Badge variant='outline'>{app.jobSource}</Badge>
                   </TableCell>
-                  <TableCell className='max-w-[200px]'>
+                  <TableCell className='text-center max-w-[200px]'>
                     <input
                       type='text'
                       value={app.notes}
@@ -192,7 +192,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                       placeholder='Add notes...'
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className='text-center'>
                     {/* Shows a pink mail icon when the app has unread recruiter feedback, otherwise the standard link */}
                     {(() => {
                       // True when feedback exists but hasn't been viewed yet
