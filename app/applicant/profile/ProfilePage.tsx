@@ -167,7 +167,15 @@ export const ProfilePage = memo(function ProfilePage({
 
       return next
     })
-  }, [profile, isLoaded, user?.id, isEditing])
+  }, [
+    profile,
+    isLoaded,
+    user?.id,
+    user?.firstName,
+    user?.lastName,
+    user?.primaryEmailAddress?.emailAddress,
+    isEditing,
+  ])
 
   // Validate required fields and ensure data logic is correct
   const validate = () => {
@@ -967,7 +975,7 @@ export const ProfilePage = memo(function ProfilePage({
                             try {
                               await onDeleteJobHistory(item.id)
                               toast.success('Job history deleted successfully')
-                            } catch (error) {
+                            } catch {
                               toast.error('Failed to delete job history. Please try again.')
                             }
                           }}

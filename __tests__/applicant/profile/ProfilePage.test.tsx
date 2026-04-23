@@ -73,9 +73,6 @@ const mockProfile = {
 
 // Mock save function
 const mockOnUpdateProfile = vi.fn()
-const mockOnAddJobHistory = vi.fn()
-const mockOnEditJobHistory = vi.fn()
-const mockOnDeleteJobHistory = vi.fn()
 
 /* -------------------------------------------------------------------------- */
 /*                                   TESTS                                    */

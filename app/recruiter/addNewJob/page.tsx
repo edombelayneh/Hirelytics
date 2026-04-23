@@ -69,7 +69,6 @@ export default function AddNewJobPage() {
   const [country, setCountry] = useState('')
   const [stateValue, setStateValue] = useState('')
   const [city, setCity] = useState('')
-  const [hourlyRate, setHourlyRate] = useState('')
   const [visaRequired, setVisaRequired] = useState<boolean>(false)
   const [paymentType, setPaymentType] = useState<'hourly' | 'salary'>('hourly')
   const [paymentAmount, setPaymentAmount] = useState<number | ''>('')

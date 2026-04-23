@@ -61,7 +61,15 @@ export const RecruiterProfilePage = memo(function RecruiterProfilePage({
 
       return next
     })
-  }, [recruiterProfile, isLoaded, user?.id, isEditing])
+  }, [
+    recruiterProfile,
+    isLoaded,
+    user?.id,
+    user?.firstName,
+    user?.lastName,
+    user?.primaryEmailAddress?.emailAddress,
+    isEditing,
+  ])
 
   const validate = () => {
     const next: Partial<Record<RequiredErrorFields, string>> = {}
