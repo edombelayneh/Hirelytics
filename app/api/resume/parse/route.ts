@@ -6,6 +6,7 @@ import type { ParsedDate, ParsedExperience } from '@/app/utils/resume/resumePars
 // Server-only API to parse a resume data URL into job history drafts.
 export const runtime = 'nodejs'
 
+// Limit resume uploads to 10MB to prevent abuse and excessive processing time. Base64-encoded data is ~33% larger than the raw file, so we enforce limits on both.
 const MAX_RESUME_BYTES = 10 * 1024 * 1024
 const MAX_BASE64_LENGTH = Math.ceil((MAX_RESUME_BYTES * 4) / 3)
 
@@ -29,6 +30,8 @@ function decodeResumeData(resumeDataUrl: string): { buffer: Buffer; contentType?
   if (!trimmed) throw new Error('Empty resume data')
 
   const dataUrlMatch = trimmed.match(/^data:([^;]+);base64,(.+)$/)
+
+  // If it's a data URL, extract the content type and base64 payload. Otherwise, treat the entire string as base64.
   if (dataUrlMatch) {
     const [, contentType, base64Data] = dataUrlMatch
     return { buffer: Buffer.from(base64Data, 'base64'), contentType }
@@ -79,11 +82,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Accepts either multipart form data (for file uploads) or JSON with a base64 data URL, and extracts a Buffer + metadata for parsing.
   const contentTypeHeader = request.headers.get('content-type') || ''
   let buffer: Buffer
   let contentType: string | undefined
   let fileName: string | undefined
 
+  // For multipart form data, we expect a 'resume' file field and an optional 'resumeFileName' field. For JSON, we expect a 'resumeDataUrl' field and an optional 'resumeFileName'.
   if (contentTypeHeader.includes('multipart/form-data')) {
     let formData: FormData
 
@@ -93,6 +98,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid multipart form data' }, { status: 400 })
     }
 
+    // Validate the presence of the resume file and enforce size limits before processing.
     const resumeFile = formData.get('resume')
     if (!(resumeFile instanceof File)) {
       return NextResponse.json({ error: 'Resume file is required' }, { status: 400 })
@@ -102,6 +108,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Resume exceeds 10MB limit' }, { status: 413 })
     }
 
+    // Extract the file buffer and metadata for parsing. We use the provided 'resumeFileName' field if available, otherwise we fall back to the uploaded file's name.
     const resumeFileName = formData.get('resumeFileName')
     fileName =
       typeof resumeFileName === 'string' && resumeFileName.trim()
@@ -109,10 +116,12 @@ export async function POST(request: Request) {
         : resumeFile.name
     contentType = resumeFile.type || undefined
 
+    // Convert the file to a Buffer for parsing.
     buffer = Buffer.from(await resumeFile.arrayBuffer())
   } else {
     let body: ResumeParseRequest
 
+    // For JSON requests, we expect a base64 data URL in the 'resumeDataUrl' field. We validate its presence and enforce size limits before processing.
     try {
       body = (await request.json()) as ResumeParseRequest
     } catch {
@@ -132,6 +141,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Resume exceeds 10MB limit' }, { status: 413 })
     }
 
+    // Decode the base64 data URL (or raw base64) into a Buffer and extract any content type information for parsing.
     try {
       const decoded = decodeResumeData(trimmed)
       buffer = decoded.buffer
@@ -151,6 +161,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Resume data is empty' }, { status: 400 })
   }
 
+  // Pass the resume buffer and metadata to our existing parsing logic, which extracts structured experience data and returns any relevant warnings. We then map the parsed experiences into job history drafts for the client.
   try {
     const result = await parseResumeFile({
       data: buffer,
