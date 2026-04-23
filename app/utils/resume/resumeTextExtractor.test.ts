@@ -3,12 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { readFile } from 'fs/promises'
 import path from 'path'
 
+// Hoist the mock declarations so they are initialized before imports are evaluated.
+// We mock pdf-parse to avoid running actual OCR/PDF extraction in isolated unit tests.
 const mocks = vi.hoisted(() => {
   const pdfParseMock = vi.fn()
 
   return { pdfParseMock }
 })
 
+// Defines the expected structure of the JSON test fixture.
 type ExpectedExperience = {
   company: string
   title: string
@@ -33,8 +36,13 @@ type ExpectedExperience = {
   }
 }
 
+// Mock 'server-only' to allow testing server utilities in the test environment.
 vi.mock('server-only', () => ({}))
 
+/**
+ * Dynamically loads the resume extractor while injecting the pdf-parse mock.
+ * We use dynamic imports to ensure the mock is applied cleanly per-test.
+ */
 async function loadExtractorWithPdfMock() {
   vi.resetModules()
   vi.doMock('pdf-parse', () => ({
@@ -44,6 +52,10 @@ async function loadExtractorWithPdfMock() {
   return import('@/app/utils/resume/resumeTextExtractor')
 }
 
+/**
+ * Normalizes large blocks of resume text for assertions.
+ * Strips out null bytes, standardizes dashes/quotes, and normalizes line breaks.
+ */
 function normalizeResumeText(value: string): string {
   return value
     .replace(/\r\n?/g, '\n')
@@ -57,6 +69,9 @@ function normalizeResumeText(value: string): string {
     .join('\n')
 }
 
+/**
+ * Normalizes single lines of text (e.g., titles, companies) by condensing whitespace.
+ */
 function normalizeInlineText(value: string): string {
   return value
     .replace(/\r\n?/g, '\n')
@@ -68,10 +83,17 @@ function normalizeInlineText(value: string): string {
     .trim()
 }
 
+/**
+ * Cleans up individual lines from bullet points and leading artifacts.
+ */
 function normalizeResumeLine(value: string): string {
   return normalizeInlineText(value.replace(/^[\s\u2022\u00b7\-*]+/, ''))
 }
 
+/**
+ * Normalizes all string fields within a parsed experience object.
+ * This ensures tests don't fail due to minor spacing or encoding differences across platforms.
+ */
 function normalizeExperience<
   T extends {
     company: string
@@ -133,6 +155,10 @@ type ExperienceWithCurrentEnd = {
   } | null
 }
 
+/**
+ * Injects the dynamic current year into expected JSON fixtures for "Present" jobs.
+ * This prevents the fixture tests from failing when the actual calendar year rolls over.
+ */
 function applyCurrentYear<T extends ExperienceWithCurrentEnd>(
   experiences: T[],
   currentYear: number
@@ -156,6 +182,7 @@ function applyCurrentYear<T extends ExperienceWithCurrentEnd>(
 
 describe('app/utils/resumeTextExtractor', () => {
   beforeEach(() => {
+    // Reset module cache and clear mocks before each test to ensure isolated state.
     vi.resetModules()
     vi.clearAllMocks()
     vi.doUnmock('pdf-parse')
@@ -164,6 +191,7 @@ describe('app/utils/resumeTextExtractor', () => {
   it('detectResumeFormat prefers contentType over filename', async () => {
     const { detectResumeFormat } = await import('@/app/utils/resume/resumeTextExtractor')
 
+    // Validates that explicit MIME types override potentially mismatched file extensions.
     expect(detectResumeFormat({ contentType: 'application/pdf', fileName: 'resume.docx' })).toBe(
       'pdf'
     )
@@ -175,6 +203,7 @@ describe('app/utils/resumeTextExtractor', () => {
   })
 
   it('extractResumeText parses PDF buffers and normalizes text', async () => {
+    // Setup mock to return standard text with artifacts to verify normalization.
     mocks.pdfParseMock.mockResolvedValue({
       text: [
         'Hello\u0000',
@@ -192,6 +221,7 @@ describe('app/utils/resumeTextExtractor', () => {
       contentType: 'application/pdf',
     })
 
+    // Expect null bytes removed and double line breaks preserved where appropriate.
     expect(result.format).toBe('pdf')
     expect(result.warnings).toEqual([])
     expect(result.text).toBe(
@@ -208,6 +238,7 @@ describe('app/utils/resumeTextExtractor', () => {
       fileName: 'resume.docx',
     })
 
+    // Currently only PDF is supported; DOCX should gracefully fallback to 'unknown'.
     expect(result.format).toBe('unknown')
     expect(result.warnings).toContain('unsupported-file-type')
     expect(result.text).toBe('')
@@ -226,11 +257,13 @@ describe('app/utils/resumeTextExtractor', () => {
   })
 
   it('parses the uploaded sample PDF resume and matches expected text', async () => {
+    // Unmock to test the actual pdf-parse engine and integration flow against real files.
     vi.resetModules()
     vi.doUnmock('pdf-parse')
     const { parseResumeFile } = await import('@/app/utils/resume/resumeTextExtractor')
     const currentYear = new Date().getFullYear()
     const basePath = path.resolve(process.cwd(), '__tests__', 'fixtures')
+
     // The text fixture validates raw OCR/extraction; the JSON fixture validates parsed experience fields.
     const expectedTextPath = path.join(basePath, 'sample_resume_expected.txt')
     const expectedJsonPath = path.join(basePath, 'sample_resume_expected.json')
@@ -253,13 +286,18 @@ describe('app/utils/resumeTextExtractor', () => {
       contentType: 'application/pdf',
     })
 
+    // Validate high-level integration points
     expect(result.format).toBe('pdf')
     expect(result.extractionWarnings).toEqual([])
     expect(result.warnings).toEqual([])
     expect(result.text.length).toBeGreaterThan(50)
+
+    // Validate that the extracted fields match our expected snapshot (normalized)
     expect(result.experiences.map(normalizeExperience)).toEqual(
       expectedExperiences.map(normalizeExperience)
     )
+
+    // Validate raw text extraction string matches expected text
     expect(normalizeInlineText(result.text)).toContain(normalizeInlineText(expectedText))
   }, 30000)
 
@@ -267,6 +305,7 @@ describe('app/utils/resumeTextExtractor', () => {
     const { parseResumeTextToExperiences } = await import('@/app/utils/resume/resumeParser')
 
     // Put dates on the same line as the header so the parser's block splitter recognizes them as header boundaries
+    // This simulates text extracted from a typical resume format.
     const mockResumeText = `
 Experience
 
@@ -285,21 +324,22 @@ Remote Dev | Global Tech, Remote   Jan 2014 - Jan 2016
 
     const result = parseResumeTextToExperiences(mockResumeText)
 
+    // Ensures block splitting correctly identified all 4 roles
     expect(result.experiences).toHaveLength(4)
 
-    // Test 1: Standard abbreviation with comma
+    // Test 1: Standard 2-letter abbreviation with comma
     expect(result.experiences[0].company).toBe('Auto Owners Insurance')
     expect(result.experiences[0].location).toBe('Grand Rapids, MI')
 
-    // Test 2: Full state name
+    // Test 2: Full spelled-out state name
     expect(result.experiences[1].company).toBe('Corewell Health')
     expect(result.experiences[1].location).toBe('Grand Rapids, Michigan')
 
-    // Test 3: Corporate suffix handling
+    // Test 3: Ignores corporate suffixes like 'Inc.' when determining the location string
     expect(result.experiences[2].company).toBe('Startup Inc.')
     expect(result.experiences[2].location).toBe('San Francisco, CA')
 
-    // Test 4: Remote handling
+    // Test 4: Handles 'Remote' location indicator gracefully
     expect(result.experiences[3].company).toBe('Global Tech')
     expect(result.experiences[3].location).toBe('Remote')
   })
