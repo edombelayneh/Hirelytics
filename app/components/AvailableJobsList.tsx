@@ -135,7 +135,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
             <SelectContent>
               <SelectItem value='all'>All Locations</SelectItem>
               <SelectItem value='Remote'>Remote</SelectItem>
-              <SelectItem value='onsite'>On-site</SelectItem>
+              <SelectItem value='Onsite'>On-site</SelectItem>
             </SelectContent>
           </Select>
         </div>

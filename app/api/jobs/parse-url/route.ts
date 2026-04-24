@@ -138,7 +138,7 @@ function normalizeWorkArrangement(value: string) {
   const v = value.toLowerCase()
   if (v.includes('Hybrid')) return 'Hybrid'
   if (v.includes('Remote')) return 'Remote'
-  if (v.includes('on-site') || v.includes('on site') || v.includes('onsite')) return 'onsite'
+  if (v.includes('On-Site') || v.includes('On Site') || v.includes('Onsite')) return 'Onsite'
   return ''
 }
 

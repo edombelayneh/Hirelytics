@@ -134,7 +134,7 @@ function toStringList(value: unknown): string[] {
 
 function parseLocation(location: string): { city: string; country: string } {
   if (!location) return { city: '', country: '' }
-  if (location.toLowerCase() === 'remote') return { city: 'Remote', country: 'Remote' }
+  if (location.toLowerCase() === 'Remote') return { city: 'Remote', country: 'Remote' }
 
   // Keep the full location string as city since values are often "City, ST".
   return { city: location.trim(), country: '' }
@@ -364,7 +364,7 @@ export type SaveExternalJobInput = {
   paymentAmount: string
   paymentType: 'hourly' | 'salary' | ''
   visaRequired: 'yes' | 'no' | ''
-  workArrangement: 'onsite' | 'remote' | 'Hybrid' | ''
+  workArrangement: 'Onsite' | 'Remote' | 'Hybrid' | ''
   employmentType: 'Full-Time' | 'Part-Time' | 'Contract' | 'Internship' | ''
   experienceLevel: 'entry' | 'mid' | 'senior' | 'lead' | ''
   applicationDate: string

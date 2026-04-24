@@ -280,8 +280,8 @@ function inferWorkArrangement(jobPosting: Record<string, unknown>, html: string)
 
   if (text.includes('Hybrid')) return 'Hybrid'
   if (text.includes('Remote')) return 'Remote'
-  if (text.includes('on-site') || text.includes('onsite') || text.includes('in office'))
-    return 'onsite'
+  if (text.includes('On-Site') || text.includes('Onsite') || text.includes('in office'))
+    return 'Onsite'
   return ''
 }
 
