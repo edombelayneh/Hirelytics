@@ -54,8 +54,12 @@ function Jobs() {
   }, [isLoaded, userId])
 
   const handleApply = async (job: AvailableJob) => {
+    const jobId = String(job.id)
+
     // Prevent duplicate applications
     if (appliedJobIds.has(job.id)) return
+    //Update UI immediately
+    setAppliedJobIds((prev) => new Set(prev).add(jobId))
     // Ensure authenticated user exists before writing to Firestore
     if (!isLoaded || !userId) return
     // Save application record to Firestore
