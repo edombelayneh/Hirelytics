@@ -111,7 +111,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
               <TableRow>
                 <TableHead>Company</TableHead>
                 <TableHead>Position</TableHead>
-                <TableHead className='text-center'>City/Country</TableHead>
+                <TableHead>City/Country</TableHead>
                 <TableHead className='text-center'>Application Date</TableHead>
                 <TableHead className='text-center'>Status</TableHead>
                 <TableHead className='text-center'>Job Source</TableHead>
@@ -125,7 +125,7 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                 <TableRow key={app.id}>
                   <TableCell className='font-medium'>{app.company}</TableCell>
                   <TableCell>{app.position}</TableCell>
-                  <TableCell className='text-center'>
+                  <TableCell>
                     <div className='text-sm'>
                       <div>{app.country}</div>
                       <div className='text-muted-foreground'>{app.city}</div>
