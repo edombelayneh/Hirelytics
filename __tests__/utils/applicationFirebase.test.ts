@@ -10,7 +10,7 @@ const serverTimestampMock = vi.fn(() => 'SERVER_TS')
 const arrayUnionMock = vi.fn((...args: unknown[]) => ({ __arrayUnion: args }))
 const batchSetMock = vi.fn()
 const batchCommitMock = vi.fn()
-const writeBatchMock = vi.fn(() => ({ set: batchSetMock, commit: batchCommitMock }))
+const writeBatchMock = vi.fn((_db?: unknown) => ({ set: batchSetMock, commit: batchCommitMock }))
 
 // Mock app Firebase client so utility functions can import `db` safely in tests.
 vi.mock('../../app/lib/firebaseClient', () => ({
@@ -24,7 +24,7 @@ vi.mock('firebase/firestore', () => ({
   setDoc: (...args: unknown[]) => setDocMock(...args),
   serverTimestamp: () => serverTimestampMock(),
   arrayUnion: (...args: unknown[]) => arrayUnionMock(...args),
-  writeBatch: (...args: unknown[]) => writeBatchMock(...args),
+  writeBatch: (arg: unknown) => writeBatchMock(arg),
 }))
 
 describe('app/utils/applicationFirebase', () => {
@@ -256,7 +256,7 @@ describe('app/utils/applicationFirebase', () => {
     expect(arrayUnionMock).not.toHaveBeenCalled()
   })
 
-  it('saveUserApplication omits undefined optional fields before setDoc', async () => {
+  it('saveUserApplication omits undefined optional fields before persistence', async () => {
     const { saveUserApplication } = await import('@/app/utils/applicationFirebase')
 
     await saveUserApplication({
@@ -287,8 +287,19 @@ describe('app/utils/applicationFirebase', () => {
       },
     })
 
-    expect(setDocMock).toHaveBeenCalledTimes(1)
-    const payload = setDocMock.mock.calls[0][1] as Record<string, unknown>
+    expect(writeBatchMock).toHaveBeenCalledWith(expect.any(Object))
+    expect(batchSetMock).toHaveBeenCalledTimes(2)
+    expect(batchCommitMock).toHaveBeenCalledTimes(1)
+
+    const pathForRef = (ref: MockRef) =>
+      Array.isArray(ref.__docPath) ? ref.__docPath.slice(1).map(String).join('/') : ''
+
+    const applicationWrite = batchSetMock.mock.calls.find(
+      (call) => pathForRef(call[0] as MockRef) === 'users/user-4/applications/10'
+    )
+
+    expect(applicationWrite).toBeDefined()
+    const payload = applicationWrite?.[1] as Record<string, unknown>
     expect(payload).not.toHaveProperty('recruiterId')
   })
 
