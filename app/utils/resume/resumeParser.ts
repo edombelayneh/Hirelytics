@@ -909,38 +909,6 @@ export function parseResumeTextToExperiences(
   }
 }
 
-export function mapExperiencesToJobHistory(
-  experiences: ParsedExperience[],
-  options: JobHistoryMapOptions = {}
-): JobHistoryItem[] {
-  // Allows custom mapping for schema changes.
-  const helpers = buildDateHelpers(options)
-
-  if (options.mapExperience) {
-    return experiences
-      .map((experience) => options.mapExperience?.(experience, helpers))
-      .filter((item): item is JobHistoryItem => Boolean(item))
-  }
-
-  const idFactory = options.idFactory || createId
-
-  return experiences.map((experience) => {
-    const dates = helpers.formatDateRange(experience.dateRange)
-    const isCurrent = Boolean(experience.dateRange?.end?.isCurrent)
-    const endDate = isCurrent ? '' : dates.endDate
-
-    return {
-      id: idFactory(),
-      company: experience.company,
-      title: experience.title,
-      roleDescription: experience.roleDescription,
-      startDate: dates.startDate,
-      endDate,
-      isCurrent,
-    }
-  })
-}
-
 export function mergeJobHistoryItems(
   existing: JobHistoryItem[],
   incoming: JobHistoryItem[],

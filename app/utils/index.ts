@@ -7,13 +7,5 @@ export { parseLocation } from './locationParser'
 export { getStatusColor } from './badgeColors'
 export { ApplicationStatusColor } from './applicationStatusStyles'
 export { CHART_COLORS, chartStyles } from './chartConfig'
-export {
-  mergeJobHistoryItems,
-  mapExperiencesToJobHistory,
-  parseResumeTextToExperiences,
-} from './resume/resumeParser'
-export type {
-  JobHistoryItem,
-  JobHistoryMergeOptions,
-  JobHistoryMapOptions,
-} from './resume/resumeParser'
+export { mergeJobHistoryItems, parseResumeTextToExperiences } from './resume/resumeParser'
+export type { JobHistoryItem, JobHistoryMergeOptions } from './resume/resumeParser'
