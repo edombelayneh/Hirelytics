@@ -34,11 +34,11 @@ export function useUnreadFeedbackCount(enabled: boolean): number {
 
       const q = query(
         collection(db, 'users', user.uid, 'applications'),
-        where('recruiterFeedback', '!=', null)
+        where('recruiterFeedbackSeen', '==', false)
       )
 
       unsubFirestore = onSnapshot(q, (snap) => {
-        setCount(snap.docs.filter((d) => !d.data().recruiterFeedbackSeen).length)
+        setCount(snap.docs.length)
       })
     })
 

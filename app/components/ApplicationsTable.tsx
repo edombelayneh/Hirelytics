@@ -196,7 +196,9 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                     {/* Shows a pink mail icon when the app has unread recruiter feedback, otherwise the standard link */}
                     {(() => {
                       // True when feedback exists but hasn't been viewed yet
-                      const hasUnread = !!app.recruiterFeedback && !app.recruiterFeedbackSeen
+                      const hasUnread =
+                        ((app.feedbackHistory?.length ?? 0) > 0 || !!app.recruiterFeedback) &&
+                        !app.recruiterFeedbackSeen
                       return (
                         <Button
                           variant='ghost'

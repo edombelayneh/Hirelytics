@@ -3,6 +3,12 @@ import type { JobSource } from '../types/jobSource'
 import type { ApplicationStatus } from '../types/job'
 import type { Timestamp } from 'firebase/firestore'
 
+export interface FeedbackEntry {
+  reason: string
+  text: string
+  sentAt: Timestamp | string
+}
+
 export interface JobApplication {
   id: string | number
   company: string
@@ -16,10 +22,12 @@ export interface JobApplication {
   jobSource: JobSource
   // Stores the Firebase UID of the recruiter who posted the job the user applied to
   recruiterId?: string
-  recruiterFeedback?: string
+  feedbackHistory?: FeedbackEntry[]
   recruiterFeedbackSeen?: boolean
-  recruiterFeedbackAt?: unknown
   isExternal?: boolean
+  // Legacy scalar fields written before feedbackHistory was introduced
+  recruiterFeedback?: string
+  recruiterFeedbackAt?: unknown
   rejectionReason?: string
   rejectionExplanation?: string
   rejectedAt?: Timestamp

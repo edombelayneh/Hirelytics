@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
-import { doc, getDoc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/app/lib/firebaseClient'
 import { Button } from '@/app/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card'
@@ -16,7 +16,7 @@ import {
 } from '@/app/components/ui/accordion'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs'
 import { Textarea } from '@/app/components/ui/textarea'
-import type { JobApplication } from '@/app/data/mockData'
+import type { JobApplication, FeedbackEntry } from '@/app/data/mockData'
 import { formatDateWithYear } from '@/app/utils/dateFormatter'
 
 type DetailRecord = Record<string, unknown>
@@ -85,29 +85,38 @@ export default function ApplicationDetailsPage() {
   // undefined = listener not yet resolved; null = doc doesn't exist
   const [jobDoc, setJobDoc] = useState<DetailRecord | null | undefined>(undefined)
   const [loadingApp, setLoadingApp] = useState(true)
-  // Local notes state kept in sync with Firestore on save
+  // Local notes state kept in sync with Firestore on first load only
   const [notes, setNotes] = useState('')
+  const notesInitialized = useRef(false)
   // Tracks in-flight Firestore write to disable the Save button
   const [savingNotes, setSavingNotes] = useState(false)
 
-  // Fetch the user's application document
+  // Subscribe to the user's application document in real-time
   useEffect(() => {
     if (!isLoaded || !userId) return
     const ref = doc(db, 'users', userId, 'applications', applicationId)
-    getDoc(ref).then((snap) => {
+    const unsub = onSnapshot(ref, (snap) => {
       if (snap.exists()) {
         const data = { id: snap.id, ...snap.data() } as JobApplication
         setApplication(data)
-        setNotes(data.notes ?? '')
+        if (!notesInitialized.current) {
+          setNotes(data.notes ?? '')
+          notesInitialized.current = true
+        }
       }
       setLoadingApp(false)
     })
+    return () => unsub()
   }, [isLoaded, userId, applicationId])
 
-  // Marks feedback seen on mount when the URL deep-links directly to the Feedback tab
+  // Marks feedback seen on mount when the URL deep-links directly to the Feedback tab.
   useEffect(() => {
     if (defaultTab !== 'feedback' || !userId || !application) return
-    if (!application.recruiterFeedback || application.recruiterFeedbackSeen) return
+    const hasFeedback =
+      (application.feedbackHistory?.length ?? 0) > 0 ||
+      !!application.recruiterFeedback ||
+      !!application.rejectionExplanation
+    if (!hasFeedback || application.recruiterFeedbackSeen) return
     void updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
       recruiterFeedbackSeen: true,
     }).catch(console.error)
@@ -115,7 +124,7 @@ export default function ApplicationDetailsPage() {
 
   // Marks recruiter feedback as seen when user manually switches to the Feedback tab
   const handleTabChange = async (value: string) => {
-    if (value !== 'feedback' || !userId || !application || !recruiterFeedback) return
+    if (value !== 'feedback' || !userId || !application) return
     if (application.recruiterFeedbackSeen) return
     await updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
       recruiterFeedbackSeen: true,
@@ -204,8 +213,30 @@ export default function ApplicationDetailsPage() {
       : toList(mergedJob.preferredSkills).length > 0
         ? toList(mergedJob.preferredSkills)
         : toList(mergedJob.qualifications)
-  // Sourced from the application doc root — set by the recruiter, not part of mergedJob
-  const recruiterFeedback = application.recruiterFeedback ?? null
+  // Build a unified list of feedback entries from the new array field plus legacy scalar fields.
+  // Newest entries are shown first.
+  const feedbackEntries: FeedbackEntry[] = (() => {
+    const entries: FeedbackEntry[] = [...(application.feedbackHistory ?? [])]
+
+    // Legacy: scalar recruiterFeedback written before feedbackHistory existed
+    if (!entries.length && application.recruiterFeedback) {
+      entries.push({
+        reason: application.rejectionReason ?? '',
+        text: application.recruiterFeedback,
+        sentAt: (application.recruiterFeedbackAt ??
+          application.rejectedAt ??
+          '') as FeedbackEntry['sentAt'],
+      })
+    } else if (!entries.length && application.rejectionExplanation) {
+      entries.push({
+        reason: application.rejectionReason ?? '',
+        text: application.rejectionExplanation,
+        sentAt: (application.rejectedAt ?? '') as FeedbackEntry['sentAt'],
+      })
+    }
+
+    return entries.slice().reverse()
+  })()
 
   const postedDate = toDateOnly(mergedJob.postedAt ?? mergedJob.postedDate ?? mergedJob.createdAt)
   const updatedDate = toDateOnly(mergedJob.updatedAt)
@@ -432,7 +463,7 @@ export default function ApplicationDetailsPage() {
               value='feedback'
               className='mt-4'
             >
-              {!recruiterFeedback ? (
+              {feedbackEntries.length === 0 ? (
                 <Card className='rounded-2xl border shadow-sm'>
                   <CardContent className='py-16 flex flex-col items-center justify-center text-center space-y-3'>
                     <h3 className='font-semibold text-base'>No feedback yet</h3>
@@ -452,32 +483,36 @@ export default function ApplicationDetailsPage() {
                 <Card className='rounded-2xl border shadow-sm'>
                   <CardContent className='p-5'>
                     <Accordion
-                      type='single'
-                      collapsible
-                      defaultValue='feedback-0'
+                      type='multiple'
+                      defaultValue={['feedback-0']}
                     >
-                      <AccordionItem
-                        value='feedback-0'
-                        className='rounded-xl border bg-muted/20 px-5 last:border-b'
-                      >
-                        <AccordionTrigger className='hover:no-underline'>
-                          <div className='flex flex-col gap-0.5 text-left'>
-                            <span className='text-sm font-semibold'>
-                              {toDateOnly(application.recruiterFeedbackAt) !== '—'
-                                ? `Received ${toDateOnly(application.recruiterFeedbackAt)}`
-                                : 'Recruiter Feedback'}
-                            </span>
-                            <span className='text-xs text-muted-foreground'>
-                              Status when received: {application.status}
-                            </span>
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <p className='text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed'>
-                            {recruiterFeedback}
-                          </p>
-                        </AccordionContent>
-                      </AccordionItem>
+                      {feedbackEntries.map((entry, i) => (
+                        <AccordionItem
+                          key={i}
+                          value={`feedback-${i}`}
+                          className='rounded-xl border bg-muted/20 px-5 mb-2 last:mb-0 last:border-b'
+                        >
+                          <AccordionTrigger className='hover:no-underline'>
+                            <div className='flex flex-col gap-0.5 text-left'>
+                              <span className='text-sm font-semibold'>
+                                {toDateOnly(entry.sentAt) !== '—'
+                                  ? `Received ${toDateOnly(entry.sentAt)}`
+                                  : 'Recruiter Feedback'}
+                              </span>
+                              {entry.reason && (
+                                <span className='text-xs text-muted-foreground'>
+                                  {entry.reason}
+                                </span>
+                              )}
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <p className='text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed'>
+                              {entry.text}
+                            </p>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
                     </Accordion>
                   </CardContent>
                 </Card>
