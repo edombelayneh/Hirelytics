@@ -72,7 +72,7 @@ export default function AddNewJobPage() {
   const [visaRequired, setVisaRequired] = useState<boolean>(false)
   const [paymentType, setPaymentType] = useState<'hourly' | 'salary'>('hourly')
   const [paymentAmount, setPaymentAmount] = useState<number | ''>('')
-  const [jobType, setJobType] = useState<'onsite' | 'remote' | 'hybrid' | ''>('')
+  const [jobType, setJobType] = useState<'onsite' | 'remote' | 'Hybrid' | ''>('')
   const [generalDescription, setGeneralDescription] = useState('')
   const [employmentType, setEmploymentType] = useState<
     'Full-Time' | 'Part-Time' | 'Contract' | 'Internship' | ''
@@ -393,13 +393,13 @@ export default function AddNewJobPage() {
             <label className='block text-sm mb-1'>Job Type</label>
             <select
               value={jobType}
-              onChange={(e) => setJobType(e.target.value as 'onsite' | 'remote' | 'hybrid' | '')}
+              onChange={(e) => setJobType(e.target.value as 'onsite' | 'remote' | 'Hybrid' | '')}
               className='w-full border rounded p-2'
             >
               <option value=''>Select job type</option>
               <option value='onsite'>In-person / On-site</option>
               <option value='remote'>Remote</option>
-              <option value='hybrid'>Hybrid</option>
+              <option value='Hybrid'>Hybrid</option>
             </select>
           </div>
 

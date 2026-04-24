@@ -274,7 +274,7 @@ describe('app/utils/applicationFirebase', () => {
       paymentAmount: '100000',
       paymentType: 'salary',
       visaRequired: 'no',
-      workArrangement: 'hybrid',
+      workArrangement: 'Hybrid',
       employmentType: 'Full-Time',
       experienceLevel: 'mid',
       applicationDate: '2026-03-25',
