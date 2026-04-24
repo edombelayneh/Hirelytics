@@ -36,7 +36,7 @@ type RecruiterJobPayload = {
   country: string
   state: string
   city: string
-  paymentType: 'hourly' | 'salary'
+  paymentType: 'Hourly' | 'Salary'
   paymentAmount: number | null
   visaRequired: boolean
   jobType: string
@@ -70,14 +70,14 @@ export default function AddNewJobPage() {
   const [stateValue, setStateValue] = useState('')
   const [city, setCity] = useState('')
   const [visaRequired, setVisaRequired] = useState<boolean>(false)
-  const [paymentType, setPaymentType] = useState<'hourly' | 'salary'>('hourly')
+  const [paymentType, setPaymentType] = useState<'Hourly' | 'Salary'>('Hourly')
   const [paymentAmount, setPaymentAmount] = useState<number | ''>('')
   const [jobType, setJobType] = useState<'Onsite' | 'Remote' | 'Hybrid' | ''>('')
   const [generalDescription, setGeneralDescription] = useState('')
   const [employmentType, setEmploymentType] = useState<
     'Full-Time' | 'Part-Time' | 'Contract' | 'Internship' | ''
   >('')
-  const [experienceLevel, setExperienceLevel] = useState<'entry' | 'mid' | 'senior' | 'lead' | ''>(
+  const [experienceLevel, setExperienceLevel] = useState<'Entry' | 'Mid' | 'Senior' | 'Lead' | ''>(
     ''
   )
   const [applicationDeadline, setApplicationDeadline] = useState('')
@@ -168,7 +168,7 @@ export default function AddNewJobPage() {
     // Build salary display string
     const salaryDisplay =
       paymentAmount !== ''
-        ? paymentType === 'hourly'
+        ? paymentType === 'Hourly'
           ? `$${paymentAmount}/hr`
           : `$${Number(paymentAmount).toLocaleString()}/yr`
         : ''
@@ -380,11 +380,11 @@ export default function AddNewJobPage() {
               <label className='block text-sm mb-1'>Payment Type</label>
               <select
                 value={paymentType}
-                onChange={(e) => setPaymentType(e.target.value as 'hourly' | 'salary')}
+                onChange={(e) => setPaymentType(e.target.value as 'Hourly' | 'Salary')}
                 className='w-full border rounded p-2'
               >
-                <option value='hourly'>Hourly</option>
-                <option value='salary'>Salary</option>
+                <option value='Hourly'>Hourly</option>
+                <option value='Salary'>Salary</option>
               </select>
             </div>
           </div>
@@ -427,15 +427,15 @@ export default function AddNewJobPage() {
             <select
               value={experienceLevel}
               onChange={(e) =>
-                setExperienceLevel(e.target.value as 'entry' | 'mid' | 'senior' | 'lead' | '')
+                setExperienceLevel(e.target.value as 'Entry' | 'Mid' | 'Senior' | 'Lead' | '')
               }
               className='w-full border rounded p-2'
             >
               <option value=''>Select experience level</option>
-              <option value='entry'>Entry-level</option>
-              <option value='mid'>Mid-level</option>
-              <option value='senior'>Senior-level</option>
-              <option value='lead'>Lead / Manager</option>
+              <option value='Entry'>Entry-level</option>
+              <option value='Mid'>Mid-level</option>
+              <option value='Senior'>Senior-level</option>
+              <option value='Lead'>Lead / Manager</option>
             </select>
           </div>
 

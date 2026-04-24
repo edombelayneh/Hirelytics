@@ -362,11 +362,11 @@ export type SaveExternalJobInput = {
   state: string
   city: string
   paymentAmount: string
-  paymentType: 'hourly' | 'salary' | ''
-  visaRequired: 'yes' | 'no' | ''
+  paymentType: 'Hourly' | 'Salary' | ''
+  visaRequired: 'Yes' | 'No' | ''
   workArrangement: 'Onsite' | 'Remote' | 'Hybrid' | ''
   employmentType: 'Full-Time' | 'Part-Time' | 'Contract' | 'Internship' | ''
-  experienceLevel: 'entry' | 'mid' | 'senior' | 'lead' | ''
+  experienceLevel: 'Entry' | 'Mid' | 'Senior' | 'Lead' | ''
   applicationDate: string
   jobSource: string
 }
@@ -437,7 +437,7 @@ export async function saveExternalJob(input: SaveExternalJobInput) {
         type: employmentType || '',
         postedDate: applicationDateISO,
         salary: paymentAmount
-          ? `$${paymentAmount}${paymentType === 'hourly' ? '/hr' : paymentType === 'salary' ? '/year' : ''}`
+          ? `$${paymentAmount}${paymentType === 'Hourly' ? '/hr' : paymentType === 'Salary' ? '/year' : ''}`
           : '',
         description,
         requirements: qualifications ? qualifications.split('\n').filter(Boolean) : [],

@@ -264,7 +264,7 @@ function parseCompensation(jobPosting: Record<string, unknown>): {
 
   const paymentAmount =
     minValue && maxValue ? `${minValue}-${maxValue}` : exactValue || minValue || maxValue
-  const paymentType = unitText.includes('hour') ? 'hourly' : unitText ? 'salary' : ''
+  const paymentType = unitText.includes('hour') ? 'Hourly' : unitText ? 'Salary' : ''
 
   return { paymentAmount, paymentType }
 }

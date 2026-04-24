@@ -18,11 +18,11 @@ import { saveExternalJob } from '../../utils/applicationFirebase'
 import { normalizeJobSource, type JobSource, type JobSourceInput } from '../../types/jobSource'
 
 // Controlled select fields types
-type VisaRequired = 'yes' | 'no' | ''
+type VisaRequired = 'Yes' | 'No' | ''
 type WorkArrangement = 'Onsite' | 'Remote' | 'Hybrid' | ''
 type EmploymentType = 'Full-Time' | 'Part-Time' | 'Contract' | 'Internship' | ''
-type ExperienceLevel = 'entry' | 'mid' | 'senior' | 'lead' | ''
-type PaymentType = 'hourly' | 'salary' | ''
+type ExperienceLevel = 'Entry' | 'Mid' | 'Senior' | 'Lead' | ''
+type PaymentType = 'Hourly' | 'Salary' | ''
 
 // Returns todays date, used as default value for applicationDate
 function safeToday() {
@@ -598,8 +598,8 @@ export default function AddExternalJobPage() {
                 className='w-full border rounded p-2'
               >
                 <option value=''>Select payment type</option>
-                <option value='hourly'>Hourly</option>
-                <option value='salary'>Salary</option>
+                <option value='Hourly'>Hourly</option>
+                <option value='Salary'>Salary</option>
               </select>
             </div>
 
@@ -653,10 +653,10 @@ export default function AddExternalJobPage() {
                 className='w-full border rounded p-2'
               >
                 <option value=''>Select experience level</option>
-                <option value='entry'>Entry-level</option>
-                <option value='mid'>Mid-level</option>
-                <option value='senior'>Senior-level</option>
-                <option value='lead'>Lead / Manager</option>
+                <option value='Entry'>Entry-level</option>
+                <option value='Mid'>Mid-level</option>
+                <option value='Senior'>Senior-level</option>
+                <option value='Lead'>Lead / Manager</option>
               </select>
             </div>
 
@@ -725,8 +725,8 @@ export default function AddExternalJobPage() {
                 className='w-full border rounded p-2'
               >
                 <option value=''>Select an option</option>
-                <option value='yes'>Yes, they can sponsor visas</option>
-                <option value='no'>No, visa sponsorship is not available</option>
+                <option value='Yes'>Yes, they can sponsor visas</option>
+                <option value='No'>No, visa sponsorship is not available</option>
               </select>
             </div>
           </form>
