@@ -7,7 +7,7 @@ import { Badge } from './ui/badge'
 import { Input } from './ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { ExternalLink, Search, Filter } from 'lucide-react'
+import { ExternalLink, Mail, Search, Filter } from 'lucide-react'
 import { JobApplication } from '../data/mockData'
 import { formatDate } from '../utils/dateFormatter'
 import { ApplicationStatusColor } from '../utils/applicationStatusStyles'
@@ -110,14 +110,13 @@ export const ApplicationsTable = memo(function ApplicationsTable({
             <TableHeader>
               <TableRow>
                 <TableHead>Company</TableHead>
-                <TableHead>Country/City</TableHead>
                 <TableHead>Position</TableHead>
-                <TableHead>Application Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Contact Person</TableHead>
-                <TableHead>Job Source</TableHead>
-                <TableHead>Notes</TableHead>
-                <TableHead>Job Details</TableHead>
+                <TableHead>City/Country</TableHead>
+                <TableHead className='text-center'>Application Date</TableHead>
+                <TableHead className='text-center'>Status</TableHead>
+                <TableHead className='text-center'>Job Source</TableHead>
+                <TableHead className='text-center'>Notes</TableHead>
+                <TableHead className='text-center'>Job Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -125,15 +124,15 @@ export const ApplicationsTable = memo(function ApplicationsTable({
               {filteredApplications.map((app) => (
                 <TableRow key={app.id}>
                   <TableCell className='font-medium'>{app.company}</TableCell>
+                  <TableCell>{app.position}</TableCell>
                   <TableCell>
                     <div className='text-sm'>
                       <div>{app.country}</div>
                       <div className='text-muted-foreground'>{app.city}</div>
                     </div>
                   </TableCell>
-                  <TableCell>{app.position}</TableCell>
-                  <TableCell>{formatDate(app.applicationDate)}</TableCell>
-                  <TableCell>
+                  <TableCell className='text-center'>{formatDate(app.applicationDate)}</TableCell>
+                  <TableCell className='text-center [&>*]:mx-auto'>
                     <Select
                       value={app.status}
                       disabled={isRecruiterManaged(app)}
@@ -181,11 +180,10 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                       </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell>{app.contactPerson}</TableCell>
-                  <TableCell>
+                  <TableCell className='text-center [&>*]:mx-auto'>
                     <Badge variant='outline'>{app.jobSource}</Badge>
                   </TableCell>
-                  <TableCell className='max-w-[200px]'>
+                  <TableCell className='text-center max-w-[200px]'>
                     <input
                       type='text'
                       value={app.notes}
@@ -194,15 +192,34 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                       placeholder='Add notes...'
                     />
                   </TableCell>
-                  <TableCell>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      aria-label='View application details'
-                      onClick={() => router.push(`/applicant/applications/${String(app.id)}`)}
-                    >
-                      <ExternalLink className='h-4 w-4' />
-                    </Button>
+                  <TableCell className='text-center'>
+                    {/* Shows a pink mail icon when the app has unread recruiter feedback, otherwise the standard link */}
+                    {(() => {
+                      // True when feedback exists but hasn't been viewed yet
+                      const hasUnread =
+                        ((app.feedbackHistory?.length ?? 0) > 0 || !!app.recruiterFeedback) &&
+                        !app.recruiterFeedbackSeen
+                      return (
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          aria-label={
+                            hasUnread ? 'New recruiter feedback' : 'View application details'
+                          }
+                          onClick={() =>
+                            router.push(
+                              `/applicant/applications/${String(app.id)}${hasUnread ? '?tab=feedback' : ''}`
+                            )
+                          }
+                        >
+                          {hasUnread ? (
+                            <Mail className='h-4 w-4 text-[var(--accent-pink)]' />
+                          ) : (
+                            <ExternalLink className='h-4 w-4' />
+                          )}
+                        </Button>
+                      )
+                    })()}
                   </TableCell>
                 </TableRow>
               ))}

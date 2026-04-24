@@ -14,6 +14,10 @@ import { Navbar } from './Navbar'
  * In jsdom, we do not need full Next.js routing behavior. A normal <a>
  * makes it easy to assert href values directly.
  */
+vi.mock('../hooks/useUnreadFeedbackCount', () => ({
+  useUnreadFeedbackCount: () => 0,
+}))
+
 vi.mock('next/link', () => ({
   default: ({
     href,

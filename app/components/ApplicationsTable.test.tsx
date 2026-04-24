@@ -78,7 +78,6 @@ describe('ApplicationsTable', () => {
       position: 'Software Engineer',
       applicationDate: '2025-01-15',
       status: 'Applied',
-      contactPerson: 'John Doe',
       notes: 'Great company culture',
       jobSource: 'LinkedIn',
     },
@@ -91,7 +90,6 @@ describe('ApplicationsTable', () => {
       position: 'Frontend Developer',
       applicationDate: '2025-01-20',
       status: 'Interview',
-      contactPerson: 'Jane Smith',
       notes: 'Second round scheduled',
       jobSource: 'Indeed',
     },
@@ -104,7 +102,6 @@ describe('ApplicationsTable', () => {
       position: 'Backend Developer',
       applicationDate: '2025-01-10',
       status: 'Rejected',
-      contactPerson: 'Bob Johnson',
       notes: 'Not a good fit',
       jobSource: 'Company Website',
     },
@@ -142,11 +139,10 @@ describe('ApplicationsTable', () => {
 
     ;[
       'Company',
-      'Country/City',
+      'City/Country',
       'Position',
       'Application Date',
       'Status',
-      'Contact Person',
       'Job Source',
       'Notes',
       'Job Details',
@@ -171,7 +167,6 @@ describe('ApplicationsTable', () => {
     expect(usaElements.length).toBeGreaterThan(0)
     expect(screen.getByText('San Francisco')).toBeTruthy()
     expect(screen.getByText('Software Engineer')).toBeTruthy()
-    expect(screen.getByText('John Doe')).toBeTruthy()
   })
 
   it('shows empty state when no applications match filter', () => {
@@ -370,6 +365,58 @@ describe('ApplicationsTable', () => {
     expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1')
   })
 
+  // --- Unread Feedback Indicator Tests ---
+
+  it('shows ExternalLink icon when no recruiterFeedback is present', () => {
+    // Baseline: app with no feedback field shows the standard link icon
+    render(<ApplicationsTable applications={[mockApplications[0]]} />)
+
+    expect(screen.getByLabelText('View application details')).toBeTruthy()
+    expect(screen.queryByLabelText('New recruiter feedback')).toBeNull()
+  })
+
+  it('shows a mail icon when the application has unread recruiter feedback', () => {
+    // Unread = recruiterFeedback exists and recruiterFeedbackSeen is absent/false
+    const apps = [{ ...mockApplications[0], recruiterFeedback: 'Good interview!' }]
+
+    render(<ApplicationsTable applications={apps} />)
+
+    expect(screen.getByLabelText('New recruiter feedback')).toBeTruthy()
+    expect(screen.queryByLabelText('View application details')).toBeNull()
+  })
+
+  it('shows ExternalLink icon when recruiterFeedback has already been seen', () => {
+    // Seen = recruiterFeedback exists but recruiterFeedbackSeen is true
+    const apps = [
+      { ...mockApplications[0], recruiterFeedback: 'Good interview!', recruiterFeedbackSeen: true },
+    ]
+
+    render(<ApplicationsTable applications={apps} />)
+
+    expect(screen.getByLabelText('View application details')).toBeTruthy()
+    expect(screen.queryByLabelText('New recruiter feedback')).toBeNull()
+  })
+
+  it('navigates to ?tab=feedback when the mail icon is clicked', () => {
+    // Clicking the envelope should deep-link directly to the Feedback tab
+    const apps = [{ ...mockApplications[0], recruiterFeedback: 'Good interview!' }]
+
+    render(<ApplicationsTable applications={apps} />)
+
+    fireEvent.click(screen.getByLabelText('New recruiter feedback'))
+
+    expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1?tab=feedback')
+  })
+
+  it('navigates to the standard URL when no unread feedback exists', () => {
+    // No feedback → normal navigation without any ?tab= param
+    render(<ApplicationsTable applications={[mockApplications[0]]} />)
+
+    fireEvent.click(screen.getByLabelText('View application details'))
+
+    expect(pushMock).toHaveBeenCalledWith('/applicant/applications/1')
+  })
+
   // --- Edge Case Tests ---
 
   it('renders correctly with empty applications array', () => {
@@ -426,7 +473,6 @@ describe('ApplicationsTable', () => {
         position: 'Engineer',
         applicationDate: '2026-01-01',
         status: 'Applied',
-        contactPerson: '',
         notes: '',
         jobSource: 'Hirelytics',
       },
