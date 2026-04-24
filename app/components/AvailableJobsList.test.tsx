@@ -223,8 +223,8 @@ describe('AvailableJobsList', () => {
     expect(screen.getByText(/Showing 1 of 3 jobs/i)).toBeTruthy()
   })
 
-  it('filters jobs by location (remote)', () => {
-    // Location dropdown should support “remote” filtering
+  it('filters jobs by location (Remote)', () => {
+    // Location dropdown should support “Remote” filtering
     render(
       <AvailableJobsList
         jobs={mockJobs}
@@ -236,7 +236,7 @@ describe('AvailableJobsList', () => {
     const selects = screen.getAllByTestId('select')
     const locationSelect = selects[1]
 
-    fireEvent.change(locationSelect, { target: { value: 'remote' } })
+    fireEvent.change(locationSelect, { target: { value: 'Remote' } })
 
     expect(screen.getByText('Software Engineer')).toBeTruthy()
     expect(screen.queryByText('Data Analyst')).toBeNull()

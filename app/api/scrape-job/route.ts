@@ -271,7 +271,7 @@ function parseCompensation(jobPosting: Record<string, unknown>): {
 
 function inferWorkArrangement(jobPosting: Record<string, unknown>, html: string): string {
   const locationType = coerceText(jobPosting.jobLocationType).toLowerCase()
-  if (locationType.includes('telecommute') || locationType.includes('remote')) return 'remote'
+  if (locationType.includes('telecommute') || locationType.includes('Remote')) return 'Remote'
 
   const text =
     `${extractTitle(html)} ${extractMetaTagCandidates(html, ['description', 'og:description'])}`
@@ -279,7 +279,7 @@ function inferWorkArrangement(jobPosting: Record<string, unknown>, html: string)
       .trim()
 
   if (text.includes('Hybrid')) return 'Hybrid'
-  if (text.includes('remote')) return 'remote'
+  if (text.includes('Remote')) return 'Remote'
   if (text.includes('on-site') || text.includes('onsite') || text.includes('in office'))
     return 'onsite'
   return ''

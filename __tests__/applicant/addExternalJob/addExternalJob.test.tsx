@@ -181,7 +181,7 @@ describe('AddExternalJobPage', () => {
     fireEvent.change(employmentSelect, { target: { value: 'Full-Time' } })
 
     const workArrangementSelect = screen.getAllByDisplayValue('Select job type')[0]
-    fireEvent.change(workArrangementSelect, { target: { value: 'remote' } })
+    fireEvent.change(workArrangementSelect, { target: { value: 'Remote' } })
 
     // Set location fields
     fireEvent.change(screen.getByPlaceholderText('United States'), {
@@ -207,7 +207,7 @@ describe('AddExternalJobPage', () => {
         description: 'Lead backend development and architect scalable systems',
         jobSource: 'LinkedIn',
         employmentType: 'Full-Time',
-        workArrangement: 'remote',
+        workArrangement: 'Remote',
         country: 'United States',
         state: 'Michigan',
         city: 'Mount Pleasant',

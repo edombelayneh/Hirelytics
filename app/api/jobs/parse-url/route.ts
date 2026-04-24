@@ -137,7 +137,7 @@ function normalizeEmploymentType(value: string) {
 function normalizeWorkArrangement(value: string) {
   const v = value.toLowerCase()
   if (v.includes('Hybrid')) return 'Hybrid'
-  if (v.includes('remote')) return 'remote'
+  if (v.includes('Remote')) return 'Remote'
   if (v.includes('on-site') || v.includes('on site') || v.includes('onsite')) return 'onsite'
   return ''
 }

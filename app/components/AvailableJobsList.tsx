@@ -58,10 +58,10 @@ export const AvailableJobsList = memo(function AvailableJobsList({
 
     // Type filter match
     const matchesType = typeFilter === 'all' || job.type === typeFilter
-    // Location filter logic (special handling for “remote”)
+    // Location filter logic (special handling for “Remote”)
     const matchesLocation =
       locationFilter === 'all' ||
-      (locationFilter === 'remote' ? job.location === 'Remote' : job.location !== 'Remote')
+      (locationFilter === 'Remote' ? job.location === 'Remote' : job.location !== 'Remote')
 
     return matchesSearch && matchesType && matchesLocation
   })
@@ -134,7 +134,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value='all'>All Locations</SelectItem>
-              <SelectItem value='remote'>Remote</SelectItem>
+              <SelectItem value='Remote'>Remote</SelectItem>
               <SelectItem value='onsite'>On-site</SelectItem>
             </SelectContent>
           </Select>

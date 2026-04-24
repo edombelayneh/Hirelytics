@@ -19,7 +19,7 @@ import { normalizeJobSource, type JobSource, type JobSourceInput } from '../../t
 
 // Controlled select fields types
 type VisaRequired = 'yes' | 'no' | ''
-type WorkArrangement = 'onsite' | 'remote' | 'Hybrid' | ''
+type WorkArrangement = 'onsite' | 'Remote' | 'Hybrid' | ''
 type EmploymentType = 'Full-Time' | 'Part-Time' | 'Contract' | 'Internship' | ''
 type ExperienceLevel = 'entry' | 'mid' | 'senior' | 'lead' | ''
 type PaymentType = 'hourly' | 'salary' | ''
@@ -271,7 +271,7 @@ export default function AddExternalJobPage() {
         if (
           !blockedBySource &&
           (parsedWorkArrangement === 'onsite' ||
-            parsedWorkArrangement === 'remote' ||
+            parsedWorkArrangement === 'Remote' ||
             parsedWorkArrangement === 'Hybrid')
         ) {
           setWorkArrangement(parsedWorkArrangement)
@@ -625,7 +625,7 @@ export default function AddExternalJobPage() {
               >
                 <option value=''>Select job type</option>
                 <option value='onsite'>In-person / On-site</option>
-                <option value='remote'>Remote</option>
+                <option value='Remote'>Remote</option>
                 <option value='Hybrid'>Hybrid</option>
               </select>
             </div>
