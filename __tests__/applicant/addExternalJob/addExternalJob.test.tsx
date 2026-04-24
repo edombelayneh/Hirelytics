@@ -178,7 +178,7 @@ describe('AddExternalJobPage', () => {
     expect(screen.getByDisplayValue('LinkedIn')).toBeTruthy()
 
     const employmentSelect = screen.getAllByDisplayValue('Select type')[0]
-    fireEvent.change(employmentSelect, { target: { value: 'full-time' } })
+    fireEvent.change(employmentSelect, { target: { value: 'Full-Time' } })
 
     const workArrangementSelect = screen.getAllByDisplayValue('Select job type')[0]
     fireEvent.change(workArrangementSelect, { target: { value: 'remote' } })
@@ -206,7 +206,7 @@ describe('AddExternalJobPage', () => {
         companyName: 'TechCorp Inc.',
         description: 'Lead backend development and architect scalable systems',
         jobSource: 'LinkedIn',
-        employmentType: 'full-time',
+        employmentType: 'Full-Time',
         workArrangement: 'remote',
         country: 'United States',
         state: 'Michigan',

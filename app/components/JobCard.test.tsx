@@ -89,8 +89,8 @@ describe('JobCard', () => {
     expect(screen.getByText(/Develop and maintain web applications/)).toBeTruthy()
   })
 
-  // --- Test that full-time badge is displayed for full-time jobs ---
-  it('displays Full-time badge for full-time jobs', () => {
+  // --- Test that Full-Time badge is displayed for Full-Time jobs ---
+  it('displays Full-time badge for Full-Time jobs', () => {
     // Badge reflects job type
     render(
       <JobCard
@@ -103,7 +103,7 @@ describe('JobCard', () => {
   })
 
   it('handles job type case-insensitively', () => {
-    const lowerCaseJob = { ...mockJob, type: 'full-time' }
+    const lowerCaseJob = { ...mockJob, type: 'Full-Time' }
 
     render(
       <JobCard
@@ -113,7 +113,7 @@ describe('JobCard', () => {
       />
     )
 
-    expect(screen.getByText('full-time')).toBeTruthy()
+    expect(screen.getByText('Full-Time')).toBeTruthy()
   })
 
   it('does not crash when job type is undefined', () => {
@@ -345,7 +345,7 @@ describe('JobCard', () => {
     expect(badge.className).toContain('bg-muted')
   })
 
-  it('applies teal styling for full-time jobs', () => {
+  it('applies teal styling for Full-Time jobs', () => {
     render(
       <JobCard
         job={{ ...mockJob, type: 'Full-time' }}
