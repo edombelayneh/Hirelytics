@@ -365,7 +365,7 @@ export type SaveExternalJobInput = {
   paymentType: 'hourly' | 'salary' | ''
   visaRequired: 'yes' | 'no' | ''
   workArrangement: 'onsite' | 'remote' | 'hybrid' | ''
-  employmentType: 'Full-Time' | 'Part-Time' | 'contract' | 'internship' | ''
+  employmentType: 'Full-Time' | 'Part-Time' | 'Contract' | 'internship' | ''
   experienceLevel: 'entry' | 'mid' | 'senior' | 'lead' | ''
   applicationDate: string
   jobSource: string

@@ -26,7 +26,7 @@ interface JobCardProps {
 const JOB_TYPE_COLORS: Record<string, string> = {
   'Full-Time': 'bg-[var(--accent-teal)] text-black',
   'Part-Time': 'bg-[var(--accent-pink)] text-black',
-  contract: 'bg-[var(--accent-gold)] text-black',
+  Contract: 'bg-[var(--accent-gold)] text-black',
   internship: 'bg-accent text-accent-foreground',
 }
 

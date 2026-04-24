@@ -144,13 +144,13 @@ describe('JobCard', () => {
     expect(screen.getByText('Part-time')).toBeTruthy()
   })
 
-  // --- Test that contract badge is displayed for contract jobs ---
-  it('displays secondary badge variant for contract jobs', () => {
+  // --- Test that Contract badge is displayed for Contract jobs ---
+  it('displays secondary badge variant for Contract jobs', () => {
     // Switch job type to Contract
-    const contract = { ...mockJob, type: 'Contract' }
+    const Contract = { ...mockJob, type: 'Contract' }
     render(
       <JobCard
-        job={contract}
+        job={Contract}
         onApply={mockOnApply}
         isApplied={false}
       />
@@ -371,7 +371,7 @@ describe('JobCard', () => {
     expect(badge.className).toContain('bg-[var(--accent-pink)]')
   })
 
-  it('applies gold styling for contract jobs', () => {
+  it('applies gold styling for Contract jobs', () => {
     render(
       <JobCard
         job={{ ...mockJob, type: 'Contract' }}
