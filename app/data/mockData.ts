@@ -2,6 +2,7 @@ import { jobsData } from './jobs'
 import type { JobSource } from '../types/jobSource'
 import type { ApplicationStatus } from '../types/job'
 import { summarizeApplicationStatuses } from '../utils/applicationStatus'
+import type { Timestamp } from 'firebase/firestore'
 
 export interface JobApplication {
   id: string | number
@@ -17,6 +18,9 @@ export interface JobApplication {
   jobSource: JobSource
   // Stores the Firebase UID of the recruiter who posted the job the user applied to
   recruiterId?: string
+  rejectionReason?: string
+  rejectionExplanation?: string
+  rejectedAt?: Timestamp
 }
 
 // Load job applications from jobs data file

@@ -1,18 +1,8 @@
 'use client'
 // Utility functions for protecting user actions that require authentication.
 // If the user is not signed in, a toast appears and Clerk's sign-in modal opens.
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from '@clerk/nextjs'
+import { SignInButton } from '@clerk/nextjs'
 import { toast } from '../components/ui/sonner'
-
-// tiny wrapper to open Clerk modal programmatically via a hidden button
-const openSignIn: (() => void) | null = null
 
 // Invisible SignInButton that can be clicked programmatically
 export function SignInButtonBridge() {

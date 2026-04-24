@@ -6,6 +6,10 @@ import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/re
 import { RecruiterProfilePage } from '../../../app/recruiter/profile/RecruiterProfilePage' // <-- adjust path
 import type { RecruiterProfile } from '../../../app/utils/userProfiles'
 
+vi.mock('next/image', () => ({
+  default: (props: JSX.IntrinsicElements['img']) => React.createElement('img', props),
+}))
+
 // Checks if an element exists on the page (is visible to the user)
 const expectInDoc = (el: unknown): void => {
   expect(el).toBeTruthy()
@@ -107,12 +111,13 @@ vi.mock('../../../app/components/ui/textarea', () => ({
 // Mock Avatar components - render user profile images or initials
 vi.mock('../../../app/components/ui/avatar', () => ({
   Avatar: ({ children }: { children: React.ReactNode }): JSX.Element => <div>{children}</div>,
-  AvatarImage: ({ alt, src }: { alt?: string; src?: string }): JSX.Element => (
-    <img
-      alt={alt ?? ''}
-      src={src ?? ''}
-    />
-  ),
+  AvatarImage: ({ alt, src }: { alt?: string; src?: string }): JSX.Element =>
+    React.createElement('img', {
+      alt: alt ?? '',
+      src: src ?? 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==',
+      width: 48,
+      height: 48,
+    }),
   AvatarFallback: ({ children }: { children: React.ReactNode }): JSX.Element => (
     <div>{children}</div>
   ),
@@ -126,7 +131,8 @@ class MockFileReader {
   public result: string | ArrayBuffer | null = null
   public onloadend: MockFileReaderHandler = null
 
-  public readAsDataURL(_file: File): void {
+  public readAsDataURL(file: File): void {
+    void file
     // Returns a fake base64 image string to simulate successful file reading
     this.result = 'data:image/png;base64,FAKE'
     if (this.onloadend) this.onloadend()
@@ -248,7 +254,7 @@ describe('RecruiterProfilePage', () => {
   // Test: Verifies that empty required fields (company name, email) show error messages and prevent saving
   it('validates required fields and shows toast error when missing', async () => {
     // Override Clerk values so auto-fill DOES NOT populate recruiterEmail
-    useUserMock.mockReturnValueOnce({
+    useUserMock.mockReturnValue({
       isLoaded: true,
       user: {
         id: 'user_123',
@@ -298,7 +304,7 @@ describe('RecruiterProfilePage', () => {
 
   // Test: Verifies that valid form data is saved and a success notification appears
   it('calls onSave with current form data when valid and shows success toast', async () => {
-    const onSave = vi.fn(async (_profile: RecruiterProfile): Promise<void> => {})
+    const onSave = vi.fn(async (): Promise<void> => {})
 
     render(
       <RecruiterProfilePage
@@ -332,7 +338,7 @@ describe('RecruiterProfilePage', () => {
   it('disables save button and shows "Saving..." while saving', async () => {
     let resolveSaveRef: (() => void) | null = null
 
-    const onSave = vi.fn(async (_profile: RecruiterProfile): Promise<void> => {
+    const onSave = vi.fn(async (): Promise<void> => {
       await new Promise<void>((resolve) => {
         resolveSaveRef = resolve
       })

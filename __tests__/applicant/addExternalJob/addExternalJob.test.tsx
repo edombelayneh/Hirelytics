@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup, act, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import React from 'react'
 import AddExternalJobPage from '../../../app/applicant/addExternalJob/page'
 import * as applicationFirebase from '../../../app/utils/applicationFirebase'
@@ -18,16 +18,6 @@ vi.mock('@clerk/nextjs', () => ({
   useAuth: () => ({
     userId: 'test-user-123',
     isLoaded: true,
-  }),
-}))
-
-// vi.hoisted ensures these are available inside the vi.mock factory (which is hoisted to top)
-const { saveUserApplicationMock, buildApplicationMock } = vi.hoisted(() => ({
-  saveUserApplicationMock: vi.fn(() => Promise.resolve()),
-  buildApplicationMock: vi.fn().mockReturnValue({
-    id: 'mock-id',
-    jobId: 'mock-id',
-    userId: 'user-123',
   }),
 }))
 

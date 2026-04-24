@@ -1,4 +1,11 @@
-import { arrayUnion, doc, collection, serverTimestamp, setDoc } from 'firebase/firestore'
+import {
+  arrayUnion,
+  doc,
+  collection,
+  serverTimestamp,
+  setDoc,
+  writeBatch,
+} from 'firebase/firestore'
 import { db } from '../lib/firebaseClient'
 import type { AvailableJob } from '../data/availableJobs'
 import type { JobSource } from '../types/jobSource'
@@ -20,7 +27,7 @@ type ApplicationJobDetails = {
   applyLink: string
 }
 
-type ApplicationPayload = {
+type ApplicationInput = {
   id: string
   jobId?: string
   userId: string
@@ -32,6 +39,7 @@ type ApplicationPayload = {
   contactPerson: string
   jobSource: JobSource
   jobLink: string
+  isExternal?: boolean
   applicationDate: string
   status: ApplicationStatus
   notes: string
@@ -44,6 +52,11 @@ type ApplicationPayload = {
   createdAt?: unknown
   updatedAt?: unknown
   jobDetails: ApplicationJobDetails
+}
+
+type ApplicationDocument = ApplicationInput & {
+  applicantId: string
+  jobId: string
 }
 
 type BuildApplicationFromAvailableJobParams = {
@@ -82,6 +95,7 @@ type BuildFromJobDetailsInput = {
   contactPerson: string
   jobSource?: string
   jobLink: string
+  applyLink?: string
   title: string
   location: string
   type: string
@@ -90,7 +104,6 @@ type BuildFromJobDetailsInput = {
   description: string
   requirements: string[]
   jobPostingStatus: string
-  applyLink: string
   recruiterId?: string
   state?: string
   visaRequired?: string
@@ -157,7 +170,7 @@ function stripUndefinedDeep<T>(value: T): T {
 export function buildApplicationFromAvailableJob({
   userId,
   job,
-}: BuildApplicationFromAvailableJobParams): ApplicationPayload {
+}: BuildApplicationFromAvailableJobParams): ApplicationInput {
   const { city, country } = parseLocation(job.location)
   const jobId = String(job.id)
 
@@ -195,7 +208,7 @@ export function buildApplication({
   jobId,
   mergedJob,
   fallback,
-}: BuildApplicationParams): ApplicationPayload {
+}: BuildApplicationParams): ApplicationInput {
   const title = toText(mergedJob.title) || fallback.title
   const company = toText(mergedJob.company) || toText(mergedJob.companyName) || fallback.company
   const location = toText(mergedJob.location) || fallback.location
@@ -214,7 +227,8 @@ export function buildApplication({
   const preferredSkills = toText(mergedJob.preferredSkills) || undefined
   const workArrangement = toText(mergedJob.workArrangement) || undefined
   const paymentType = toText(mergedJob.paymentType) || undefined
-  const jobLink = toText(mergedJob.applyLink) || toText(mergedJob.jobLink)
+  const applyLink = toText(mergedJob.applyLink)
+  const jobLink = toText(mergedJob.jobLink) || applyLink
   const jobSource = normalizeJobSource(toText(mergedJob.jobSource) || 'Hirelytics')
 
   return buildApplicationFromJobDetails({
@@ -227,6 +241,7 @@ export function buildApplication({
     contactPerson: toText(mergedJob.contactPerson),
     jobSource,
     jobLink,
+    applyLink: applyLink || undefined,
     title,
     location,
     type: toText(mergedJob.type) || toText(mergedJob.employmentType),
@@ -236,7 +251,6 @@ export function buildApplication({
       toText(mergedJob.description) || toText(mergedJob.generalDescription) || fallback.description,
     requirements,
     jobPostingStatus: toText(mergedJob.status) || 'Open',
-    applyLink: jobLink,
     recruiterId: toText(mergedJob.recruiterId) || undefined,
     ...(state ? { state } : {}),
     ...(visaRequired ? { visaRequired } : {}),
@@ -257,6 +271,7 @@ export function buildApplicationFromJobDetails({
   contactPerson,
   jobSource = 'Hirelytics',
   jobLink,
+  applyLink,
   title,
   location,
   type,
@@ -265,7 +280,6 @@ export function buildApplicationFromJobDetails({
   description,
   requirements,
   jobPostingStatus,
-  applyLink,
   recruiterId,
   state,
   visaRequired,
@@ -273,8 +287,9 @@ export function buildApplicationFromJobDetails({
   preferredSkills,
   workArrangement,
   paymentType,
-}: BuildFromJobDetailsInput): ApplicationPayload {
+}: BuildFromJobDetailsInput): ApplicationInput {
   const normalizedSource = normalizeJobSource(jobSource)
+  const resolvedApplyLink = applyLink || jobLink
 
   return {
     userId,
@@ -306,7 +321,7 @@ export function buildApplicationFromJobDetails({
       description,
       requirements,
       status: jobPostingStatus,
-      applyLink: jobLink,
+      applyLink: resolvedApplyLink,
     },
   }
 }
@@ -329,15 +344,18 @@ export async function applyToJobFromDetails({
   await saveUserApplication(application)
 }
 
-export async function saveUserApplication(application: ApplicationPayload): Promise<void> {
+export async function saveUserApplication(application: ApplicationInput): Promise<void> {
   const resolvedJobId = application.jobId || application.id
   const ref = doc(db, 'users', application.userId, 'applications', resolvedJobId)
-  const normalizedApplication = {
+  const normalizedApplication: ApplicationDocument = {
     ...application,
     id: application.id || resolvedJobId,
     jobId: resolvedJobId,
     status: application.status || 'Applied',
+    applicantId: application.userId,
   }
+
+  const batch = writeBatch(db)
 
   const firestorePayload = stripUndefinedDeep({
     ...normalizedApplication,
@@ -345,7 +363,14 @@ export async function saveUserApplication(application: ApplicationPayload): Prom
     updatedAt: serverTimestamp(),
   })
 
-  await setDoc(ref, firestorePayload, { merge: true })
+  batch.set(ref, firestorePayload, { merge: true })
+
+  if (!application.isExternal) {
+    const jobRef = doc(db, 'jobPostings', resolvedJobId)
+    batch.set(jobRef, { applicantsId: arrayUnion(application.userId) }, { merge: true })
+  }
+
+  await batch.commit()
 }
 
 // Type for external job data from the Add External Job form.
