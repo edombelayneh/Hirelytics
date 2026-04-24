@@ -151,7 +151,13 @@ export default function JobDetailsPage() {
   }
 
   const handleRejectionSubmit = async (reason: RejectionReason, explanation: string) => {
-    if (!jobId || !rejectionModal.applicantId) return
+    if (!jobId) {
+      throw new Error('Cannot submit rejection feedback: missing route jobId.')
+    }
+
+    if (!rejectionModal.applicantId) {
+      throw new Error('Cannot submit rejection feedback: missing applicantId in modal state.')
+    }
 
     // Persist feedback on the rejected applicant's own application record.
     await updateDoc(doc(db, 'users', rejectionModal.applicantId, 'applications', jobId), {
