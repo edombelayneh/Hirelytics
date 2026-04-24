@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
-import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { deleteField, doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/app/lib/firebaseClient'
 import { Button } from '@/app/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card'
@@ -15,6 +15,7 @@ import {
   AccordionTrigger,
 } from '@/app/components/ui/accordion'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs'
+import { Input } from '@/app/components/ui/input'
 import { Textarea } from '@/app/components/ui/textarea'
 import type { JobApplication, FeedbackEntry } from '@/app/data/mockData'
 import { formatDateWithYear } from '@/app/utils/dateFormatter'
@@ -90,6 +91,10 @@ export default function ApplicationDetailsPage() {
   const notesInitialized = useRef(false)
   // Tracks in-flight Firestore write to disable the Save button
   const [savingNotes, setSavingNotes] = useState(false)
+  // Local company contact state kept in sync with Firestore on first load only
+  const [companyContact, setCompanyContact] = useState('')
+  const contactInitialized = useRef(false)
+  const [savingContact, setSavingContact] = useState(false)
 
   // Subscribe to the user's application document in real-time
   useEffect(() => {
@@ -102,6 +107,10 @@ export default function ApplicationDetailsPage() {
         if (!notesInitialized.current) {
           setNotes(data.notes ?? '')
           notesInitialized.current = true
+        }
+        if (!contactInitialized.current) {
+          setCompanyContact(data.companyContact ?? '')
+          contactInitialized.current = true
         }
       }
       setLoadingApp(false)
@@ -140,6 +149,28 @@ export default function ApplicationDetailsPage() {
       updatedAt: serverTimestamp(),
     })
     setSavingNotes(false)
+  }
+
+  const handleSaveContact = async () => {
+    if (!userId) return
+    setSavingContact(true)
+    const trimmed = companyContact.trim()
+    await updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
+      ...(trimmed ? { companyContact: trimmed } : { companyContact: deleteField() }),
+      updatedAt: serverTimestamp(),
+    })
+    setSavingContact(false)
+  }
+
+  const handleDeleteContact = async () => {
+    if (!userId) return
+    setSavingContact(true)
+    await updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
+      companyContact: deleteField(),
+      updatedAt: serverTimestamp(),
+    })
+    setCompanyContact('')
+    setSavingContact(false)
   }
 
   // Subscribe to the job posting document
@@ -432,6 +463,38 @@ export default function ApplicationDetailsPage() {
                       <dd className='text-muted-foreground'>{application.jobSource}</dd>
                     </div>
                   </dl>
+                </section>
+
+                {/* Company Contact */}
+                <section className='rounded-xl border bg-muted/20 p-5 space-y-3'>
+                  <h3 className='text-lg font-semibold'>Company Contact</h3>
+                  <Input
+                    value={companyContact}
+                    onChange={(e) => setCompanyContact(e.target.value)}
+                    placeholder='Recruiter or hiring manager name'
+                    className='text-sm'
+                  />
+                  <div className='flex justify-between items-center'>
+                    {application.companyContact ? (
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        onClick={handleDeleteContact}
+                        disabled={savingContact}
+                      >
+                        Delete
+                      </Button>
+                    ) : (
+                      <div />
+                    )}
+                    <Button
+                      size='sm'
+                      onClick={handleSaveContact}
+                      disabled={savingContact}
+                    >
+                      {savingContact ? 'Saving...' : 'Save Contact'}
+                    </Button>
+                  </div>
                 </section>
 
                 {/* Notes */}
