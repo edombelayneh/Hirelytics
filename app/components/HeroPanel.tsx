@@ -19,7 +19,7 @@ import {
   getStatusDistributionFromList,
   JobApplication,
 } from '../data/mockData'
-import { CHART_COLORS, chartStyles } from '../utils/chartConfig'
+import { chartStyles } from '../utils/chartConfig'
 
 interface HeroPanelProps {
   // Full applications list passed from parent
@@ -158,7 +158,7 @@ const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
           </ResponsiveContainer>
           {/* Legend-style list under the chart */}
           <div className='grid grid-cols-2 gap-2 mt-4'>
-            {statusData.map((entry, index) => (
+            {statusData.map((entry) => (
               <div
                 key={entry.status}
                 className='flex items-center gap-2'
