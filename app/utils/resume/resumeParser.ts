@@ -1,5 +1,3 @@
-import type { JobHistoryItem as AppJobHistoryItem } from '../jobHistory'
-
 // Parsing warnings are surfaced to callers to explain partial matches.
 type ParseWarning =
   | 'experience-section-not-found'
@@ -40,28 +38,6 @@ export type ResumeParserOptions = {
   sectionHeadings?: string[]
   stopHeadings?: string[]
   maxExperienceItems?: number
-}
-
-export type JobHistoryItem = AppJobHistoryItem
-
-export type JobHistoryMapOptions = {
-  dateFormat?: 'yyyy-mm' | 'yyyy-mm-dd' | 'raw'
-  currentLabel?: string
-  idFactory?: () => string
-  mapExperience?: (
-    experience: ParsedExperience,
-    helpers: DateFormatHelpers
-  ) => JobHistoryItem | null
-}
-
-export type JobHistoryMergeOptions = {
-  strategy?: 'fill-empty' | 'replace'
-  matchBy?: 'id' | 'company-title-date'
-}
-
-type DateFormatHelpers = {
-  formatDateRange: (range?: ParsedDateRange) => { startDate: string; endDate: string }
-  formatDate: (date: ParsedDate | null | undefined) => string
 }
 
 // Headings used to locate the experience section in free-form resume text.
@@ -804,53 +780,6 @@ function buildRoleDescription(lines: string[], consumedLines: number): string {
   return sanitized.join('\n')
 }
 
-// Default ID generator for mapped job history entries.
-function createId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID()
-  }
-  return `resume-${Math.random().toString(36).slice(2, 10)}`
-}
-
-function formatDateWithOptions(
-  date: ParsedDate | null | undefined,
-  options: Required<Pick<JobHistoryMapOptions, 'dateFormat' | 'currentLabel'>>
-): string {
-  // Date formatting is intentionally conservative for downstream schema flexibility.
-  if (!date) return ''
-  if (date.isCurrent) return options.currentLabel
-
-  const { dateFormat } = options
-  const year = String(date.year)
-
-  if (dateFormat === 'raw') return date.raw
-  if (dateFormat === 'yyyy-mm') {
-    if (!date.month) return year
-    return `${year}-${String(date.month).padStart(2, '0')}`
-  }
-
-  if (!date.month) return `${year}-01-01`
-  return `${year}-${String(date.month).padStart(2, '0')}-01`
-}
-
-function buildDateHelpers(options: JobHistoryMapOptions): DateFormatHelpers {
-  const normalized: Required<Pick<JobHistoryMapOptions, 'dateFormat' | 'currentLabel'>> = {
-    dateFormat: options.dateFormat || 'yyyy-mm',
-    currentLabel: options.currentLabel || 'Present',
-  }
-
-  return {
-    formatDate: (date) => formatDateWithOptions(date, normalized),
-    formatDateRange: (range) => {
-      if (!range) return { startDate: '', endDate: '' }
-      return {
-        startDate: formatDateWithOptions(range.start, normalized),
-        endDate: formatDateWithOptions(range.end, normalized),
-      }
-    },
-  }
-}
-
 // Main parser: locate experience section -> split into jobs -> map into structured entries.
 export function parseResumeTextToExperiences(
   text: string,
@@ -907,63 +836,4 @@ export function parseResumeTextToExperiences(
     experienceSection: lines.join('\n'),
     warnings,
   }
-}
-
-export function mergeJobHistoryItems(
-  existing: JobHistoryItem[],
-  incoming: JobHistoryItem[],
-  options: JobHistoryMergeOptions = {}
-): JobHistoryItem[] {
-  // Fill empty fields by default to preserve manual edits.
-  const strategy = options.strategy || 'fill-empty'
-  if (strategy === 'replace') {
-    return incoming.slice()
-  }
-
-  const matchBy = options.matchBy || 'company-title-date'
-  const buildKey = (item: JobHistoryItem) => {
-    // Use a normalized composite key when IDs are missing.
-    if (matchBy === 'id') return item.id
-    return [item.company, item.title, item.startDate]
-      .map((value) => value.toLowerCase().trim())
-      .join('|')
-  }
-
-  const merged = existing.map((item) => ({ ...item }))
-  const existingMap = new Map(merged.map((item) => [buildKey(item), item]))
-
-  for (const incomingItem of incoming) {
-    const key = buildKey(incomingItem)
-    const match = existingMap.get(key)
-
-    if (!match) {
-      merged.push({ ...incomingItem })
-      existingMap.set(key, merged[merged.length - 1])
-      continue
-    }
-
-    if (!match.company) match.company = incomingItem.company
-    if (!match.title) match.title = incomingItem.title
-    if (!match.roleDescription) match.roleDescription = incomingItem.roleDescription
-    if (!match.startDate) match.startDate = incomingItem.startDate
-
-    // Treat endDate and isCurrent as a coupled pair to prevent inconsistent states
-    const matchIsCurrentMissing = typeof match.isCurrent === 'undefined'
-    const incomingHasIsCurrent = typeof incomingItem.isCurrent !== 'undefined'
-
-    if (!match.endDate) {
-      match.endDate = incomingItem.endDate
-      if (incomingHasIsCurrent) match.isCurrent = incomingItem.isCurrent
-    } else if (matchIsCurrentMissing && incomingHasIsCurrent) {
-      match.isCurrent = incomingItem.isCurrent
-      if (incomingItem.isCurrent) match.endDate = incomingItem.endDate
-    }
-
-    // Ensure that if the job is current, the end date behaves correctly
-    if (match.isCurrent) {
-      match.endDate = incomingItem.isCurrent ? incomingItem.endDate : undefined
-    }
-  }
-
-  return merged
 }
