@@ -130,8 +130,8 @@ describe('JobCard', () => {
     expect(screen.getByText('Unknown')).toBeTruthy()
   })
 
-  // --- Test that part-time badge is displayed for part-time jobs ---
-  it('displays secondary badge variant for part-time jobs', () => {
+  // --- Test that Part-Time badge is displayed for Part-Time jobs ---
+  it('displays secondary badge variant for Part-Time jobs', () => {
     // Switch job type to Part-time
     const partTimeJob = { ...mockJob, type: 'Part-time' }
     render(
@@ -358,7 +358,7 @@ describe('JobCard', () => {
     expect(badge.className).toContain('bg-[var(--accent-teal)]')
   })
 
-  it('applies pink styling for part-time jobs', () => {
+  it('applies pink styling for Part-Time jobs', () => {
     render(
       <JobCard
         job={{ ...mockJob, type: 'Part-time' }}

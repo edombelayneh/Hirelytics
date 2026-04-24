@@ -25,7 +25,7 @@ interface JobCardProps {
 // Adding color classes for different job types (Full-time, Part-time, etc.)
 const JOB_TYPE_COLORS: Record<string, string> = {
   'Full-Time': 'bg-[var(--accent-teal)] text-black',
-  'part-time': 'bg-[var(--accent-pink)] text-black',
+  'Part-Time': 'bg-[var(--accent-pink)] text-black',
   contract: 'bg-[var(--accent-gold)] text-black',
   internship: 'bg-accent text-accent-foreground',
 }

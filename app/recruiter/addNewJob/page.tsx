@@ -75,7 +75,7 @@ export default function AddNewJobPage() {
   const [jobType, setJobType] = useState<'onsite' | 'remote' | 'hybrid' | ''>('')
   const [generalDescription, setGeneralDescription] = useState('')
   const [employmentType, setEmploymentType] = useState<
-    'Full-Time' | 'part-time' | 'contract' | 'internship' | ''
+    'Full-Time' | 'Part-Time' | 'contract' | 'internship' | ''
   >('')
   const [experienceLevel, setExperienceLevel] = useState<'entry' | 'mid' | 'senior' | 'lead' | ''>(
     ''
@@ -409,14 +409,14 @@ export default function AddNewJobPage() {
               value={employmentType}
               onChange={(e) =>
                 setEmploymentType(
-                  e.target.value as 'Full-Time' | 'part-time' | 'contract' | 'internship' | ''
+                  e.target.value as 'Full-Time' | 'Part-Time' | 'contract' | 'internship' | ''
                 )
               }
               className='w-full border rounded p-2'
             >
               <option value=''>Select type</option>
               <option value='Full-Time'>Full-time</option>
-              <option value='part-time'>Part-time</option>
+              <option value='Part-Time'>Part-time</option>
               <option value='contract'>Contract</option>
               <option value='internship'>Internship</option>
             </select>
