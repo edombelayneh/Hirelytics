@@ -34,6 +34,8 @@ vi.mock('next/navigation', () => ({
 vi.mock('firebase/firestore', () => ({
   updateDoc: (...args: unknown[]) => updateDocMock(...args),
   serverTimestamp: () => serverTimestampMock(),
+  arrayUnion: vi.fn((...elements: unknown[]) => ({ _arrayUnion: elements })),
+  Timestamp: { now: vi.fn(() => 'TIMESTAMP_NOW') },
   doc: vi.fn((...args: unknown[]) => ({ path: args })),
   // Seed a single job posting snapshot so JobDetailsPage has one applicant to act on.
   onSnapshot: vi.fn(
@@ -426,14 +428,21 @@ describe('JobDetailsPage rejection feedback save', () => {
     await waitFor(() => {
       expect(updateDocMock).toHaveBeenCalledWith(
         { path: [{}, 'users', 'a1', 'applications', 'job-123'] },
-        {
+        expect.objectContaining({
           jobId: 'job-123',
           status: 'Rejected',
-          rejectionReason: 'Position filled',
-          rejectionExplanation: expect.stringContaining('position has now been filled'),
-          rejectedAt: 'SERVER_TS',
           updatedAt: 'SERVER_TS',
-        }
+          recruiterFeedbackSeen: false,
+          feedbackHistory: expect.objectContaining({
+            _arrayUnion: expect.arrayContaining([
+              expect.objectContaining({
+                reason: 'Position filled',
+                text: expect.stringContaining('position has now been filled'),
+                sentAt: 'TIMESTAMP_NOW',
+              }),
+            ]),
+          }),
+        })
       )
     })
   })

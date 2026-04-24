@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react'
-import { getDoc } from 'firebase/firestore'
 import ApplicationDetailsPage from '../../../../app/applicant/applications/[applicationId]/page'
 
 /* -------------------------------------------------------------------------- */
@@ -11,6 +10,11 @@ const pushMock = vi.fn()
 const searchParamsMock = { get: vi.fn().mockReturnValue(null) }
 const updateDocMock = vi.fn().mockResolvedValue(undefined)
 const docMock = vi.fn().mockReturnValue({ id: 'mock-ref' })
+
+// Controls what the application-doc onSnapshot fires per test.
+// null  → callback never fires (simulates pending/loading)
+// object → fires synchronously with that snapshot
+let currentAppSnap: Record<string, unknown> | null = null
 
 vi.mock('next/navigation', () => ({
   useParams: () => ({ applicationId: 'app-1' }),
@@ -26,12 +30,22 @@ vi.mock('@/app/lib/firebaseClient', () => ({ db: {} }))
 
 vi.mock('firebase/firestore', () => ({
   doc: (...args: unknown[]) => docMock(...args),
-  getDoc: vi.fn(),
-  // Fires the callback synchronously so loadingJob resolves on mount
-  onSnapshot: vi.fn((_, callback: (snap: { exists: () => boolean }) => void) => {
-    callback({ exists: () => false })
-    return () => {}
-  }),
+  // Two onSnapshot callers in the page:
+  //   • app doc  (2-arg form): uses currentAppSnap — null means never fire (loading)
+  //   • job posting (3-arg form, has error handler): always fires with exists=false
+  onSnapshot: vi.fn(
+    (_ref: unknown, successCb: (snap: Record<string, unknown>) => void, errorCb?: () => void) => {
+      if (typeof errorCb !== 'undefined') {
+        // Job posting snapshot
+        successCb({ exists: () => false })
+      } else if (currentAppSnap !== null) {
+        // Application doc snapshot
+        successCb(currentAppSnap)
+      }
+      // currentAppSnap === null → callback never fires → loading state persists
+      return () => {}
+    }
+  ),
   updateDoc: (...args: unknown[]) => updateDocMock(...args),
   serverTimestamp: () => 'SERVER_TS',
 }))
@@ -106,7 +120,7 @@ describe('ApplicationDetailsPage', () => {
     // Reset to null (no ?tab= param) by default
     searchParamsMock.get.mockReturnValue(null)
     // Default: valid application document exists
-    vi.mocked(getDoc).mockResolvedValue(makeAppSnap() as never)
+    currentAppSnap = makeAppSnap()
   })
 
   afterEach(() => {
@@ -116,15 +130,15 @@ describe('ApplicationDetailsPage', () => {
   // --- Loading & Not Found States ---
 
   it('shows a loading state while application data is being fetched', () => {
-    // getDoc never resolves → loadingApp stays true
-    vi.mocked(getDoc).mockReturnValue(new Promise(() => {}) as never)
+    // null → onSnapshot never fires → loadingApp stays true
+    currentAppSnap = null
     render(<ApplicationDetailsPage />)
 
     expect(screen.getByText('Loading...')).toBeTruthy()
   })
 
   it('shows not found message when the application document does not exist', async () => {
-    vi.mocked(getDoc).mockResolvedValue({ exists: () => false } as never)
+    currentAppSnap = { exists: () => false }
     render(<ApplicationDetailsPage />)
 
     await waitFor(() => {
@@ -157,9 +171,7 @@ describe('ApplicationDetailsPage', () => {
   })
 
   it('shows the feedback text when recruiterFeedback exists', async () => {
-    vi.mocked(getDoc).mockResolvedValue(
-      makeAppSnap({ recruiterFeedback: 'Strong candidate, keep in touch.' }) as never
-    )
+    currentAppSnap = makeAppSnap({ recruiterFeedback: 'Strong candidate, keep in touch.' })
     render(<ApplicationDetailsPage />)
 
     await waitFor(() => {
@@ -180,9 +192,7 @@ describe('ApplicationDetailsPage', () => {
   // --- Mark Feedback as Seen ---
 
   it('calls updateDoc with recruiterFeedbackSeen: true when user clicks the Feedback tab', async () => {
-    vi.mocked(getDoc).mockResolvedValue(
-      makeAppSnap({ recruiterFeedback: 'Good fit for next cycle.' }) as never
-    )
+    currentAppSnap = makeAppSnap({ recruiterFeedback: 'Good fit for next cycle.' })
     render(<ApplicationDetailsPage />)
 
     // Wait for the app data to load so handleTabChange has a non-null recruiterFeedback
@@ -199,9 +209,7 @@ describe('ApplicationDetailsPage', () => {
   it('calls updateDoc with recruiterFeedbackSeen: true on mount when URL has ?tab=feedback', async () => {
     // Deep-link: page loads directly on the Feedback tab
     searchParamsMock.get.mockReturnValue('feedback')
-    vi.mocked(getDoc).mockResolvedValue(
-      makeAppSnap({ recruiterFeedback: 'You were a great candidate.' }) as never
-    )
+    currentAppSnap = makeAppSnap({ recruiterFeedback: 'You were a great candidate.' })
     render(<ApplicationDetailsPage />)
 
     // The useEffect fires once application loads with unread feedback
@@ -211,9 +219,7 @@ describe('ApplicationDetailsPage', () => {
   })
 
   it('does not call updateDoc when feedback is already marked as seen', async () => {
-    vi.mocked(getDoc).mockResolvedValue(
-      makeAppSnap({ recruiterFeedback: 'Great!', recruiterFeedbackSeen: true }) as never
-    )
+    currentAppSnap = makeAppSnap({ recruiterFeedback: 'Great!', recruiterFeedbackSeen: true })
     render(<ApplicationDetailsPage />)
 
     await waitFor(() => screen.getByText('Great!'))
