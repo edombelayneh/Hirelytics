@@ -384,7 +384,7 @@ describe('JobCard', () => {
     expect(badge.className).toContain('bg-[var(--accent-gold)]')
   })
 
-  it('applies accent styling for internship jobs', () => {
+  it('applies accent styling for Internship jobs', () => {
     render(
       <JobCard
         job={{ ...mockJob, type: 'Internship' }}

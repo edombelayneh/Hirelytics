@@ -129,8 +129,8 @@ function normalizeEmploymentType(value: string) {
   const v = value.toLowerCase()
   if (v.includes('full')) return 'Full-Time'
   if (v.includes('part')) return 'Part-Time'
-  if (v.includes('contract')) return 'contract'
-  if (v.includes('intern')) return 'internship'
+  if (v.includes('contract')) return 'Contract'
+  if (v.includes('intern')) return 'Internship'
   return ''
 }
 

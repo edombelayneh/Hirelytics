@@ -27,7 +27,7 @@ const JOB_TYPE_COLORS: Record<string, string> = {
   'Full-Time': 'bg-[var(--accent-teal)] text-black',
   'Part-Time': 'bg-[var(--accent-pink)] text-black',
   Contract: 'bg-[var(--accent-gold)] text-black',
-  internship: 'bg-accent text-accent-foreground',
+  Internship: 'bg-accent text-accent-foreground',
 }
 
 // Memoized JobCard component for rendering job info and apply button
