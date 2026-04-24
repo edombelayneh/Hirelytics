@@ -25,6 +25,7 @@ export interface JobApplication {
   feedbackHistory?: FeedbackEntry[]
   recruiterFeedbackSeen?: boolean
   isExternal?: boolean
+  companyContact?: string
   // Legacy scalar fields written before feedbackHistory was introduced
   recruiterFeedback?: string
   recruiterFeedbackAt?: unknown

@@ -136,6 +136,7 @@ export default function AddExternalJobPage() {
   // Step 2: autofill + editable fields
   const [jobName, setJobName] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [companyContact, setCompanyContact] = useState('')
   const [description, setDescription] = useState('')
   const [qualifications, setQualifications] = useState('')
   const [preferredSkills, setPreferredSkills] = useState('')
@@ -369,6 +370,7 @@ export default function AddExternalJobPage() {
         jobUrl: jobUrl.trim(),
         jobName: jobName.trim(),
         companyName: companyName.trim(),
+        companyContact: companyContact.trim() || undefined,
         description: description.trim(),
         qualifications: qualifications.trim(),
         preferredSkills: preferredSkills.trim(),
@@ -520,6 +522,17 @@ export default function AddExternalJobPage() {
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 placeholder='Company Name'
+                className='w-full border rounded p-2'
+              />
+            </div>
+
+            <div>
+              <label className='block text-sm mb-1'>Company Contact</label>
+              <input
+                type='text'
+                value={companyContact}
+                onChange={(e) => setCompanyContact(e.target.value)}
+                placeholder='Recruiter or hiring manager name'
                 className='w-full border rounded p-2'
               />
             </div>

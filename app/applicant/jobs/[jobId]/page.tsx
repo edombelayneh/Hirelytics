@@ -264,7 +264,7 @@ export default function JobDetailsPage() {
     ],
     ['Application Deadline', formatValue(mergedJob.applicationDeadline)],
     ['Visa Required', formatValue(mergedJob.visaRequired)],
-    ['Contact Person', formatValue(mergedJob.contactPerson)],
+    ['Contact Person', formatValue(mergedJob.contactPerson ?? mergedJob.companyContact)],
     ...(fromApplications ? [['Job Source', normalizeJobSource(mergedJob.jobSource)] as const] : []),
     ['Application Status', formatValue(mergedJob.status)],
     [

@@ -348,6 +348,7 @@ export type SaveExternalJobInput = {
   jobUrl: string
   jobName: string
   companyName: string
+  companyContact?: string
   description: string
   qualifications: string
   preferredSkills: string
@@ -373,6 +374,7 @@ export async function saveExternalJob(input: SaveExternalJobInput) {
     jobUrl,
     jobName,
     companyName,
+    companyContact,
     description,
     qualifications,
     preferredSkills,
@@ -436,6 +438,7 @@ export async function saveExternalJob(input: SaveExternalJobInput) {
         applyLink: jobUrl,
         recruiterId: '',
       },
+      ...(companyContact ? { companyContact } : {}),
       externalJobMetadata: {
         qualifications,
         preferredSkills,
