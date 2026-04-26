@@ -27,7 +27,7 @@ interface HeroPanelProps {
 }
 const STATUS_COLORS: Record<string, string> = {
   Applied: '#FEF08A', // yellow
-  Screening: '#FDBA74', // pastel orange
+  Screening: '#FED7AA', // softer pastel orange
   Interviews: '#1D4ED8', // deep blue
   Offer: '#1ed361', // green
   Rejected: '#e32828', // red

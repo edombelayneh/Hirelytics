@@ -16,7 +16,7 @@ const mockApplications: JobApplication[] = [
     jobLink: 'https://example.com/job1',
     position: 'Software Engineer',
     applicationDate: '2026-01-15',
-    status: 'APPLIED',
+    status: 'Applied',
     contactPerson: 'John Doe',
     notes: 'Initial application submitted',
     jobSource: 'LinkedIn',
@@ -29,7 +29,7 @@ const mockApplications: JobApplication[] = [
     jobLink: 'https://example.com/job2',
     position: 'Data Scientist',
     applicationDate: '2026-01-10',
-    status: 'INTERVIEWS',
+    status: 'Interviews',
     contactPerson: 'Jane Smith',
     notes: 'First interview scheduled',
     jobSource: 'Company Website',
@@ -42,7 +42,7 @@ const mockApplications: JobApplication[] = [
     jobLink: 'https://example.com/job3',
     position: 'Full Stack Developer',
     applicationDate: '2026-01-05',
-    status: 'REJECTED',
+    status: 'Rejected',
     contactPerson: 'Bob Johnson',
     notes: 'Not a good fit',
     jobSource: 'Indeed',
@@ -142,7 +142,7 @@ vi.mock('../../../app/components/ApplicationsTable', () => ({
           >{`${application.id} | ${application.company} | ${application.position}`}</li>
         ))}
       </ul>
-      <button onClick={() => onStatusChange('1', 'INTERVIEWS')}>Change Status</button>
+      <button onClick={() => onStatusChange('1', 'Interviews')}>Change Status</button>
       <button onClick={() => onNotesChange('1', 'New notes')}>Change Notes</button>
     </div>
   ),
@@ -199,7 +199,7 @@ describe('MyApplicationsPage', () => {
     expect(updateDocMock).toHaveBeenCalledWith(
       expect.any(Object),
       expect.objectContaining({
-        status: 'INTERVIEWS',
+        status: 'Interviews',
         updatedAt: 'SERVER_TS',
       })
     )
@@ -247,7 +247,7 @@ describe('MyApplicationsPage', () => {
       jobLink: 'https://www.linkedin.com/jobs/view/123',
       position: 'Senior Backend Engineer',
       applicationDate: '2026-03-20',
-      status: 'APPLIED',
+      status: 'Applied',
       contactPerson: 'recruiter@external.com',
       notes: 'External job added via Add External Job feature',
       jobSource: 'LinkedIn',
