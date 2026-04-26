@@ -12,6 +12,12 @@ import { JobApplication } from '../data/mockData'
 import { formatDate } from '../utils/dateFormatter'
 import { ApplicationStatusColor } from '../utils/applicationStatusStyles'
 import { useRouter } from 'next/navigation'
+import {
+  EXTERNAL_APPLICATION_STATUSES,
+  getRecruiterManagedStatusOptions,
+  isInternalHirelyticsJob,
+  normalizeInternalStatus,
+} from '../utils/applicationStatus'
 
 interface ApplicationsTableProps {
   // Full list of applications to render
@@ -43,12 +49,22 @@ export const ApplicationsTable = memo(function ApplicationsTable({
       app.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.city.toLowerCase().includes(searchTerm.toLowerCase())
     // Matches status when a specific filter is selected
-    const matchesStatus = statusFilter === 'all' || app.status === statusFilter
+    const matchesStatus =
+      statusFilter === 'all' || normalizeInternalStatus(app.status) === statusFilter
 
     return matchesSearch && matchesStatus
   })
 
-  const isRecruiterManaged = (app: JobApplication) => app.jobSource === 'Hirelytics'
+  const recruiterManagedStatuses = getRecruiterManagedStatusOptions()
+  const statusFilterOptions = [
+    ...new Set([
+      ...EXTERNAL_APPLICATION_STATUSES,
+      ...recruiterManagedStatuses,
+      ...applications.map((application) => application.status),
+    ]),
+  ]
+
+  const isRecruiterManaged = (app: JobApplication) => isInternalHirelyticsJob(app.jobSource)
 
   return (
     <Card>
@@ -92,11 +108,14 @@ export const ApplicationsTable = memo(function ApplicationsTable({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value='all'>All Status</SelectItem>
-                <SelectItem value='Applied'>Applied</SelectItem>
-                <SelectItem value='Interview'>Interview</SelectItem>
-                <SelectItem value='Offer'>Offer</SelectItem>
-                <SelectItem value='Rejected'>Rejected</SelectItem>
-                <SelectItem value='Withdrawn'>Withdrawn</SelectItem>
+                {statusFilterOptions.map((status) => (
+                  <SelectItem
+                    key={status}
+                    value={status}
+                  >
+                    {status}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -133,52 +152,41 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                   </TableCell>
                   <TableCell className='text-center'>{formatDate(app.applicationDate)}</TableCell>
                   <TableCell className='text-center [&>*]:mx-auto'>
-                    <Select
-                      value={app.status}
-                      disabled={isRecruiterManaged(app)}
-                      onValueChange={(status) => {
-                        if (isRecruiterManaged(app)) return
-                        onStatusChange?.(String(app.id), status as JobApplication['status'])
-                      }}
-                    >
-                      <SelectTrigger
-                        className={`w-[120px] ${ApplicationStatusColor[app.status] ?? ''}`}
-                      >
-                        <SelectValue placeholder='Status' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem
-                          value='Applied'
-                          className={ApplicationStatusColor.Applied}
+                    {(() => {
+                      const recruiterManaged = isRecruiterManaged(app)
+                      const currentStatus = normalizeInternalStatus(app.status)
+                      const editableStatuses = recruiterManaged
+                        ? recruiterManagedStatuses
+                        : EXTERNAL_APPLICATION_STATUSES
+
+                      return (
+                        <Select
+                          value={currentStatus}
+                          disabled={recruiterManaged}
+                          onValueChange={(status) => {
+                            if (recruiterManaged) return
+                            onStatusChange?.(String(app.id), status as JobApplication['status'])
+                          }}
                         >
-                          Applied
-                        </SelectItem>
-                        <SelectItem
-                          value='Interview'
-                          className={ApplicationStatusColor.Interview}
-                        >
-                          Interview
-                        </SelectItem>
-                        <SelectItem
-                          value='Offer'
-                          className={ApplicationStatusColor.Offer}
-                        >
-                          Offer
-                        </SelectItem>
-                        <SelectItem
-                          value='Rejected'
-                          className={ApplicationStatusColor.Rejected}
-                        >
-                          Rejected
-                        </SelectItem>
-                        <SelectItem
-                          value='Withdrawn'
-                          className={ApplicationStatusColor.Withdrawn}
-                        >
-                          Withdrawn
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                          <SelectTrigger
+                            className={`w-[140px] ${ApplicationStatusColor[currentStatus] ?? ''}`}
+                          >
+                            <SelectValue placeholder='Status' />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {editableStatuses.map((statusOption) => (
+                              <SelectItem
+                                key={statusOption}
+                                value={statusOption}
+                                className={ApplicationStatusColor[statusOption]}
+                              >
+                                {statusOption}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )
+                    })()}
                   </TableCell>
                   <TableCell className='text-center [&>*]:mx-auto'>
                     <Badge variant='outline'>{app.jobSource}</Badge>

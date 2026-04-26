@@ -10,7 +10,7 @@ const serverTimestampMock = vi.fn(() => 'SERVER_TS')
 const arrayUnionMock = vi.fn((...args: unknown[]) => ({ __arrayUnion: args }))
 const batchSetMock = vi.fn()
 const batchCommitMock = vi.fn()
-const writeBatchMock = vi.fn(() => ({ set: batchSetMock, commit: batchCommitMock }))
+const writeBatchMock = vi.fn((_db?: unknown) => ({ set: batchSetMock, commit: batchCommitMock }))
 
 // Mock app Firebase client so utility functions can import `db` safely in tests.
 vi.mock('../../app/lib/firebaseClient', () => ({
@@ -24,7 +24,7 @@ vi.mock('firebase/firestore', () => ({
   setDoc: (...args: unknown[]) => setDocMock(...args),
   serverTimestamp: () => serverTimestampMock(),
   arrayUnion: (...args: unknown[]) => arrayUnionMock(...args),
-  writeBatch: (...args: unknown[]) => writeBatchMock(...args),
+  writeBatch: (arg: unknown) => writeBatchMock(arg),
 }))
 
 describe('app/utils/applicationFirebase', () => {
@@ -253,6 +253,53 @@ describe('app/utils/applicationFirebase', () => {
     expect(batchSetMock).toHaveBeenCalledTimes(1)
     expect(batchCommitMock).toHaveBeenCalledTimes(1)
     expect(arrayUnionMock).not.toHaveBeenCalled()
+  })
+
+  it('saveUserApplication omits undefined optional fields before persistence', async () => {
+    const { saveUserApplication } = await import('@/app/utils/applicationFirebase')
+
+    await saveUserApplication({
+      id: '10',
+      userId: 'user-4',
+      company: 'Tailspin',
+      position: 'QA Engineer',
+      country: 'USA',
+      city: 'Seattle',
+      contactPerson: 'Alex Doe',
+      jobSource: 'Hirelytics',
+      jobLink: 'https://example.com/jobs/10',
+      applicationDate: '2026-03-01',
+      status: 'Applied',
+      notes: '',
+      recruiterId: undefined,
+      jobDetails: {
+        title: 'QA Engineer',
+        company: 'Tailspin',
+        location: 'Seattle',
+        type: 'Full-time',
+        postedDate: '2026-03-01',
+        salary: '$100,000',
+        description: 'Test product quality',
+        requirements: ['Playwright'],
+        status: 'Open',
+        applyLink: 'https://example.com/jobs/10/apply',
+      },
+    })
+
+    expect(writeBatchMock).toHaveBeenCalledWith(expect.any(Object))
+    expect(batchSetMock).toHaveBeenCalledTimes(2)
+    expect(batchCommitMock).toHaveBeenCalledTimes(1)
+
+    const pathForRef = (ref: MockRef) =>
+      Array.isArray(ref.__docPath) ? ref.__docPath.slice(1).map(String).join('/') : ''
+
+    const applicationWrite = batchSetMock.mock.calls.find(
+      (call) => pathForRef(call[0] as MockRef) === 'users/user-4/applications/10'
+    )
+
+    expect(applicationWrite).toBeDefined()
+    const payload = applicationWrite?.[1] as Record<string, unknown>
+    expect(payload).not.toHaveProperty('recruiterId')
   })
 
   it('saveExternalJob stores city with state and normalizes dates to ISO', async () => {

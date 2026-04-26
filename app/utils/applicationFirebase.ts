@@ -10,6 +10,7 @@ import { db } from '../lib/firebaseClient'
 import type { AvailableJob } from '../data/availableJobs'
 import type { JobSource } from '../types/jobSource'
 import { normalizeJobSource } from '../types/jobSource'
+import type { ApplicationStatus } from '../types/job'
 
 type DetailRecord = Record<string, unknown>
 
@@ -39,7 +40,7 @@ type ApplicationInput = {
   jobLink: string
   isExternal?: boolean
   applicationDate: string
-  status: 'Applied'
+  status: ApplicationStatus
   notes: string
   recruiterId?: string
   visaRequired?: string
@@ -136,6 +137,32 @@ function parseLocation(location: string): { city: string; country: string } {
 
   // Keep the full location string as city since values are often "City, ST".
   return { city: location.trim(), country: '' }
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== 'object') return false
+
+  const prototype = Object.getPrototypeOf(value)
+  return prototype === Object.prototype || prototype === null
+}
+
+function stripUndefinedDeep<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => stripUndefinedDeep(item)) as T
+  }
+
+  if (isPlainObject(value)) {
+    const result: Record<string, unknown> = {}
+
+    Object.entries(value).forEach(([key, entryValue]) => {
+      if (entryValue === undefined) return
+      result[key] = stripUndefinedDeep(entryValue)
+    })
+
+    return result as T
+  }
+
+  return value
 }
 
 export function buildApplicationFromAvailableJob({
@@ -324,15 +351,13 @@ export async function saveUserApplication(application: ApplicationInput): Promis
 
   const batch = writeBatch(db)
 
-  batch.set(
-    ref,
-    {
-      ...normalizedApplication,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true }
-  )
+  const firestorePayload = stripUndefinedDeep({
+    ...normalizedApplication,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+
+  batch.set(ref, firestorePayload, { merge: true })
 
   if (!application.isExternal) {
     const jobRef = doc(db, 'jobPostings', resolvedJobId)

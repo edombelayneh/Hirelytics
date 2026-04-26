@@ -56,8 +56,7 @@ vi.mock('./ui/select', () => {
   // These are just structural in your component; no-op wrappers are enough.
   const SelectContent = ({ children }: { children: React.ReactNode }) => <>{children}</>
   const SelectTrigger = ({ children }: { children: React.ReactNode }) => <>{children}</>
-  const SelectValue = ({ placeholder }: { placeholder?: string }) =>
-    placeholder ? <span>{placeholder}</span> : null
+  const SelectValue = (_: { placeholder?: string }) => null
 
   return { Select, SelectItem, SelectContent, SelectTrigger, SelectValue }
 })
@@ -89,7 +88,7 @@ describe('ApplicationsTable', () => {
       jobLink: 'https://example.com/job2',
       position: 'Frontend Developer',
       applicationDate: '2025-01-20',
-      status: 'Interview',
+      status: 'Interviews',
       notes: 'Second round scheduled',
       jobSource: 'Indeed',
     },
@@ -271,8 +270,8 @@ describe('ApplicationsTable', () => {
     const comboboxes = screen.getAllByRole('combobox')
     const statusFilterSelect = comboboxes[0]
 
-    // Filter to Interview -> only StartupXYZ remains
-    fireEvent.change(statusFilterSelect, { target: { value: 'Interview' } })
+    // Filter to Interviews -> only StartupXYZ remains
+    fireEvent.change(statusFilterSelect, { target: { value: 'Interviews' } })
 
     expect(screen.getByText('StartupXYZ')).toBeTruthy()
     expect(screen.queryByText('TechCorp')).toBeNull()
@@ -346,10 +345,10 @@ describe('ApplicationsTable', () => {
     const comboboxes = screen.getAllByRole('combobox')
     const firstRowStatus = comboboxes[1]
 
-    fireEvent.change(firstRowStatus, { target: { value: 'Interview' } })
+    fireEvent.change(firstRowStatus, { target: { value: 'Interviews' } })
 
     expect(mockOnStatusChange).toHaveBeenCalledTimes(1)
-    expect(mockOnStatusChange).toHaveBeenCalledWith('1', 'Interview')
+    expect(mockOnStatusChange).toHaveBeenCalledWith('1', 'Interviews')
   })
 
   // --- External Link Tests ---

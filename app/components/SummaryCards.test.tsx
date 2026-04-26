@@ -22,7 +22,7 @@ describe('SummaryCards', () => {
   // Only includes required fields for this test
   const mockApplications: JobApplication[] = [
     { id: '1', status: 'Applied' } as JobApplication,
-    { id: '2', status: 'Interview' } as JobApplication,
+    { id: '2', status: 'Interviews' } as JobApplication,
   ]
 
   it('renders all summary cards with correct titles and values', () => {

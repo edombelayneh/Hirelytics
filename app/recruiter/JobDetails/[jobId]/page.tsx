@@ -18,19 +18,19 @@ import { Button } from '../../../components/ui/button'
 import { JobDetailsCard } from '../../../components/job/JobDetailsCard'
 import { ApplicantsTable } from '../../../components/job/ApplicantsTable'
 import {
+  APPLICATION_STATUSES,
+  type Applicant,
+  type Job,
+  type ApplicationStatus,
+} from '../../../types/job'
+import { getDisplayStatusForApplication } from '../../../utils/applicationStatus'
+import {
   RejectionFeedbackModal,
   type RejectionReason,
 } from '../../../components/job/RejectionFeedbackModal'
-import type { Applicant, Job, ApplicationStatus } from '../../../types/job'
 
 //status for user applications
-const VALID_STATUSES: ApplicationStatus[] = [
-  'Applied',
-  'Interview',
-  'Offer',
-  'Rejected',
-  'Withdrawn',
-]
+const VALID_STATUSES: ApplicationStatus[] = [...APPLICATION_STATUSES]
 
 function toApplicationStatus(value: unknown): ApplicationStatus {
   return VALID_STATUSES.includes(value as ApplicationStatus)
@@ -93,6 +93,8 @@ export default function JobDetailsPage() {
 
           const profile = userSnap.exists() ? (userSnap.data()?.profile ?? {}) : {}
           const applicationData = applicationSnap.exists() ? (applicationSnap.data() ?? {}) : {}
+          const resolvedJobSource =
+            typeof applicationData.jobSource === 'string' ? applicationData.jobSource : 'Hirelytics'
 
           return {
             id: uid,
@@ -102,11 +104,11 @@ export default function JobDetailsPage() {
             resumeFileName: profile.resumeFileName,
             linkedinUrl: profile.linkedinUrl,
             portfolioUrl: profile.portfolioUrl,
-            applicationStatus: toApplicationStatus(applicationData.status),
-            jobSource:
-              typeof applicationData.jobSource === 'string'
-                ? applicationData.jobSource
-                : 'Hirelytics',
+            applicationStatus: getDisplayStatusForApplication(
+              toApplicationStatus(applicationData.status),
+              resolvedJobSource
+            ),
+            jobSource: resolvedJobSource,
           } as Applicant
         })
       )

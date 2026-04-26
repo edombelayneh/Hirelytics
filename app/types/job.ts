@@ -37,4 +37,19 @@ export type Applicant = {
 // ApplicationStatus type
 // Represents the lifecycle status of a user's job application
 // ------------------------------------------------
-export type ApplicationStatus = 'Applied' | 'Interview' | 'Offer' | 'Rejected' | 'Withdrawn'
+export const APPLICATION_STATUSES = [
+  'Applied',
+  'Screening',
+  'Interviews',
+  'Offer',
+  'Rejected',
+  'Withdrawn',
+] as const
+
+export type InternalApplicationPhase = (typeof APPLICATION_STATUSES)[number]
+
+export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
+
+// Backward-compatible aliases while migrating from older naming.
+export const INTERNAL_APPLICATION_STATUSES = APPLICATION_STATUSES
+export type InternalApplicationStatus = ApplicationStatus

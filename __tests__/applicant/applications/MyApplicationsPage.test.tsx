@@ -28,7 +28,7 @@ const mockApplications: JobApplication[] = [
     jobLink: 'https://example.com/job2',
     position: 'Data Scientist',
     applicationDate: '2026-01-10',
-    status: 'Interview',
+    status: 'Interviews',
     notes: 'First interview scheduled',
     jobSource: 'Company Website',
   },
@@ -139,7 +139,7 @@ vi.mock('../../../app/components/ApplicationsTable', () => ({
           >{`${application.id} | ${application.company} | ${application.position}`}</li>
         ))}
       </ul>
-      <button onClick={() => onStatusChange('1', 'Interview')}>Change Status</button>
+      <button onClick={() => onStatusChange('1', 'Interviews')}>Change Status</button>
       <button onClick={() => onNotesChange('1', 'New notes')}>Change Notes</button>
     </div>
   ),
@@ -196,7 +196,7 @@ describe('MyApplicationsPage', () => {
     expect(updateDocMock).toHaveBeenCalledWith(
       expect.any(Object),
       expect.objectContaining({
-        status: 'Interview',
+        status: 'Interviews',
         updatedAt: 'SERVER_TS',
       })
     )

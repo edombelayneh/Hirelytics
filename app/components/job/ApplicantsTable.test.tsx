@@ -162,10 +162,10 @@ describe('ApplicantsTable', () => {
       />
     )
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Interview' } })
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Interviews' } })
 
     expect(onStatusChange).toHaveBeenCalledTimes(1)
-    expect(onStatusChange).toHaveBeenCalledWith('a1', 'Interview')
+    expect(onStatusChange).toHaveBeenCalledWith('a1', 'Interviews')
   })
 
   it('renders resume download link when resume exists', () => {
