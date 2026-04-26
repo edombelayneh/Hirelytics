@@ -89,33 +89,6 @@ function inferJobSource(url: string): JobSource {
   }
 }
 
-function normalizeEmploymentType(value: string): EmploymentType {
-  const lower = value.toLowerCase()
-  if (lower.includes('full')) return 'full-time'
-  if (lower.includes('part')) return 'part-time'
-  if (lower.includes('contract')) return 'contract'
-  if (lower.includes('intern')) return 'internship'
-  return ''
-}
-
-function normalizeWorkArrangement(value: string): WorkArrangement {
-  const lower = value.toLowerCase()
-  if (lower.includes('hybrid')) return 'hybrid'
-  if (lower.includes('remote')) return 'remote'
-  if (lower.includes('onsite') || lower.includes('on-site') || lower.includes('in person')) {
-    return 'onsite'
-  }
-  return ''
-}
-
-function normalizePaymentType(value: string): PaymentType {
-  const lower = value.toLowerCase()
-  if (lower.includes('hour')) return 'hourly'
-  if (lower.includes('salary') || lower.includes('year') || lower.includes('annual'))
-    return 'salary'
-  return ''
-}
-
 function sanitizeParsedText(value: unknown) {
   if (typeof value !== 'string') return ''
   return value
@@ -397,7 +370,7 @@ export default function AddExternalJobPage() {
         jobUrl: jobUrl.trim(),
         jobName: jobName.trim(),
         companyName: companyName.trim(),
-        companyContact: companyContact.trim(),
+        companyContact: companyContact.trim() || undefined,
         description: description.trim(),
         qualifications: qualifications.trim(),
         preferredSkills: preferredSkills.trim(),
@@ -554,6 +527,17 @@ export default function AddExternalJobPage() {
             </div>
 
             <div>
+              <label className='block text-sm mb-1'>Company Contact</label>
+              <input
+                type='text'
+                value={companyContact}
+                onChange={(e) => setCompanyContact(e.target.value)}
+                placeholder='Recruiter or hiring manager name'
+                className='w-full border rounded p-2'
+              />
+            </div>
+
+            <div>
               <label className='block text-sm mb-1'>Description *</label>
               <textarea
                 value={description}
@@ -604,17 +588,6 @@ export default function AddExternalJobPage() {
                   className='w-full border rounded p-2'
                 />
               </div>
-            </div>
-
-            <div>
-              <label className='block text-sm mb-1'>Company Contact</label>
-              <input
-                type='email'
-                value={companyContact}
-                onChange={(e) => setCompanyContact(e.target.value)}
-                placeholder='recruiter@company.com'
-                className='w-full border rounded p-2'
-              />
             </div>
 
             <div>

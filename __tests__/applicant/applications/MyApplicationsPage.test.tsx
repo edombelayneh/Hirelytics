@@ -17,7 +17,6 @@ const mockApplications: JobApplication[] = [
     position: 'Software Engineer',
     applicationDate: '2026-01-15',
     status: 'Applied',
-    contactPerson: 'John Doe',
     notes: 'Initial application submitted',
     jobSource: 'LinkedIn',
   },
@@ -29,8 +28,7 @@ const mockApplications: JobApplication[] = [
     jobLink: 'https://example.com/job2',
     position: 'Data Scientist',
     applicationDate: '2026-01-10',
-    status: 'Interview',
-    contactPerson: 'Jane Smith',
+    status: 'Interviews',
     notes: 'First interview scheduled',
     jobSource: 'Company Website',
   },
@@ -43,7 +41,6 @@ const mockApplications: JobApplication[] = [
     position: 'Full Stack Developer',
     applicationDate: '2026-01-05',
     status: 'Rejected',
-    contactPerson: 'Bob Johnson',
     notes: 'Not a good fit',
     jobSource: 'Indeed',
   },
@@ -78,18 +75,6 @@ type Unsubscribe = () => void
 const updateDocMock = vi.fn()
 const serverTimestampMock = vi.fn(() => 'SERVER_TS')
 const docMock = vi.fn((...parts: unknown[]): DocPath => ({ __docPath: parts }))
-const onSnapshotMock = vi.fn(
-  (_q: unknown, callback: (snap: Snapshot<JobApplication>) => void): Unsubscribe => {
-    callback({
-      docs: mockApplications.map((a) => ({
-        id: a.id,
-        data: () => a,
-      })),
-    })
-    return vi.fn() as Unsubscribe
-  }
-)
-
 // Mock the entire Firestore module to control behavior of query builders, real-time subscriptions, and writes
 vi.mock('firebase/firestore', () => ({
   // query builders (not important for behavior assertions here)
@@ -154,7 +139,7 @@ vi.mock('../../../app/components/ApplicationsTable', () => ({
           >{`${application.id} | ${application.company} | ${application.position}`}</li>
         ))}
       </ul>
-      <button onClick={() => onStatusChange('1', 'Interview')}>Change Status</button>
+      <button onClick={() => onStatusChange('1', 'Interviews')}>Change Status</button>
       <button onClick={() => onNotesChange('1', 'New notes')}>Change Notes</button>
     </div>
   ),
@@ -211,7 +196,7 @@ describe('MyApplicationsPage', () => {
     expect(updateDocMock).toHaveBeenCalledWith(
       expect.any(Object),
       expect.objectContaining({
-        status: 'Interview',
+        status: 'Interviews',
         updatedAt: 'SERVER_TS',
       })
     )
@@ -260,7 +245,6 @@ describe('MyApplicationsPage', () => {
       position: 'Senior Backend Engineer',
       applicationDate: '2026-03-20',
       status: 'Applied',
-      contactPerson: 'recruiter@external.com',
       notes: 'External job added via Add External Job feature',
       jobSource: 'LinkedIn',
     }

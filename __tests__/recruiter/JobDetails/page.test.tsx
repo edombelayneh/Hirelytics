@@ -54,7 +54,7 @@ vi.mock('firebase/firestore', () => ({
     if (ref.path[3] === 'applications') {
       return Promise.resolve({
         exists: () => true,
-        data: () => ({ status: 'Interview', jobSource: 'Hirelytics' }),
+        data: () => ({ status: 'Interviews', jobSource: 'Hirelytics' }),
       })
     }
     return Promise.resolve({
@@ -209,7 +209,7 @@ describe('JobDetailsPage', () => {
     render(<JobDetailsPage />)
 
     await waitFor(() => {
-      expect(screen.getByTestId('first-applicant-status').textContent).toBe('Interview')
+      expect(screen.getByTestId('first-applicant-status').textContent).toBe('Interviews')
     })
 
     fireEvent.click(screen.getByRole('button', { name: 'mock-change-status' }))

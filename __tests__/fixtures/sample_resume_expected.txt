@@ -1,0 +1,13 @@
+Software Development Intern May 2024 – August 2025
+Summit Ridge Insurance Group, Columbus, OH
+• Built and maintained Duck Creek XML and React.js with TypeScript across 100+ shared repository files.
+• Delivered 125+ Agile sprint tasks using SourceTree and Jira for version control and workflow management.
+• Worked in CI/CD pipelines with Jenkins and feature toggles across DEV and PROD environments.
+• Partnered with cross-functional teams (QA, BA, UX, Data) to deliver system-wide features and improvements.
+• Conducted code reviews and regression testing in layered repositories to ensure code quality and system stability.
+
+Media Services Student Technician September 2022 – Current
+Lakeview State University IT Media Services, Columbus, OH
+• Delivered on-call classroom support, troubleshooting audio/visual technology campus-wide.
+• Collaborated with technicians to install and maintain A/V equipment in 20+ buildings.
+• Ensured minimal disruption by resolving issues within 10 minutes and updating management on status.

@@ -57,6 +57,7 @@ export default function ApplicantProfileRoute() {
 
   const handleAddJobHistory = async (item: {
     company: string
+    location?: string
     title: string
     roleDescription: string
     startDate: string
@@ -82,6 +83,7 @@ export default function ApplicantProfileRoute() {
     jobHistoryId: string,
     item: {
       company: string
+      location?: string
       title: string
       roleDescription: string
       startDate: string

@@ -1,14 +1,7 @@
 // Root layout for the application. Wraps all pages in ClerkProvider
 // to provide authentication context and manage user state globally.
 import { type Metadata } from 'next'
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from '@clerk/nextjs'
+import { ClerkProvider, SignInButton, SignUpButton, SignedOut } from '@clerk/nextjs'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import Script from 'next/script'
@@ -43,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             strategy='afterInteractive'
           />
         </head>
-        <body className='antialiased'>
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           {/* SIGN-IN HEADER (visible only when signed out) */}
           <SignedOut>
             <header className='flex justify-end items-center p-4 gap-4 h-16 border-b'>

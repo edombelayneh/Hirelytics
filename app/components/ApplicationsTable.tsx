@@ -7,11 +7,17 @@ import { Badge } from './ui/badge'
 import { Input } from './ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
-import { ExternalLink, Search, Filter } from 'lucide-react'
+import { ExternalLink, Mail, Search, Filter } from 'lucide-react'
 import { JobApplication } from '../data/mockData'
 import { formatDate } from '../utils/dateFormatter'
 import { ApplicationStatusColor } from '../utils/applicationStatusStyles'
 import { useRouter } from 'next/navigation'
+import {
+  EXTERNAL_APPLICATION_STATUSES,
+  getRecruiterManagedStatusOptions,
+  isInternalHirelyticsJob,
+  normalizeInternalStatus,
+} from '../utils/applicationStatus'
 
 interface ApplicationsTableProps {
   // Full list of applications to render
@@ -43,12 +49,22 @@ export const ApplicationsTable = memo(function ApplicationsTable({
       app.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.city.toLowerCase().includes(searchTerm.toLowerCase())
     // Matches status when a specific filter is selected
-    const matchesStatus = statusFilter === 'all' || app.status === statusFilter
+    const matchesStatus =
+      statusFilter === 'all' || normalizeInternalStatus(app.status) === statusFilter
 
     return matchesSearch && matchesStatus
   })
 
-  const isRecruiterManaged = (app: JobApplication) => app.jobSource === 'Hirelytics'
+  const recruiterManagedStatuses = getRecruiterManagedStatusOptions()
+  const statusFilterOptions = [
+    ...new Set([
+      ...EXTERNAL_APPLICATION_STATUSES,
+      ...recruiterManagedStatuses,
+      ...applications.map((application) => application.status),
+    ]),
+  ]
+
+  const isRecruiterManaged = (app: JobApplication) => isInternalHirelyticsJob(app.jobSource)
 
   return (
     <Card>
@@ -92,11 +108,14 @@ export const ApplicationsTable = memo(function ApplicationsTable({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value='all'>All Status</SelectItem>
-                <SelectItem value='Applied'>Applied</SelectItem>
-                <SelectItem value='Interview'>Interview</SelectItem>
-                <SelectItem value='Offer'>Offer</SelectItem>
-                <SelectItem value='Rejected'>Rejected</SelectItem>
-                <SelectItem value='Withdrawn'>Withdrawn</SelectItem>
+                {statusFilterOptions.map((status) => (
+                  <SelectItem
+                    key={status}
+                    value={status}
+                  >
+                    {status}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -110,14 +129,13 @@ export const ApplicationsTable = memo(function ApplicationsTable({
             <TableHeader>
               <TableRow>
                 <TableHead>Company</TableHead>
-                <TableHead>Country/City</TableHead>
                 <TableHead>Position</TableHead>
-                <TableHead>Application Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Contact Person</TableHead>
-                <TableHead>Job Source</TableHead>
-                <TableHead>Notes</TableHead>
-                <TableHead>Job Details</TableHead>
+                <TableHead>City/Country</TableHead>
+                <TableHead className='text-center'>Application Date</TableHead>
+                <TableHead className='text-center'>Status</TableHead>
+                <TableHead className='text-center'>Job Source</TableHead>
+                <TableHead className='text-center'>Notes</TableHead>
+                <TableHead className='text-center'>Job Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -125,67 +143,55 @@ export const ApplicationsTable = memo(function ApplicationsTable({
               {filteredApplications.map((app) => (
                 <TableRow key={app.id}>
                   <TableCell className='font-medium'>{app.company}</TableCell>
+                  <TableCell>{app.position}</TableCell>
                   <TableCell>
                     <div className='text-sm'>
                       <div>{app.country}</div>
                       <div className='text-muted-foreground'>{app.city}</div>
                     </div>
                   </TableCell>
-                  <TableCell>{app.position}</TableCell>
-                  <TableCell>{formatDate(app.applicationDate)}</TableCell>
-                  <TableCell>
-                    <Select
-                      value={app.status}
-                      disabled={isRecruiterManaged(app)}
-                      onValueChange={(status) => {
-                        if (isRecruiterManaged(app)) return
-                        onStatusChange?.(String(app.id), status as JobApplication['status'])
-                      }}
-                    >
-                      <SelectTrigger
-                        className={`w-[120px] ${ApplicationStatusColor[app.status] ?? ''}`}
-                      >
-                        <SelectValue placeholder='Status' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem
-                          value='Applied'
-                          className={ApplicationStatusColor.Applied}
+                  <TableCell className='text-center'>{formatDate(app.applicationDate)}</TableCell>
+                  <TableCell className='text-center [&>*]:mx-auto'>
+                    {(() => {
+                      const recruiterManaged = isRecruiterManaged(app)
+                      const currentStatus = normalizeInternalStatus(app.status)
+                      const editableStatuses = recruiterManaged
+                        ? recruiterManagedStatuses
+                        : EXTERNAL_APPLICATION_STATUSES
+
+                      return (
+                        <Select
+                          value={currentStatus}
+                          disabled={recruiterManaged}
+                          onValueChange={(status) => {
+                            if (recruiterManaged) return
+                            onStatusChange?.(String(app.id), status as JobApplication['status'])
+                          }}
                         >
-                          Applied
-                        </SelectItem>
-                        <SelectItem
-                          value='Interview'
-                          className={ApplicationStatusColor.Interview}
-                        >
-                          Interview
-                        </SelectItem>
-                        <SelectItem
-                          value='Offer'
-                          className={ApplicationStatusColor.Offer}
-                        >
-                          Offer
-                        </SelectItem>
-                        <SelectItem
-                          value='Rejected'
-                          className={ApplicationStatusColor.Rejected}
-                        >
-                          Rejected
-                        </SelectItem>
-                        <SelectItem
-                          value='Withdrawn'
-                          className={ApplicationStatusColor.Withdrawn}
-                        >
-                          Withdrawn
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                          <SelectTrigger
+                            className={`w-[140px] ${ApplicationStatusColor[currentStatus] ?? ''}`}
+                          >
+                            <SelectValue placeholder='Status' />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {editableStatuses.map((statusOption) => (
+                              <SelectItem
+                                key={statusOption}
+                                value={statusOption}
+                                className={ApplicationStatusColor[statusOption]}
+                              >
+                                {statusOption}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )
+                    })()}
                   </TableCell>
-                  <TableCell>{app.contactPerson}</TableCell>
-                  <TableCell>
+                  <TableCell className='text-center [&>*]:mx-auto'>
                     <Badge variant='outline'>{app.jobSource}</Badge>
                   </TableCell>
-                  <TableCell className='max-w-[200px]'>
+                  <TableCell className='text-center max-w-[200px]'>
                     <input
                       type='text'
                       value={app.notes}
@@ -194,15 +200,34 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                       placeholder='Add notes...'
                     />
                   </TableCell>
-                  <TableCell>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      aria-label='View application details'
-                      onClick={() => router.push(`/applicant/applications/${String(app.id)}`)}
-                    >
-                      <ExternalLink className='h-4 w-4' />
-                    </Button>
+                  <TableCell className='text-center'>
+                    {/* Shows a pink mail icon when the app has unread recruiter feedback, otherwise the standard link */}
+                    {(() => {
+                      // True when feedback exists but hasn't been viewed yet
+                      const hasUnread =
+                        ((app.feedbackHistory?.length ?? 0) > 0 || !!app.recruiterFeedback) &&
+                        !app.recruiterFeedbackSeen
+                      return (
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          aria-label={
+                            hasUnread ? 'New recruiter feedback' : 'View application details'
+                          }
+                          onClick={() =>
+                            router.push(
+                              `/applicant/applications/${String(app.id)}${hasUnread ? '?tab=feedback' : ''}`
+                            )
+                          }
+                        >
+                          {hasUnread ? (
+                            <Mail className='h-4 w-4 text-[var(--accent-pink)]' />
+                          ) : (
+                            <ExternalLink className='h-4 w-4' />
+                          )}
+                        </Button>
+                      )
+                    })()}
                   </TableCell>
                 </TableRow>
               ))}

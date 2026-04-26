@@ -1,6 +1,14 @@
 import { jobsData } from './jobs'
 import type { JobSource } from '../types/jobSource'
 import type { ApplicationStatus } from '../types/job'
+import { summarizeApplicationStatuses } from '../utils/applicationStatus'
+import type { Timestamp } from 'firebase/firestore'
+
+export interface FeedbackEntry {
+  reason: string
+  text: string
+  sentAt: Timestamp | string
+}
 
 export interface JobApplication {
   id: string | number
@@ -11,11 +19,20 @@ export interface JobApplication {
   position: string
   applicationDate: string
   status: ApplicationStatus
-  contactPerson: string
   notes: string
   jobSource: JobSource
   // Stores the Firebase UID of the recruiter who posted the job the user applied to
   recruiterId?: string
+  feedbackHistory?: FeedbackEntry[]
+  recruiterFeedbackSeen?: boolean
+  isExternal?: boolean
+  companyContact?: string
+  // Legacy scalar fields written before feedbackHistory was introduced
+  recruiterFeedback?: string
+  recruiterFeedbackAt?: unknown
+  rejectionReason?: string
+  rejectionExplanation?: string
+  rejectedAt?: Timestamp
 }
 
 // Load job applications from jobs data file
@@ -23,10 +40,9 @@ export const mockJobApplications: JobApplication[] = jobsData
 
 export const getDashboardStats = () => {
   const total = mockJobApplications.length
-  const applied = mockJobApplications.filter((app) => app.status === 'Applied').length
-  const interviews = mockJobApplications.filter((app) => app.status === 'Interview').length
-  const offers = mockJobApplications.filter((app) => app.status === 'Offer').length
-  const rejected = mockJobApplications.filter((app) => app.status === 'Rejected').length
+  const { applied, interviews, offers, rejected } = summarizeApplicationStatuses(
+    mockJobApplications.map((app) => app.status)
+  )
 
   const responseRate = Math.round(((interviews + offers + rejected) / total) * 100)
   const successRate = Math.round((offers / total) * 100)
@@ -114,10 +130,9 @@ export const getDashboardStatsFromList = (applications: JobApplication[] | undef
   }
 
   const total = applications.length
-  const applied = applications.filter((app) => app.status === 'Applied').length
-  const interviews = applications.filter((app) => app.status === 'Interview').length
-  const offers = applications.filter((app) => app.status === 'Offer').length
-  const rejected = applications.filter((app) => app.status === 'Rejected').length
+  const { applied, interviews, offers, rejected } = summarizeApplicationStatuses(
+    applications.map((app) => app.status)
+  )
 
   const responseRate = Math.round(((interviews + offers + rejected) / total) * 100)
   const successRate = Math.round((offers / total) * 100)

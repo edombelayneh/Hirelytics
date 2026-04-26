@@ -19,7 +19,7 @@ import {
   getStatusDistributionFromList,
   JobApplication,
 } from '../data/mockData'
-import { CHART_COLORS, chartStyles } from '../utils/chartConfig'
+import { chartStyles } from '../utils/chartConfig'
 
 interface HeroPanelProps {
   // Full applications list passed from parent
@@ -27,10 +27,11 @@ interface HeroPanelProps {
 }
 const STATUS_COLORS: Record<string, string> = {
   Applied: '#FEF08A', // yellow
-  Interview: '#3b82f3', //blue
-  Offer: '#1ed361', //green
-  Rejected: '#e32828', //red
-  Withdrawn: '#A855F7', //purple
+  Screening: '#FED7AA', // softer pastel orange
+  Interviews: '#1D4ED8', // deep blue
+  Offer: '#1ed361', // green
+  Rejected: '#e32828', // red
+  Withdrawn: '#A855F7', // purple
 }
 
 // Memoized to avoid unnecessary recalculations when props don’t change
@@ -158,7 +159,7 @@ const HeroPanel = memo(function HeroPanel({ applications }: HeroPanelProps) {
           </ResponsiveContainer>
           {/* Legend-style list under the chart */}
           <div className='grid grid-cols-2 gap-2 mt-4'>
-            {statusData.map((entry, index) => (
+            {statusData.map((entry) => (
               <div
                 key={entry.status}
                 className='flex items-center gap-2'

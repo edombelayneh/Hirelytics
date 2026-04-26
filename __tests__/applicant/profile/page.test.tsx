@@ -19,8 +19,8 @@ globalThis.__mockCurrentUser = { uid: 'uid-123' }
 /*                                   MOCKS                                    */
 /* -------------------------------------------------------------------------- */
 // Mock the entire userProfiles module to control getUserProfile and saveUserProfile behavior in tests
-const getUserProfileMock = vi.fn(async (_uid: string): Promise<UserProfile | null> => null)
-const saveUserProfileMock = vi.fn(async (_uid: string, _profile: UserProfile): Promise<void> => {})
+const getUserProfileMock = vi.fn(async (): Promise<UserProfile | null> => null)
+const saveUserProfileMock = vi.fn(async (): Promise<void> => {})
 
 // Mock the entire firebaseClient module to control firebaseAuth.currentUser behavior in tests
 vi.mock('../../../app/utils/userProfiles', () => {
