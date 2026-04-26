@@ -52,7 +52,7 @@ export default function JobDetailsPage() {
         title: data.title ?? '',
         company: data.company,
         location: data.location,
-        type: data.workArrangement ?? data.jobType ?? data.type ?? '',
+        workArrangement: data.workArrangement ?? data.jobType ?? data.type ?? '',
         postedAt: data.postedDate,
         description: data.description,
       })
