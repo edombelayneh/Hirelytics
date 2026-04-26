@@ -22,9 +22,9 @@ export function JobDetailsCard({ job }: JobDetailsCardProps) {
       <CardContent className='space-y-3'>
         {/* Keep high-level job attributes grouped together for quick scanning. */}
         <div className='text-sm'>
-          {job.type ? (
+          {job.workArrangement ? (
             <div>
-              <span className='font-medium'>Work Arrangement:</span> {job.type}
+              <span className='font-medium'>Work Arrangement:</span> {job.workArrangement}
             </div>
           ) : null}
 
