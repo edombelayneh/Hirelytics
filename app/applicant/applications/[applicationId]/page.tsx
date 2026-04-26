@@ -1,19 +1,24 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@clerk/nextjs'
-import { doc, getDoc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { deleteField, doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/app/lib/firebaseClient'
 import { Button } from '@/app/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/app/components/ui/accordion'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs'
+import { Input } from '@/app/components/ui/input'
 import { Textarea } from '@/app/components/ui/textarea'
-import type { JobApplication } from '@/app/data/mockData'
+import type { JobApplication, FeedbackEntry } from '@/app/data/mockData'
 import { formatDateWithYear } from '@/app/utils/dateFormatter'
-
-// ── helpers copied from jobs/[jobId]/page.tsx ──────────────────────────────
 
 type DetailRecord = Record<string, unknown>
 
@@ -62,33 +67,78 @@ function toList(value: unknown): string[] {
 
 // ── page ──────────────────────────────────────────────────────────────────
 
+const VALID_TABS = ['job-posting', 'my-details', 'feedback'] as const
+type TabValue = (typeof VALID_TABS)[number]
+
 export default function ApplicationDetailsPage() {
   const router = useRouter()
   const { applicationId } = useParams<{ applicationId: string }>()
   const { userId, isLoaded } = useAuth()
+  // Reads ?tab= from the URL so deep-links (e.g. from the mail icon) open the correct tab.
+  // Unknown values fall back to 'job-posting' so Radix always has a valid initial tab.
+  const searchParams = useSearchParams()
+  const rawTab = searchParams.get('tab')
+  const defaultTab: TabValue = VALID_TABS.includes(rawTab as TabValue)
+    ? (rawTab as TabValue)
+    : 'job-posting'
 
   const [application, setApplication] = useState<JobApplication | null>(null)
   // undefined = listener not yet resolved; null = doc doesn't exist
   const [jobDoc, setJobDoc] = useState<DetailRecord | null | undefined>(undefined)
   const [loadingApp, setLoadingApp] = useState(true)
-  // Local notes state kept in sync with Firestore on save
+  // Local notes state kept in sync with Firestore on first load only
   const [notes, setNotes] = useState('')
+  const notesInitialized = useRef(false)
   // Tracks in-flight Firestore write to disable the Save button
   const [savingNotes, setSavingNotes] = useState(false)
+  // Local company contact state kept in sync with Firestore on first load only
+  const [companyContact, setCompanyContact] = useState('')
+  const contactInitialized = useRef(false)
+  const [savingContact, setSavingContact] = useState(false)
 
-  // Fetch the user's application document
+  // Subscribe to the user's application document in real-time
   useEffect(() => {
     if (!isLoaded || !userId) return
     const ref = doc(db, 'users', userId, 'applications', applicationId)
-    getDoc(ref).then((snap) => {
+    const unsub = onSnapshot(ref, (snap) => {
       if (snap.exists()) {
         const data = { id: snap.id, ...snap.data() } as JobApplication
         setApplication(data)
-        setNotes(data.notes ?? '')
+        if (!notesInitialized.current) {
+          setNotes(data.notes ?? '')
+          notesInitialized.current = true
+        }
+        if (!contactInitialized.current) {
+          setCompanyContact(data.companyContact ?? '')
+          contactInitialized.current = true
+        }
       }
       setLoadingApp(false)
     })
+    return () => unsub()
   }, [isLoaded, userId, applicationId])
+
+  // Marks feedback seen on mount when the URL deep-links directly to the Feedback tab.
+  useEffect(() => {
+    if (defaultTab !== 'feedback' || !userId || !application) return
+    const hasFeedback =
+      (application.feedbackHistory?.length ?? 0) > 0 ||
+      !!application.recruiterFeedback ||
+      !!application.rejectionExplanation
+    if (!hasFeedback || application.recruiterFeedbackSeen) return
+    void updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
+      recruiterFeedbackSeen: true,
+    }).catch(console.error)
+  }, [application, defaultTab, userId, applicationId])
+
+  // Marks recruiter feedback as seen when user manually switches to the Feedback tab
+  const handleTabChange = async (value: string) => {
+    if (value !== 'feedback' || !userId || !application) return
+    if (application.recruiterFeedbackSeen) return
+    await updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
+      recruiterFeedbackSeen: true,
+    })
+  }
 
   // Persists edited notes back to the user's application document in Firestore
   const handleSaveNotes = async () => {
@@ -99,6 +149,28 @@ export default function ApplicationDetailsPage() {
       updatedAt: serverTimestamp(),
     })
     setSavingNotes(false)
+  }
+
+  const handleSaveContact = async () => {
+    if (!userId) return
+    setSavingContact(true)
+    const trimmed = companyContact.trim()
+    await updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
+      ...(trimmed ? { companyContact: trimmed } : { companyContact: deleteField() }),
+      updatedAt: serverTimestamp(),
+    })
+    setSavingContact(false)
+  }
+
+  const handleDeleteContact = async () => {
+    if (!userId) return
+    setSavingContact(true)
+    await updateDoc(doc(db, 'users', userId, 'applications', applicationId), {
+      companyContact: deleteField(),
+      updatedAt: serverTimestamp(),
+    })
+    setCompanyContact('')
+    setSavingContact(false)
   }
 
   // Subscribe to the job posting document
@@ -146,6 +218,8 @@ export default function ApplicationDetailsPage() {
     )
   }
 
+  const isExternalJob = application.isExternal === true
+
   // Job posting derived values
   const title =
     formatValue(mergedJob.title) !== '—'
@@ -170,6 +244,31 @@ export default function ApplicationDetailsPage() {
       : toList(mergedJob.preferredSkills).length > 0
         ? toList(mergedJob.preferredSkills)
         : toList(mergedJob.qualifications)
+  // Build a unified list of feedback entries from the new array field plus legacy scalar fields.
+  // Newest entries are shown first.
+  const feedbackEntries: FeedbackEntry[] = (() => {
+    const entries: FeedbackEntry[] = [...(application.feedbackHistory ?? [])]
+
+    // Legacy: scalar recruiterFeedback written before feedbackHistory existed
+    if (!entries.length && application.recruiterFeedback) {
+      entries.push({
+        reason: application.rejectionReason ?? '',
+        text: application.recruiterFeedback,
+        sentAt: (application.recruiterFeedbackAt ??
+          application.rejectedAt ??
+          '') as FeedbackEntry['sentAt'],
+      })
+    } else if (!entries.length && application.rejectionExplanation) {
+      entries.push({
+        reason: application.rejectionReason ?? '',
+        text: application.rejectionExplanation,
+        sentAt: (application.rejectedAt ?? '') as FeedbackEntry['sentAt'],
+      })
+    }
+
+    return entries.slice().reverse()
+  })()
+
   const postedDate = toDateOnly(mergedJob.postedAt ?? mergedJob.postedDate ?? mergedJob.createdAt)
   const updatedDate = toDateOnly(mergedJob.updatedAt)
 
@@ -209,7 +308,11 @@ export default function ApplicationDetailsPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue='job-posting'>
+        <Tabs
+          // Opens on the tab from the URL param; marks feedback seen on every tab switch
+          defaultValue={defaultTab}
+          onValueChange={handleTabChange}
+        >
           {/* Title + tab switcher on the same row */}
           <div className='flex items-start justify-between gap-4'>
             <div>
@@ -219,6 +322,7 @@ export default function ApplicationDetailsPage() {
             <TabsList className='shrink-0'>
               <TabsTrigger value='job-posting'>Job Posting</TabsTrigger>
               <TabsTrigger value='my-details'>My Details</TabsTrigger>
+              {!isExternalJob && <TabsTrigger value='feedback'>Feedback</TabsTrigger>}
             </TabsList>
           </div>
 
@@ -361,6 +465,38 @@ export default function ApplicationDetailsPage() {
                   </dl>
                 </section>
 
+                {/* Company Contact */}
+                <section className='rounded-xl border bg-muted/20 p-5 space-y-3'>
+                  <h3 className='text-lg font-semibold'>Company Contact</h3>
+                  <Input
+                    value={companyContact}
+                    onChange={(e) => setCompanyContact(e.target.value)}
+                    placeholder='Recruiter or hiring manager name'
+                    className='text-sm'
+                  />
+                  <div className='flex justify-between items-center'>
+                    {application.companyContact ? (
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        onClick={handleDeleteContact}
+                        disabled={savingContact}
+                      >
+                        Delete
+                      </Button>
+                    ) : (
+                      <div />
+                    )}
+                    <Button
+                      size='sm'
+                      onClick={handleSaveContact}
+                      disabled={savingContact}
+                    >
+                      {savingContact ? 'Saving...' : 'Save Contact'}
+                    </Button>
+                  </div>
+                </section>
+
                 {/* Notes */}
                 <section className='rounded-xl border bg-muted/20 p-5 space-y-3'>
                   <h3 className='text-lg font-semibold'>Notes</h3>
@@ -383,6 +519,69 @@ export default function ApplicationDetailsPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* ── Feedback tab ── */}
+          {!isExternalJob && (
+            <TabsContent
+              value='feedback'
+              className='mt-4'
+            >
+              {feedbackEntries.length === 0 ? (
+                <Card className='rounded-2xl border shadow-sm'>
+                  <CardContent className='py-16 flex flex-col items-center justify-center text-center space-y-3'>
+                    <h3 className='font-semibold text-base'>No feedback yet</h3>
+                    <p className='text-sm text-muted-foreground max-w-xs'>
+                      Recruiter feedback will appear here once it has been shared with you.
+                    </p>
+                    <p className='text-xs text-muted-foreground'>
+                      You&apos;ll be notified when feedback is available.
+                    </p>
+                    <div className='rounded-lg border bg-muted/20 px-4 py-2 text-sm'>
+                      <span className='text-muted-foreground'>Current status: </span>
+                      <span className='font-medium'>{application.status}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className='rounded-2xl border shadow-sm'>
+                  <CardContent className='p-5'>
+                    <Accordion
+                      type='multiple'
+                      defaultValue={['feedback-0']}
+                    >
+                      {feedbackEntries.map((entry, i) => (
+                        <AccordionItem
+                          key={i}
+                          value={`feedback-${i}`}
+                          className='rounded-xl border bg-muted/20 px-5 mb-2 last:mb-0 last:border-b'
+                        >
+                          <AccordionTrigger className='hover:no-underline'>
+                            <div className='flex flex-col gap-0.5 text-left'>
+                              <span className='text-sm font-semibold'>
+                                {toDateOnly(entry.sentAt) !== '—'
+                                  ? `Received ${toDateOnly(entry.sentAt)}`
+                                  : 'Recruiter Feedback'}
+                              </span>
+                              {entry.reason && (
+                                <span className='text-xs text-muted-foreground'>
+                                  {entry.reason}
+                                </span>
+                              )}
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <p className='text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed'>
+                              {entry.text}
+                            </p>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>

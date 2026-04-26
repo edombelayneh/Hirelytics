@@ -4,7 +4,15 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 
-import { doc, getDoc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore'
+import {
+  doc,
+  getDoc,
+  onSnapshot,
+  updateDoc,
+  serverTimestamp,
+  arrayUnion,
+  Timestamp,
+} from 'firebase/firestore'
 import { db } from '../../../lib/firebaseClient'
 import { Button } from '../../../components/ui/button'
 import { JobDetailsCard } from '../../../components/job/JobDetailsCard'
@@ -166,11 +174,14 @@ export default function JobDetailsPage() {
       // Keep the explicit job identifier for downstream reads/auditing.
       jobId: String(jobId),
       status: 'Rejected' as ApplicationStatus,
-      // Structured feedback fields visible to applicant-side listeners/UI.
-      rejectionReason: reason,
-      rejectionExplanation: explanation,
-      rejectedAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
+      // Append to the feedback history array so all past entries are preserved.
+      feedbackHistory: arrayUnion({
+        reason,
+        text: explanation,
+        sentAt: Timestamp.now(),
+      }),
+      recruiterFeedbackSeen: false,
     })
 
     setApplicants((prev) =>
