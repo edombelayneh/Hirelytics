@@ -4,21 +4,33 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 
-import { doc, getDoc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore'
+import {
+  doc,
+  getDoc,
+  onSnapshot,
+  updateDoc,
+  serverTimestamp,
+  arrayUnion,
+  Timestamp,
+} from 'firebase/firestore'
 import { db } from '../../../lib/firebaseClient'
 import { Button } from '../../../components/ui/button'
 import { JobDetailsCard } from '../../../components/job/JobDetailsCard'
 import { ApplicantsTable } from '../../../components/job/ApplicantsTable'
-import type { Applicant, Job, ApplicationStatus } from '../../../types/job'
+import {
+  APPLICATION_STATUSES,
+  type Applicant,
+  type Job,
+  type ApplicationStatus,
+} from '../../../types/job'
+import { getDisplayStatusForApplication } from '../../../utils/applicationStatus'
+import {
+  RejectionFeedbackModal,
+  type RejectionReason,
+} from '../../../components/job/RejectionFeedbackModal'
 
 //status for user applications
-const VALID_STATUSES: ApplicationStatus[] = [
-  'Applied',
-  'Interview',
-  'Offer',
-  'Rejected',
-  'Withdrawn',
-]
+const VALID_STATUSES: ApplicationStatus[] = [...APPLICATION_STATUSES]
 
 function toApplicationStatus(value: unknown): ApplicationStatus {
   return VALID_STATUSES.includes(value as ApplicationStatus)
@@ -34,6 +46,17 @@ export default function JobDetailsPage() {
   // Applicant profiles resolved from users/{uid}.profile for each id in applicantsId
   const [applicants, setApplicants] = useState<Applicant[]>([])
   const [loadingJob, setLoadingJob] = useState(true)
+
+  // Rejection modal state
+  const [rejectionModal, setRejectionModal] = useState<{
+    isOpen: boolean
+    applicantId: string
+    applicantName: string
+  }>({
+    isOpen: false,
+    applicantId: '',
+    applicantName: '',
+  })
 
   // Subscribe to the job posting in real-time
   useEffect(() => {
@@ -70,6 +93,8 @@ export default function JobDetailsPage() {
 
           const profile = userSnap.exists() ? (userSnap.data()?.profile ?? {}) : {}
           const applicationData = applicationSnap.exists() ? (applicationSnap.data() ?? {}) : {}
+          const resolvedJobSource =
+            typeof applicationData.jobSource === 'string' ? applicationData.jobSource : 'Hirelytics'
 
           return {
             id: uid,
@@ -79,11 +104,11 @@ export default function JobDetailsPage() {
             resumeFileName: profile.resumeFileName,
             linkedinUrl: profile.linkedinUrl,
             portfolioUrl: profile.portfolioUrl,
-            applicationStatus: toApplicationStatus(applicationData.status),
-            jobSource:
-              typeof applicationData.jobSource === 'string'
-                ? applicationData.jobSource
-                : 'Hirelytics',
+            applicationStatus: getDisplayStatusForApplication(
+              toApplicationStatus(applicationData.status),
+              resolvedJobSource
+            ),
+            jobSource: resolvedJobSource,
           } as Applicant
         })
       )
@@ -113,6 +138,16 @@ export default function JobDetailsPage() {
   const handleApplicantStatusChange = async (applicantId: string, status: ApplicationStatus) => {
     if (!jobId) return
 
+    // If rejecting, show the feedback modal instead of updating directly
+    if (status === 'Rejected') {
+      const applicant = applicants.find((a) => a.id === applicantId)
+      const applicantName = applicant
+        ? `${applicant.firstName} ${applicant.lastName}`.trim() || 'this applicant'
+        : 'this applicant'
+      setRejectionModal({ isOpen: true, applicantId, applicantName })
+      return
+    }
+
     await updateDoc(doc(db, 'users', applicantId, 'applications', jobId), {
       status,
       updatedAt: serverTimestamp(),
@@ -120,14 +155,43 @@ export default function JobDetailsPage() {
 
     setApplicants((prev) =>
       prev.map((applicant) =>
-        applicant.id === applicantId
-          ? {
-              ...applicant,
-              applicationStatus: status,
-            }
+        applicant.id === applicantId ? { ...applicant, applicationStatus: status } : applicant
+      )
+    )
+  }
+
+  const handleRejectionSubmit = async (reason: RejectionReason, explanation: string) => {
+    if (!jobId) {
+      throw new Error('Cannot submit rejection feedback: missing route jobId.')
+    }
+
+    if (!rejectionModal.applicantId) {
+      throw new Error('Cannot submit rejection feedback: missing applicantId in modal state.')
+    }
+
+    // Persist feedback on the rejected applicant's own application record.
+    await updateDoc(doc(db, 'users', rejectionModal.applicantId, 'applications', jobId), {
+      // Keep the explicit job identifier for downstream reads/auditing.
+      jobId: String(jobId),
+      status: 'Rejected' as ApplicationStatus,
+      updatedAt: serverTimestamp(),
+      // Append to the feedback history array so all past entries are preserved.
+      feedbackHistory: arrayUnion({
+        reason,
+        text: explanation,
+        sentAt: Timestamp.now(),
+      }),
+      recruiterFeedbackSeen: false,
+    })
+
+    setApplicants((prev) =>
+      prev.map((applicant) =>
+        applicant.id === rejectionModal.applicantId
+          ? { ...applicant, applicationStatus: 'Rejected' as ApplicationStatus }
           : applicant
       )
     )
+    setRejectionModal({ isOpen: false, applicantId: '', applicantName: '' })
   }
   return (
     <div className='min-h-screen bg-background'>
@@ -151,6 +215,13 @@ export default function JobDetailsPage() {
           />
         </div>
       </main>
+
+      <RejectionFeedbackModal
+        isOpen={rejectionModal.isOpen}
+        applicantName={rejectionModal.applicantName}
+        onSubmit={handleRejectionSubmit}
+        onCancel={() => setRejectionModal({ isOpen: false, applicantId: '', applicantName: '' })}
+      />
     </div>
   )
 }

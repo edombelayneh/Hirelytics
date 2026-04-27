@@ -35,6 +35,16 @@ import { toast } from '../../components/ui/sonner'
 import type { JobHistoryItem } from '../../utils/jobHistory'
 
 type RequiredFields = 'firstName' | 'lastName' | 'email'
+type JobHistoryDraft = Omit<JobHistoryItem, 'id' | 'createdAt' | 'updatedAt'>
+type JobHistoryPayload = {
+  company: string
+  location?: string
+  title: string
+  roleDescription: string
+  startDate: string
+  endDate?: string
+  isCurrent: boolean
+}
 
 interface ProfilePageProps {
   profile: UserProfile
@@ -43,6 +53,7 @@ interface ProfilePageProps {
   jobHistoryLoading: boolean
   onAddJobHistory: (item: {
     company: string
+    location?: string
     title: string
     roleDescription: string
     startDate: string
@@ -53,6 +64,7 @@ interface ProfilePageProps {
     jobHistoryId: string,
     item: {
       company: string
+      location?: string
       title: string
       roleDescription: string
       startDate: string
@@ -78,12 +90,15 @@ export const ProfilePage = memo(function ProfilePage({
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [jobCompany, setJobCompany] = useState('')
+  const [jobLocation, setJobLocation] = useState('')
   const [jobTitle, setJobTitle] = useState('')
   const [jobRoleDescription, setJobRoleDescription] = useState('')
   const [jobStartDate, setJobStartDate] = useState('')
   const [jobEndDate, setJobEndDate] = useState('')
   const [jobHistorySaving, setJobHistorySaving] = useState(false)
   const [editingJobHistoryId, setEditingJobHistoryId] = useState<string | null>(null)
+  // Controls the resume import UX while the server parses and inserts job history.
+  const [resumeParseLoading, setResumeParseLoading] = useState(false)
 
   const profilePicInputRef = useRef<HTMLInputElement>(null)
   const resumeInputRef = useRef<HTMLInputElement>(null)
@@ -92,6 +107,37 @@ export const ProfilePage = memo(function ProfilePage({
   const [errors, setErrors] = useState<Partial<Record<RequiredFields, string>>>({})
 
   const [jobIsCurrent, setJobIsCurrent] = useState(false)
+
+  const normalizeForJobKey = (value?: string) =>
+    value?.toLowerCase().replace(/\s+/g, ' ').trim() || ''
+
+  const buildJobHistoryKey = (item: JobHistoryPayload) => {
+    return [
+      normalizeForJobKey(item.company),
+      normalizeForJobKey(item.location),
+      normalizeForJobKey(item.title),
+      normalizeForJobKey(item.startDate),
+      item.isCurrent ? 'current' : normalizeForJobKey(item.endDate),
+    ].join('|')
+  }
+
+  const hasDuplicateJob = (item: JobHistoryPayload, excludeId?: string) => {
+    const targetKey = buildJobHistoryKey(item)
+    return jobHistory.some((existing) => {
+      if (excludeId && existing.id === excludeId) return false
+      return (
+        buildJobHistoryKey({
+          company: existing.company,
+          location: existing.location,
+          title: existing.title,
+          roleDescription: existing.roleDescription,
+          startDate: existing.startDate,
+          endDate: existing.endDate,
+          isCurrent: existing.isCurrent,
+        }) === targetKey
+      )
+    })
+  }
 
   // Sync Firestore -> form + Clerk autofill for missing fields
   useEffect(() => {
@@ -121,7 +167,15 @@ export const ProfilePage = memo(function ProfilePage({
 
       return next
     })
-  }, [profile, isLoaded, user?.id, isEditing])
+  }, [
+    profile,
+    isLoaded,
+    user?.id,
+    user?.firstName,
+    user?.lastName,
+    user?.primaryEmailAddress?.emailAddress,
+    isEditing,
+  ])
 
   // Validate required fields and ensure data logic is correct
   const validate = () => {
@@ -174,11 +228,11 @@ export const ProfilePage = memo(function ProfilePage({
     const file = event.target.files?.[0]
     if (!file) return
 
-    const allowedExtensions = ['.pdf', '.doc', '.docx']
+    const allowedExtensions = ['.pdf']
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
 
     if (!allowedExtensions.includes(ext)) {
-      toast.error('Invalid file type', { description: 'Resume must be PDF, DOC, or DOCX.' })
+      toast.error('Invalid file type', { description: 'Resume must be a PDF.' })
       return
     }
 
@@ -198,6 +252,140 @@ export const ProfilePage = memo(function ProfilePage({
       toast.success('Resume uploaded successfully')
     }
     reader.readAsDataURL(file)
+  }
+
+  const scrollToJobHistoryForm = () => {
+    const yOffset = -120
+    const element = jobHistorySectionRef.current
+
+    if (!element) return
+
+    const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset
+    try {
+      window.scrollTo({
+        top: y,
+        behavior: 'smooth',
+      })
+    } catch {
+      // Fallback for browsers that don't support smooth scrolling
+    }
+  }
+
+  // Parse the uploaded resume via the API and append all detected jobs to Firestore.
+  const handleImportJobHistoryFromResume = async () => {
+    if (!formData.resumeFile) {
+      toast.error('Resume not found', {
+        description: 'Upload a PDF resume to auto-fill your job history.',
+      })
+      return
+    }
+
+    setResumeParseLoading(true)
+
+    try {
+      const resumeBlob = await fetch(formData.resumeFile).then(async (response) => {
+        if (!response.ok) {
+          throw new Error('Failed to read resume file')
+        }
+        return response.blob()
+      })
+
+      const resumeFileName = formData.resumeFileName || 'resume.pdf'
+      const resumeFile = new File([resumeBlob], resumeFileName, {
+        type: resumeBlob.type || 'application/pdf',
+      })
+
+      const requestBody = new FormData()
+      requestBody.append('resume', resumeFile)
+      requestBody.append('resumeFileName', resumeFileName)
+
+      const response = await fetch('/api/resume/parse', {
+        method: 'POST',
+        body: requestBody,
+      })
+
+      const payload = (await response.json()) as {
+        jobHistory?: JobHistoryDraft[]
+        error?: string
+      }
+
+      if (!response.ok) {
+        toast.error('Resume parsing failed', {
+          description: payload.error || 'Please try again.',
+        })
+        return
+      }
+
+      const parsedJobs = Array.isArray(payload.jobHistory) ? payload.jobHistory : []
+
+      if (parsedJobs.length === 0) {
+        toast.error('No job history found', {
+          description: 'We could not find experience entries in your resume.',
+        })
+        return
+      }
+
+      // Skip duplicates already present in saved job history.
+      const seenKeys = new Set(
+        jobHistory.map((existing) =>
+          buildJobHistoryKey({
+            company: existing.company,
+            location: existing.location,
+            title: existing.title,
+            roleDescription: existing.roleDescription,
+            startDate: existing.startDate,
+            endDate: existing.endDate,
+            isCurrent: existing.isCurrent,
+          })
+        )
+      )
+
+      let addedCount = 0
+      let skippedCount = 0
+
+      for (const job of parsedJobs) {
+        const normalizedJob: JobHistoryPayload = {
+          company: job.company.trim(),
+          ...(job.location ? { location: job.location.trim() } : {}),
+          title: job.title.trim(),
+          roleDescription: job.roleDescription.trim(),
+          startDate: job.startDate,
+          ...(job.isCurrent ? {} : { endDate: job.endDate || '' }),
+          isCurrent: job.isCurrent,
+        }
+
+        const jobKey = buildJobHistoryKey(normalizedJob)
+        if (seenKeys.has(jobKey)) {
+          skippedCount += 1
+          continue
+        }
+
+        await onAddJobHistory(normalizedJob)
+        seenKeys.add(jobKey)
+        addedCount += 1
+      }
+
+      if (addedCount === 0) {
+        toast.error('No new jobs added', {
+          description: 'All parsed jobs already exist in your job history.',
+        })
+        return
+      }
+
+      const skippedText =
+        skippedCount > 0
+          ? ` Skipped ${skippedCount} duplicate job${skippedCount === 1 ? '' : 's'}.`
+          : ''
+      toast.success('Resume imported', {
+        description: `Added ${addedCount} job${addedCount === 1 ? '' : 's'} from your resume.${skippedText}`,
+      })
+      scrollToJobHistoryForm()
+    } catch (error) {
+      console.error('Resume parsing error:', error)
+      toast.error('Resume parsing failed', { description: 'Please try again.' })
+    } finally {
+      setResumeParseLoading(false)
+    }
   }
 
   const handleSave = async () => {
@@ -241,6 +429,9 @@ export const ProfilePage = memo(function ProfilePage({
       return
     }
 
+    // Ensure location is trimmed but allow empty (optional field)
+    const trimmedLocation = jobLocation.trim()
+
     // Ensure start date is not after end date when job is not current
     if (!jobIsCurrent && jobStartDate && jobEndDate && jobStartDate > jobEndDate) {
       toast.error('Invalid job history dates', {
@@ -252,13 +443,21 @@ export const ProfilePage = memo(function ProfilePage({
     setJobHistorySaving(true)
 
     try {
-      const payload = {
+      const payload: JobHistoryPayload = {
         company: jobCompany.trim(),
+        ...(trimmedLocation ? { location: trimmedLocation } : {}),
         title: jobTitle.trim(),
         roleDescription: jobRoleDescription.trim(),
         startDate: jobStartDate,
         ...(jobIsCurrent ? {} : { endDate: jobEndDate }),
         isCurrent: jobIsCurrent,
+      }
+
+      if (hasDuplicateJob(payload, editingJobHistoryId || undefined)) {
+        toast.error('Duplicate job history entry', {
+          description: 'This job already exists in your history.',
+        })
+        return
       }
 
       // If editing, pass the existing jobHistoryId to update; otherwise, add a new entry
@@ -271,6 +470,7 @@ export const ProfilePage = memo(function ProfilePage({
       }
 
       setJobCompany('')
+      setJobLocation('')
       setJobTitle('')
       setJobRoleDescription('')
       setJobStartDate('')
@@ -390,14 +590,14 @@ export const ProfilePage = memo(function ProfilePage({
                 <div className='flex flex-col items-center gap-2'>
                   <Upload className='h-6 w-6 text-muted-foreground' />
                   <span>Click to upload resume</span>
-                  <span className='text-xs text-muted-foreground'>PDF, DOC, DOCX up to 10MB</span>
+                  <span className='text-xs text-muted-foreground'>PDF up to 10MB</span>
                 </div>
               </Button>
             )}
             <input
               ref={resumeInputRef}
               type='file'
-              accept='.pdf,.doc,.docx'
+              accept='.pdf'
               className='hidden'
               onChange={handleResumeUpload}
             />
@@ -616,11 +816,25 @@ export const ProfilePage = memo(function ProfilePage({
       {/* Job History */}
       <div ref={jobHistorySectionRef}>
         <Card className='p-6'>
-          <div className='space-y-1'>
-            <h2 className='text-lg font-semibold'>Job History</h2>
-            <p className='text-sm text-muted-foreground'>
-              Add one past job at a time. After saving, the form will reset so you can add another.
-            </p>
+          <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+            <div className='space-y-1'>
+              <h2 className='text-lg font-semibold'>Job History</h2>
+              <p className='text-sm text-muted-foreground'>
+                Add one past job at a time, or import them from your resume. After saving, the form
+                will reset so you can add another.
+              </p>
+            </div>
+            <Button
+              type='button'
+              size='sm'
+              variant='outline'
+              onClick={handleImportJobHistoryFromResume}
+              disabled={resumeParseLoading}
+              className='gap-2'
+            >
+              <FileText className='h-4 w-4' />
+              {resumeParseLoading ? 'Importing jobs...' : 'Add jobs from resume'}
+            </Button>
           </div>
 
           <div className='space-y-6'>
@@ -642,6 +856,16 @@ export const ProfilePage = memo(function ProfilePage({
                   placeholder='Software Engineer Intern'
                   value={jobTitle}
                   onChange={(e) => setJobTitle(e.target.value)}
+                />
+              </div>
+
+              <div className='space-y-2'>
+                <Label htmlFor='jobLocation'>Location</Label>
+                <Input
+                  id='jobLocation'
+                  placeholder='Mount Pleasant, Michigan'
+                  value={jobLocation}
+                  onChange={(e) => setJobLocation(e.target.value)}
                 />
               </div>
 
@@ -721,7 +945,10 @@ export const ProfilePage = memo(function ProfilePage({
                     <div className='flex items-start justify-between gap-4'>
                       <div>
                         <h3 className='font-semibold'>{item.title}</h3>
-                        <p className='text-sm text-muted-foreground'>{item.company}</p>
+                        <p className='text-sm text-muted-foreground'>
+                          {item.company}
+                          {item.location && ` | ${item.location}`}
+                        </p>
                       </div>
 
                       <div className='flex items-center gap-2'>
@@ -732,24 +959,13 @@ export const ProfilePage = memo(function ProfilePage({
                           onClick={() => {
                             setEditingJobHistoryId(item.id)
                             setJobCompany(item.company)
+                            setJobLocation(item.location || '')
                             setJobTitle(item.title)
                             setJobRoleDescription(item.roleDescription)
                             setJobStartDate(item.startDate)
                             setJobEndDate(item.endDate || '')
                             setJobIsCurrent(item.isCurrent)
-
-                            const yOffset = -120
-                            const element = jobHistorySectionRef.current
-
-                            if (element) {
-                              const y =
-                                element.getBoundingClientRect().top + window.pageYOffset + yOffset
-
-                              window.scrollTo({
-                                top: y,
-                                behavior: 'smooth',
-                              })
-                            }
+                            scrollToJobHistoryForm()
                           }}
                         >
                           Edit
@@ -763,7 +979,7 @@ export const ProfilePage = memo(function ProfilePage({
                             try {
                               await onDeleteJobHistory(item.id)
                               toast.success('Job history deleted successfully')
-                            } catch (error) {
+                            } catch {
                               toast.error('Failed to delete job history. Please try again.')
                             }
                           }}

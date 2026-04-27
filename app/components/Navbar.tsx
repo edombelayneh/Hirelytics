@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react'
 import type { ElementType } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { UserButton, useUser } from '@clerk/nextjs'
 import { Home, Briefcase, BarChart3, User, Menu, X } from 'lucide-react'
+import { useUnreadFeedbackCount } from '../hooks/useUnreadFeedbackCount'
 
 /**
  * User roles that control which navigation links appear.
@@ -28,6 +30,8 @@ type NavItem = {
   href: string
   icon: ElementType
   match: (pathname: string) => boolean
+  /** Notification count shown as a badge next to the label. Hidden when 0. */
+  badge?: number
 }
 
 export function Navbar() {
@@ -92,6 +96,9 @@ export function Navbar() {
    */
   const role = metaRole ?? inferredRole
 
+  /** Count of applications with unread recruiter feedback. Only subscribed for applicants. */
+  const unreadFeedbackCount = useUnreadFeedbackCount(role === 'applicant')
+
   /**
    * Navigation shown to applicants.
    */
@@ -113,6 +120,7 @@ export function Navbar() {
       href: '/applicant/applications',
       icon: BarChart3,
       match: (currentPath) => currentPath.startsWith('/applicant/applications'),
+      badge: unreadFeedbackCount,
     },
   ]
 
@@ -210,10 +218,14 @@ export function Navbar() {
             href='/'
             className='inline-block'
           >
-            <img
+            <Image
               src='/Hirelytics_Logo.png'
               alt='Hirelytics Logo'
+              width={2150}
+              height={300}
+              sizes='(min-width: 1024px) 287px, 230px'
               className='h-8 w-auto lg:h-10'
+              priority
             />
           </Link>
         </div>
@@ -238,7 +250,22 @@ export function Navbar() {
                 }`}
               >
                 <Icon className='h-5 w-5 xl:h-6 xl:w-6' />
-                {item.label}
+                <span className='relative'>
+                  {item.label}
+                  {!!item.badge && (
+                    <>
+                      <span
+                        aria-hidden='true'
+                        className='absolute -top-3 -right-3 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-pink)] px-1 text-[10px] font-bold leading-none text-white'
+                      >
+                        {item.badge > 99 ? '99+' : item.badge}
+                      </span>
+                      <span className='sr-only'>
+                        , {item.badge} unread feedback {item.badge === 1 ? 'item' : 'items'}
+                      </span>
+                    </>
+                  )}
+                </span>
               </Link>
             )
           })}
@@ -299,7 +326,22 @@ export function Navbar() {
                 onClick={handleMobileNavClick}
               >
                 <Icon className='h-5 w-5' />
-                {item.label}
+                <span className='relative'>
+                  {item.label}
+                  {!!item.badge && (
+                    <>
+                      <span
+                        aria-hidden='true'
+                        className='absolute -top-3 -right-3 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--accent-pink)] px-1 text-[10px] font-bold leading-none text-white'
+                      >
+                        {item.badge > 99 ? '99+' : item.badge}
+                      </span>
+                      <span className='sr-only'>
+                        , {item.badge} unread feedback {item.badge === 1 ? 'item' : 'items'}
+                      </span>
+                    </>
+                  )}
+                </span>
               </Link>
             )
           })}

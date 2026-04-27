@@ -33,6 +33,16 @@ export const AvailableJobsList = memo(function AvailableJobsList({
 
   // Derived list: filters jobs based on search + type + location
   const filteredJobs = jobs.filter((job) => {
+    const hasRequiredFields =
+      Boolean(job.title) &&
+      Boolean(job.company) &&
+      Boolean(job.location) &&
+      Boolean(job.salary) &&
+      Boolean(job.description) &&
+      Boolean(job.postedDate)
+
+    if (!hasRequiredFields) return false
+
     const normalizedSearchTerm = searchTerm.toLowerCase()
     const title = String(job.title ?? '').toLowerCase()
     const company = String(job.company ?? '').toLowerCase()
@@ -143,7 +153,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
             key={`${job.id}-${index}`}
             job={job}
             onApply={onApply}
-            isApplied={appliedJobIds.has(job.id)}
+            isApplied={appliedJobIds.has(String(job.id))}
             showApplyButton={role !== 'recruiter'}
             role={role === 'recruiter' ? 'recruiter' : 'applicant'}
           />

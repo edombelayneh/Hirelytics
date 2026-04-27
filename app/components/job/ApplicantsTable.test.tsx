@@ -4,7 +4,7 @@ import { afterEach } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 
 import { ApplicantsTable } from './ApplicantsTable'
-import type { Applicant, ApplicationStatus } from '../../types/job'
+import type { Applicant } from '../../types/job'
 
 // Use plain anchors in tests so href assertions are straightforward.
 vi.mock('next/link', () => ({
@@ -55,7 +55,7 @@ vi.mock('../ui/select', () => {
   }
 
   const SelectTrigger = ({ children }: { children: React.ReactNode }) => <>{children}</>
-  const SelectValue = (_: { placeholder?: string }) => null
+  const SelectValue = () => null
   const SelectContent = ({ children }: { children: React.ReactNode }) => <>{children}</>
 
   return { Select, SelectItem, SelectTrigger, SelectValue, SelectContent }
@@ -153,7 +153,7 @@ describe('ApplicantsTable', () => {
   })
 
   it('calls onStatusChange with applicant id and selected status', () => {
-    const onStatusChange = vi.fn((_: string, __: ApplicationStatus) => undefined)
+    const onStatusChange = vi.fn()
 
     render(
       <ApplicantsTable
@@ -162,10 +162,10 @@ describe('ApplicantsTable', () => {
       />
     )
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Interview' } })
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Interviews' } })
 
     expect(onStatusChange).toHaveBeenCalledTimes(1)
-    expect(onStatusChange).toHaveBeenCalledWith('a1', 'Interview')
+    expect(onStatusChange).toHaveBeenCalledWith('a1', 'Interviews')
   })
 
   it('renders resume download link when resume exists', () => {

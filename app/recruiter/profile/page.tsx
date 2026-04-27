@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { onAuthStateChanged } from 'firebase/auth'
 import { RecruiterProfilePage } from './RecruiterProfilePage'
 import { firebaseAuth } from '../../lib/firebaseClient'
 import {
@@ -23,22 +24,29 @@ const defaultRecruiterProfile: RecruiterProfile = {
 
 export default function RecruiterProfileRoute() {
   const [profile, setProfile] = useState<RecruiterProfile>(defaultRecruiterProfile)
-  const [loadedOnce, setLoadedOnce] = useState(false)
 
   useEffect(() => {
-    const load = async () => {
-      const uid = firebaseAuth.currentUser?.uid
-      if (!uid) return
+    let isMounted = true
+    let lastUid: string | null = null
 
-      const saved = await getRecruiterProfile(uid)
-      if (saved) setProfile(saved)
-      setLoadedOnce(true)
-    }
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
+      if (!user || !isMounted) return
+      if (lastUid === user.uid) return
+      lastUid = user.uid
 
-    load().catch((e) => {
-      console.error(e)
-      setLoadedOnce(true)
+      getRecruiterProfile(user.uid)
+        .then((saved) => {
+          if (saved && isMounted) setProfile(saved)
+        })
+        .catch((e) => {
+          console.error(e)
+        })
     })
+
+    return () => {
+      isMounted = false
+      unsubscribe()
+    }
   }, [])
 
   const handleSave = async (updated: RecruiterProfile) => {

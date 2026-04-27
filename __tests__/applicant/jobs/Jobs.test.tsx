@@ -147,15 +147,20 @@ describe('Jobs Page', () => {
     })
   })
 
-  it('does not call applyToAvailableJob if job already applied (id exists in appliedJobIds)', () => {
+  it('does not apply a job if it has already been applied to', () => {
     // This tests that the handleApply function correctly prevents duplicate applications
     snapshotDocIds = ['1'] // applied already
     render(<Jobs />)
 
+    const countBefore = screen.getByTestId('applied-jobs-count').textContent
+
     // Simulate user clicking the Apply button in the mocked AvailableJobsList
     fireEvent.click(screen.getByTestId('apply-button'))
 
+    const countAfter = screen.getByTestId('applied-jobs-count').textContent
+
     expect(applyToAvailableJobMock).not.toHaveBeenCalled()
+    expect(countAfter).toBe(countBefore) //UI Should NOT increase
   })
 
   it('renders main content container', () => {
@@ -176,5 +181,39 @@ describe('Jobs Page', () => {
     const { container } = render(<Jobs />)
     const mainDiv = container.querySelector('.min-h-screen.bg-background')
     expect(mainDiv).toBeTruthy()
+  })
+
+  it('updates appliedJobIds immediately when applying a job', () => {
+    render(<Jobs />)
+
+    const countBefore = screen.getByTestId('applied-jobs-count').textContent
+
+    fireEvent.click(screen.getByTestId('apply-button'))
+
+    const countAfter = screen.getByTestId('applied-jobs-count').textContent
+
+    expect(Number(countAfter)).toBe(Number(countBefore) + 1)
+  })
+
+  it('handles job id normalization correctly (number vs string)', () => {
+    snapshotDocIds = ['1'] // stored as string
+
+    render(<Jobs />)
+
+    fireEvent.click(screen.getByTestId('apply-button'))
+
+    // should NOT re-apply because '1' === String(1)
+    expect(applyToAvailableJobMock).not.toHaveBeenCalled()
+  })
+
+  it('stores applied jobs in a Set without duplicates', () => {
+    render(<Jobs />)
+
+    fireEvent.click(screen.getByTestId('apply-button'))
+    fireEvent.click(screen.getByTestId('apply-button'))
+
+    const count = screen.getByTestId('applied-jobs-count').textContent
+
+    expect(Number(count)).toBe(1)
   })
 })

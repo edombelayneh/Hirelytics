@@ -15,6 +15,7 @@ import { db } from '../lib/firebaseClient'
 export interface JobHistoryItem {
   id: string
   company: string
+  location?: string
   title: string
   roleDescription: string
   startDate: string
@@ -30,6 +31,7 @@ const JOB_HISTORY_COLLECTION = 'jobHistory'
 // (no id because Firestore generates it)
 interface AddJobHistoryInput {
   company: string
+  location?: string
   title: string
   roleDescription: string
   startDate: string
@@ -66,6 +68,7 @@ export async function updateJobHistory(
   jobHistoryId: string,
   item: {
     company: string
+    location?: string
     title: string
     roleDescription: string
     startDate: string
@@ -75,6 +78,7 @@ export async function updateJobHistory(
 ) {
   await updateDoc(doc(db, 'users', uid, JOB_HISTORY_COLLECTION, jobHistoryId), {
     company: item.company,
+    location: item.location || deleteField(),
     title: item.title,
     roleDescription: item.roleDescription,
     startDate: item.startDate,

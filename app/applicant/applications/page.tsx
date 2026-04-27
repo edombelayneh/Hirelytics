@@ -19,6 +19,10 @@ import {
 } from 'firebase/firestore'
 import { useAuth } from '@clerk/nextjs'
 import { useEffect, useState } from 'react'
+import {
+  getDisplayStatusForApplication,
+  isInternalHirelyticsJob,
+} from '../../utils/applicationStatus'
 
 const MyApplicationsPage = memo(function MyApplicationsPage() {
   // Get authenticated user and loading state from Clerk
@@ -47,6 +51,7 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
         const data = d.data() as JobApplication
         return {
           ...data,
+          status: getDisplayStatusForApplication(data.status, data.jobSource),
           id: data.id ?? d.id, // Ensure every record has an id
         }
       })

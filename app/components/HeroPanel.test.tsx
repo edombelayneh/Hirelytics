@@ -155,7 +155,7 @@ describe('HeroPanel', () => {
 
   const standardStatusData = [
     { status: 'Applied', count: 1 },
-    { status: 'Interview', count: 1 },
+    { status: 'Interviews', count: 1 },
     { status: 'Offer', count: 0 },
   ]
 
@@ -261,15 +261,15 @@ describe('HeroPanel', () => {
   it('renders status legend dots with correct colors', () => {
     render(<HeroPanel applications={mockApplications} />)
 
-    // Legend labels look like: "Applied (1)", "Interview (1)"
+    // Legend labels look like: "Applied (1)", "Interviews (1)"
     const appliedLabel = screen.getByText(/Applied\s*\(\s*1\s*\)/i)
-    const interviewLabel = screen.getByText(/Interview\s*\(\s*1\s*\)/i)
+    const interviewLabel = screen.getByText(/Interviews\s*\(\s*1\s*\)/i)
 
     const appliedDot = appliedLabel.previousSibling as HTMLElement
     const interviewDot = interviewLabel.previousSibling as HTMLElement
 
     // Colors from STATUS_COLORS in HeroPanel.tsx
     expect(appliedDot.style.backgroundColor).toBe('rgb(254, 240, 138)') // #FEF08A
-    expect(interviewDot.style.backgroundColor).toBe('rgb(59, 130, 243)') // #3b82f3
+    expect(interviewDot.style.backgroundColor).toBe('rgb(29, 78, 216)') // #1D4ED8
   })
 })
