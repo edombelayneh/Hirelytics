@@ -101,11 +101,11 @@ export default function JobDetailsPage() {
   }, [jobId])
 
   useEffect(() => {
-    // Subscribe to canonical job data from Firebase `jobs/{jobId}`.
+    // Subscribe to canonical recruiter job data from `jobPostings/{jobId}`.
     if (!jobId) return
 
     const unsub = onSnapshot(
-      doc(db, 'jobs', jobId),
+      doc(db, 'jobPostings', jobId),
       (snapshot) => {
         if (!snapshot.exists()) {
           setJobSnapshotState({ key: jobId, data: null })

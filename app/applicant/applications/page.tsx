@@ -52,7 +52,8 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
         return {
           ...data,
           status: getDisplayStatusForApplication(data.status, data.jobSource),
-          id: data.id ?? d.id, // Ensure every record has an id
+          // Ensure every record has an id, even if Firestore document is missing it for some reason
+          id: data.id ?? d.id,
         }
       })
 
@@ -66,11 +67,13 @@ const MyApplicationsPage = memo(function MyApplicationsPage() {
 
   // Handle status updates from the table
   const handleStatusChange = async (id: string, status: JobApplication['status']) => {
-    if (!isLoaded || !userId) return // Update user status
+    // Ensure user is loaded before updating Firestore
+    if (!isLoaded || !userId) return
 
     const target = liveApplications.find((app) => app.id === id)
-    if (!target) return // Hirelytics-hosted jobs are recruiter-managed, User cannot update status
+    if (!target) return
 
+    // Hirelytics-hosted jobs are recruiter-managed, User cannot update status
     if (target.jobSource === 'Hirelytics') return
 
     // Update status in Firestore

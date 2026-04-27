@@ -133,12 +133,11 @@ export const ApplicationsTable = memo(function ApplicationsTable({
                 <TableHead>Company</TableHead>
                 <TableHead>Position</TableHead>
                 <TableHead>City/Country</TableHead>
-                <TableHead>Application Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Job Source</TableHead>
-                <TableHead>Notes</TableHead>
-                <TableHead>Job Details</TableHead>
-                <TableHead>Delete</TableHead>
+                <TableHead className='text-center'>Application Date</TableHead>
+                <TableHead className='text-center'>Status</TableHead>
+                <TableHead className='text-center'>Job Source</TableHead>
+                <TableHead className='text-center'>Notes</TableHead>
+                <TableHead className='text-center'>Job Details</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
