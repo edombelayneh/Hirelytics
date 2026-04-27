@@ -100,7 +100,7 @@ type Job = {
   title: string
   company: string
   location: string
-  type: string
+  workArrangement?: string
   postedAt: string
   description: string
 }
@@ -112,6 +112,8 @@ vi.mock('../../../app/components/job/JobDetailsCard', () => ({
       <div data-testid='job-id'>{job.id}</div>
       <div data-testid='job-title'>{job.title}</div>
       <div data-testid='job-company'>{job.company}</div>
+      <div data-testid='job-location'>{job.location}</div>
+      <div data-testid='job-work-arrangement'>{job.workArrangement}</div>
     </div>
   ),
 }))
@@ -184,6 +186,7 @@ describe('JobDetailsPage', () => {
     expect(screen.getByTestId('job-id').textContent).toBe('job-123')
     expect(screen.getByTestId('job-title').textContent).toBe('Software Engineer Intern')
     expect(screen.getByTestId('job-company').textContent).toBe('Hirelytics')
+    expect(screen.getByTestId('job-work-arrangement').textContent).toBe('Full-time')
   })
 
   it('renders ApplicantsTable with seeded applicants and correct profileHref builder', async () => {
