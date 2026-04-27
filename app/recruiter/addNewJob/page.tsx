@@ -390,14 +390,14 @@ export default function AddNewJobPage() {
           </div>
 
           <div>
-            <label className='block text-sm mb-1'>Job Type</label>
+            <label className='block text-sm mb-1'>Work Arrangement</label>
             <select
               value={jobType}
               onChange={(e) => setJobType(e.target.value as 'onsite' | 'remote' | 'hybrid' | '')}
               className='w-full border rounded p-2'
             >
-              <option value=''>Select job type</option>
-              <option value='onsite'>In-person / On-site</option>
+              <option value=''>Select work arrangement</option>
+              <option value='onsite'>On-site</option>
               <option value='remote'>Remote</option>
               <option value='hybrid'>Hybrid</option>
             </select>

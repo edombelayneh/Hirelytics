@@ -75,7 +75,7 @@ export default function JobDetailsPage() {
         title: data.title ?? '',
         company: data.company,
         location: data.location,
-        type: data.type,
+        workArrangement: data.workArrangement ?? data.jobType ?? data.type ?? '',
         postedAt: data.postedDate,
         description: data.description,
       })
@@ -135,6 +135,7 @@ export default function JobDetailsPage() {
       </div>
     )
   }
+
   const handleApplicantStatusChange = async (applicantId: string, status: ApplicationStatus) => {
     if (!jobId) return
 
@@ -193,6 +194,7 @@ export default function JobDetailsPage() {
     )
     setRejectionModal({ isOpen: false, applicantId: '', applicantName: '' })
   }
+
   return (
     <div className='min-h-screen bg-background'>
       <main className='mr-auto w-full max-w-[1400px] px-4 sm:px-6 py-6 space-y-6'>

@@ -20,11 +20,11 @@ export function JobDetailsCard({ job }: JobDetailsCardProps) {
       </CardHeader>
 
       <CardContent className='space-y-3'>
-        {/* Add whatever fields you want later */}
+        {/* Keep high-level job attributes grouped together for quick scanning. */}
         <div className='text-sm'>
-          {job.type ? (
+          {job.workArrangement ? (
             <div>
-              <span className='font-medium'>Type:</span> {job.type}
+              <span className='font-medium'>Work Arrangement:</span> {job.workArrangement}
             </div>
           ) : null}
 
@@ -35,6 +35,7 @@ export function JobDetailsCard({ job }: JobDetailsCardProps) {
           ) : null}
         </div>
 
+        {/* Fall back gracefully when a description has not been provided. */}
         {job.description ? (
           <div className='text-sm leading-relaxed whitespace-pre-wrap'>{job.description}</div>
         ) : (

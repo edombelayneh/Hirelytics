@@ -8,7 +8,7 @@ export type Job = {
   title: string
   company?: string
   location?: string
-  type?: string
+  workArrangement?: string
   postedAt?: string
   description?: string
 }
