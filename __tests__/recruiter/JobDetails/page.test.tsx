@@ -9,6 +9,11 @@ import type { ApplicationStatus } from '../../../app/types/job'
 /*                                   MOCKS                                    */
 /* -------------------------------------------------------------------------- */
 
+// Clerk: component uses useAuth to identify the signed-in recruiter
+vi.mock('@clerk/nextjs', () => ({
+  useAuth: vi.fn(() => ({ userId: 'recruiter-uid-1', isLoaded: true })),
+}))
+
 // Firebase client stub — avoids real SDK initialization in tests
 vi.mock('../../../app/lib/firebaseClient', () => ({ db: {} }))
 
@@ -51,7 +56,7 @@ vi.mock('firebase/firestore', () => ({
       a3: { firstName: 'John', lastName: 'Doe' },
     }
     const profile = names[uid] ?? { firstName: 'Unknown', lastName: 'User' }
-    if (ref.path[3] === 'applications') {
+    if (ref.path[1] === 'users' && ref.path[3] === 'applications') {
       return Promise.resolve({
         exists: () => true,
         data: () => ({ status: 'Interviews', jobSource: 'Hirelytics' }),
@@ -62,19 +67,6 @@ vi.mock('firebase/firestore', () => ({
       data: () => ({ profile }),
     })
   }),
-}))
-
-// Mock Button to avoid Radix UI Slot's React.Children.only constraint crashing the render
-vi.mock('../../../app/components/ui/button', () => ({
-  Button: ({
-    children,
-    asChild: _asChild,
-    ...props
-  }: {
-    children: React.ReactNode
-    asChild?: boolean
-    [key: string]: unknown
-  }) => <button {...props}>{children}</button>,
 }))
 
 // next/link -> plain <a> so we can assert href
@@ -113,6 +105,7 @@ type Job = {
   description: string
 }
 
+// Mock ApplicantsTable to inspect props + verify computed profileHref
 vi.mock('../../../app/components/job/JobDetailsCard', () => ({
   JobDetailsCard: ({ job }: { job: Job }) => (
     <div data-testid='job-details-card'>
@@ -135,6 +128,7 @@ type Applicant = {
   applicationStatus?: ApplicationStatus
 }
 
+// Mock ApplicantsTable to inspect props + verify computed profileHref
 vi.mock('../../../app/components/job/ApplicantsTable', () => ({
   ApplicantsTable: ({
     applicants,
@@ -165,7 +159,7 @@ describe('JobDetailsPage', () => {
   beforeEach(() => {
     // Reset mocks before each test to ensure isolation
     vi.clearAllMocks()
-    useParamsMock.mockReturnValue({ jobId: 'job-123' }) // Default route param for all tests
+    useParamsMock.mockReturnValue({ jobId: 'job-123' }) // Default route param for all tests, can override in specific tests if needed
   })
 
   afterEach(() => {
@@ -196,7 +190,7 @@ describe('JobDetailsPage', () => {
     render(<JobDetailsPage />)
 
     // Wait until all getDoc calls resolve and ApplicantsTable receives final applicants list
-    await waitFor(() => {
+    await waitFor(async () => {
       expect(screen.getByTestId('applicant-count').textContent).toBe('3')
     })
 
