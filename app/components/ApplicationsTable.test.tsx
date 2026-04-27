@@ -491,4 +491,27 @@ describe('ApplicationsTable', () => {
     const statusControl = within(row as HTMLElement).getByRole('combobox') as HTMLSelectElement
     expect(statusControl.disabled).toBe(true)
   })
+
+  it('calls onDeleteApplication when delete button is clicked', () => {
+    // Track delete handler calls
+    const onDeleteApplication = vi.fn()
+
+    // Render table with applications and delete handler
+    render(
+      <ApplicationsTable
+        applications={mockApplications}
+        onDeleteApplication={onDeleteApplication}
+      />
+    )
+
+    // Find the first row's delete button
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
+
+    // Click the first delete button
+    fireEvent.click(deleteButtons[0])
+
+    // Ensure correct callback behavior
+    expect(onDeleteApplication).toHaveBeenCalledTimes(1)
+    expect(onDeleteApplication).toHaveBeenCalledWith('1')
+  })
 })
