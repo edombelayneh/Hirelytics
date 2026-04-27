@@ -34,6 +34,8 @@ vi.mock('firebase/firestore', () => ({
   collection: (...args: unknown[]) => mockCollection(...args),
   getDoc: (...args: unknown[]) => mockGetDoc(...args),
   getDocs: (...args: unknown[]) => mockGetDocs(...args),
+  query: (...args: unknown[]) => args,
+  orderBy: (...args: unknown[]) => args,
 }))
 
 // Mock profile data - Provide default profile structure for tests
