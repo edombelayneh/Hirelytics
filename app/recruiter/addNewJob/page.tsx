@@ -162,16 +162,17 @@ export default function AddNewJobPage() {
 
     setSubmitting(true)
 
-    // Build location string from individual fields
-    const location = [city, stateValue, country].filter(Boolean).join(', ')
+    // Build location string from individual fields (fallback to Remote or Unspecified)
+    const builtLocation = [city, stateValue, country].filter(Boolean).join(', ')
+    const location = builtLocation || (jobType === 'remote' ? 'Remote' : 'Unspecified')
 
-    // Build salary display string
+    // Build salary display string (fallback to 'Not specified' so listings show)
     const salaryDisplay =
       paymentAmount !== ''
         ? paymentType === 'hourly'
           ? `$${paymentAmount}/hr`
           : `$${Number(paymentAmount).toLocaleString()}/yr`
-        : ''
+        : 'Not specified'
 
     // Split qualifications by newline into a requirements array
     const requirements = qualifications

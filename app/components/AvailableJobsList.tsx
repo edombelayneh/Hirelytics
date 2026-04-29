@@ -31,40 +31,49 @@ export const AvailableJobsList = memo(function AvailableJobsList({
   const [typeFilter, setTypeFilter] = useState<string>('all') // Job type filter (Full-time, Part-time, etc.)
   const [locationFilter, setLocationFilter] = useState<string>('all') // Location filter (Remote vs On-site)
 
-  // Derived list: filters jobs based on search + type + location
-  const filteredJobs = jobs.filter((job) => {
-    const hasRequiredFields =
-      Boolean(job.title) &&
-      Boolean(job.company) &&
-      Boolean(job.location) &&
-      Boolean(job.salary) &&
-      Boolean(job.description) &&
-      Boolean(job.postedDate)
+  // Derived list: include jobs that have essential fields, but track missing optional fields
+  const filteredJobs = jobs
+    .map((job) => {
+      const missingFields = [] as string[]
+      if (!job.title) missingFields.push('title')
+      if (!job.company) missingFields.push('company')
+      if (!job.location) missingFields.push('location')
+      if (!job.salary) missingFields.push('salary')
+      if (!job.description) missingFields.push('description')
+      if (!job.postedDate) missingFields.push('postedDate')
+      return { job, missingFields }
+    })
+    // Require only essential fields so incomplete-but-usable jobs still show
+    .filter(
+      ({ job }) =>
+        Boolean(job.title) &&
+        Boolean(job.company) &&
+        Boolean(job.description) &&
+        Boolean(job.postedDate)
+    )
+    .filter(({ job }) => {
+      const normalizedSearchTerm = searchTerm.toLowerCase()
+      const title = String(job.title ?? '').toLowerCase()
+      const company = String(job.company ?? '').toLowerCase()
+      const location = String(job.location ?? '').toLowerCase()
+      const description = String(job.description ?? '').toLowerCase()
 
-    if (!hasRequiredFields) return false
+      // Search matches title, company, location, or description
+      const matchesSearch =
+        title.includes(normalizedSearchTerm) ||
+        company.includes(normalizedSearchTerm) ||
+        location.includes(normalizedSearchTerm) ||
+        description.includes(normalizedSearchTerm)
 
-    const normalizedSearchTerm = searchTerm.toLowerCase()
-    const title = String(job.title ?? '').toLowerCase()
-    const company = String(job.company ?? '').toLowerCase()
-    const location = String(job.location ?? '').toLowerCase()
-    const description = String(job.description ?? '').toLowerCase()
+      // Type filter match
+      const matchesType = typeFilter === 'all' || job.type === typeFilter
+      // Location filter logic (special handling for “remote”)
+      const matchesLocation =
+        locationFilter === 'all' ||
+        (locationFilter === 'remote' ? job.location === 'Remote' : job.location !== 'Remote')
 
-    // Search matches title, company, location, or description
-    const matchesSearch =
-      title.includes(normalizedSearchTerm) ||
-      company.includes(normalizedSearchTerm) ||
-      location.includes(normalizedSearchTerm) ||
-      description.includes(normalizedSearchTerm)
-
-    // Type filter match
-    const matchesType = typeFilter === 'all' || job.type === typeFilter
-    // Location filter logic (special handling for “remote”)
-    const matchesLocation =
-      locationFilter === 'all' ||
-      (locationFilter === 'remote' ? job.location === 'Remote' : job.location !== 'Remote')
-
-    return matchesSearch && matchesType && matchesLocation
-  })
+      return matchesSearch && matchesType && matchesLocation
+    })
 
   // Extract unique job types dynamically for dropdown options
   const uniqueTypes = Array.from(new Set(jobs.map((job) => job.type))).filter(Boolean)
@@ -148,7 +157,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
 
       {/* Job Cards Grid */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-        {filteredJobs.map((job, index) => (
+        {filteredJobs.map(({ job, missingFields }, index) => (
           <JobCard
             key={`${job.id}-${index}`}
             job={job}
@@ -156,6 +165,7 @@ export const AvailableJobsList = memo(function AvailableJobsList({
             isApplied={appliedJobIds.has(String(job.id))}
             showApplyButton={role !== 'recruiter'}
             role={role === 'recruiter' ? 'recruiter' : 'applicant'}
+            incompleteFields={missingFields}
           />
         ))}
       </div>

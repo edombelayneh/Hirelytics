@@ -21,13 +21,37 @@ function Jobs() {
   const { user } = useUser()
   const role = (user?.publicMetadata?.role as Role | undefined) ?? null
 
-  // Fetch all jobs from Firestore jobPostings collection
+  // Subscribe to jobPostings collection so new jobs appear in real-time
   useEffect(() => {
     const ref = collection(db, 'jobPostings')
-    getDocs(ref).then((snap) => {
+    const unsub = onSnapshot(ref, (snap) => {
       const fetched = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as AvailableJob)
       setJobs(fetched)
+
+      // Dev-only: log jobs missing required fields so we can diagnose filtered-out items
+      if (process.env.NODE_ENV === 'development') {
+        const missing = fetched
+          .map((j) => ({
+            id: j.id,
+            title: Boolean(j.title),
+            company: Boolean(j.company),
+            location: Boolean(j.location),
+            salary: Boolean(j.salary),
+            description: Boolean(j.description),
+            postedDate: Boolean(j.postedDate),
+          }))
+          .filter(
+            (m) =>
+              !(m.title && m.company && m.location && m.salary && m.description && m.postedDate)
+          )
+
+        if (missing.length > 0) {
+          console.table(missing)
+        }
+      }
     })
+
+    return () => unsub()
   }, [])
 
   useEffect(() => {
