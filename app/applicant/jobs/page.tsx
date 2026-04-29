@@ -5,6 +5,7 @@ import { AvailableJobsList } from '../../components/AvailableJobsList'
 import { AvailableJob } from '../../data/availableJobs'
 import type { Role } from '../../utils/userRole'
 import { applyToAvailableJob } from '../../utils/applicationFirebase'
+import { toAvailableJobFromSnapshotDoc } from '../../utils/availableJobMapper'
 import { useAuth, useUser } from '@clerk/nextjs'
 import { db } from '../../lib/firebaseClient'
 import { collection, onSnapshot } from 'firebase/firestore'
@@ -25,22 +26,9 @@ function Jobs() {
   useEffect(() => {
     const ref = collection(db, 'jobPostings')
     const unsub = onSnapshot(ref, (snap) => {
-      const fetched = snap.docs.map((doc: unknown) => {
-        const maybeDoc = doc as { id?: string; data?: unknown }
-        let dataObj: Record<string, unknown> = {}
-
-        if (typeof maybeDoc.data === 'function') {
-          const d = (maybeDoc.data as () => unknown)()
-          if (typeof d === 'object' && d !== null) dataObj = d as Record<string, unknown>
-        } else if (typeof maybeDoc.data === 'object' && maybeDoc.data !== null) {
-          dataObj = maybeDoc.data as Record<string, unknown>
-        } else if (typeof doc === 'object' && doc !== null) {
-          dataObj = doc as Record<string, unknown>
-        }
-
-        const merged = Object.assign({ id: maybeDoc.id ?? '' }, dataObj)
-        return merged as AvailableJob
-      })
+      const fetched = snap.docs
+        .map((doc) => toAvailableJobFromSnapshotDoc(doc))
+        .filter((job): job is AvailableJob => job !== null)
 
       setJobs(fetched)
 
