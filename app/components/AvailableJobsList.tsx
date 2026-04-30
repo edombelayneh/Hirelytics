@@ -67,10 +67,13 @@ export const AvailableJobsList = memo(function AvailableJobsList({
 
       // Type filter match
       const matchesType = typeFilter === 'all' || job.type === typeFilter
-      // Location filter logic (special handling for “remote”)
+      // Location filter logic (special handling for “remote”).
+      // Missing/empty locations are treated as neither remote nor on-site.
       const matchesLocation =
         locationFilter === 'all' ||
-        (locationFilter === 'remote' ? job.location === 'Remote' : job.location !== 'Remote')
+        (locationFilter === 'remote'
+          ? location === 'remote'
+          : location.length > 0 && location !== 'remote')
 
       return matchesSearch && matchesType && matchesLocation
     })
