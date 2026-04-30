@@ -6,7 +6,14 @@ import { AvailableJobsList } from './AvailableJobsList'
 
 // --- Mock JobCard so we can test ONLY the list behavior (rendering/filtering) ---
 vi.mock('./JobCard', () => ({
-  JobCard: ({ job }: { job: { title: string } }) => <div data-testid='job-item'>{job.title}</div>,
+  JobCard: ({ job, incompleteFields }: { job: { title: string }; incompleteFields?: string[] }) => (
+    <div
+      data-testid='job-item'
+      data-incomplete-fields={JSON.stringify(incompleteFields ?? [])}
+    >
+      {job.title}
+    </div>
+  ),
 }))
 
 // --- Mock Input as a normal input ---
@@ -96,6 +103,23 @@ const mockJobs = [
     applicantsId: [],
   },
 ]
+
+// A job that has only the essential fields so tests can verify incomplete-job behaviour
+const incompleteJob = {
+  id: 4,
+  title: 'DevOps Engineer',
+  company: 'CloudCo',
+  location: '',
+  type: 'Full-time',
+  postedDate: '2025-10-15',
+  salary: '',
+  description: 'Manage cloud infrastructure',
+  requirements: [],
+  status: 'Open',
+  applyLink: '#',
+  recruiterId: 'recruiter-uid-1',
+  applicantsId: [],
+}
 
 // --- Mock recruiter cache to prevent Firebase initialization during tests ---
 // This prevents the component from trying to fetch real recruiters from Firebase
@@ -259,5 +283,37 @@ describe('AvailableJobsList', () => {
 
     expect(screen.getByText(/No jobs found matching your criteria/i)).toBeTruthy()
     expect(screen.getByText(/Showing 0 of 3 jobs/i)).toBeTruthy()
+  })
+
+  it('renders a job missing location and salary', () => {
+    // Jobs that have only the essential fields (title, company, description, postedDate)
+    // should still appear even when location and salary are absent
+    render(
+      <AvailableJobsList
+        jobs={[incompleteJob]}
+        onApply={mockOnApply}
+        appliedJobIds={new Set()}
+      />
+    )
+    expect(screen.getByText('DevOps Engineer')).toBeTruthy()
+    expect(screen.getByText(/Showing 1 of 1 jobs/i)).toBeTruthy()
+  })
+
+  it('passes correct incompleteFields to JobCard for jobs missing location and salary', () => {
+    // When a job is missing location and salary, those field names should be forwarded
+    // to JobCard via the incompleteFields prop
+    render(
+      <AvailableJobsList
+        jobs={[incompleteJob]}
+        onApply={mockOnApply}
+        appliedJobIds={new Set()}
+      />
+    )
+    const card = screen.getByTestId('job-item')
+    const incompleteFields: string[] = JSON.parse(
+      card.getAttribute('data-incomplete-fields') ?? '[]'
+    )
+    expect(incompleteFields).toContain('location')
+    expect(incompleteFields).toContain('salary')
   })
 })

@@ -396,4 +396,42 @@ describe('JobCard', () => {
     const badge = screen.getByText('Internship')
     expect(badge.className).toContain('bg-accent')
   })
+
+  it('shows "Incomplete" badge when incompleteFields is non-empty', () => {
+    // A job with missing fields should display the Incomplete badge
+    render(
+      <JobCard
+        job={mockJob}
+        onApply={mockOnApply}
+        isApplied={false}
+        incompleteFields={['location', 'salary']}
+      />
+    )
+    expect(screen.getByText('Incomplete')).toBeTruthy()
+  })
+
+  it('does not show "Incomplete" badge when incompleteFields is empty', () => {
+    // An explicitly empty array should produce no badge
+    render(
+      <JobCard
+        job={mockJob}
+        onApply={mockOnApply}
+        isApplied={false}
+        incompleteFields={[]}
+      />
+    )
+    expect(screen.queryByText('Incomplete')).toBeNull()
+  })
+
+  it('does not show "Incomplete" badge when incompleteFields is omitted', () => {
+    // When the prop is not provided the badge should not appear
+    render(
+      <JobCard
+        job={mockJob}
+        onApply={mockOnApply}
+        isApplied={false}
+      />
+    )
+    expect(screen.queryByText('Incomplete')).toBeNull()
+  })
 })
