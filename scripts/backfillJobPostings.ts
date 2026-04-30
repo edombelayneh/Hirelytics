@@ -20,40 +20,74 @@ async function main() {
 
   admin.initializeApp({ credential: admin.credential.applicationDefault() })
   const db = admin.firestore()
+  const pageSize = 500
+  const writer = db.bulkWriter()
 
-  const snap = await db.collection('jobPostings').get()
-  console.log(`Found ${snap.size} job postings`)
+  writer.onWriteError((error) => {
+    console.error(`Write failed for document ${error.documentRef.path}:`, error)
+    return false
+  })
 
   let updated = 0
+  let scanned = 0
+  let lastDoc:
+    | FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
+    | undefined
 
-  for (const doc of snap.docs) {
-    const data = doc.data()
-    const updates: Record<string, unknown> = {}
+  while (true) {
+    let query = db
+      .collection('jobPostings')
+      .orderBy(admin.firestore.FieldPath.documentId())
+      .limit(pageSize)
 
-    if (!data.location) {
-      updates.location = data.jobType === 'remote' ? 'Remote' : 'Unspecified'
+    if (lastDoc) {
+      query = query.startAfter(lastDoc)
     }
 
-    if (!data.salary) {
-      updates.salary = 'Not specified'
+    const snap = await query.get()
+
+    if (snap.empty) {
+      break
     }
 
-    if (!data.description) {
-      updates.description = 'No description provided.'
+    for (const doc of snap.docs) {
+      scanned += 1
+
+      const data = doc.data()
+      const updates: Record<string, unknown> = {}
+
+      if (!data.location) {
+        updates.location = data.jobType === 'remote' ? 'Remote' : 'Unspecified'
+      }
+
+      if (!data.salary) {
+        updates.salary = 'Not specified'
+      }
+
+      if (!data.description) {
+        updates.description = 'No description provided.'
+      }
+
+      if (!data.postedDate) {
+        updates.postedDate = new Date().toISOString().split('T')[0]
+      }
+
+      if (Object.keys(updates).length > 0) {
+        writer.update(doc.ref, updates)
+        console.log(`Queued update for ${doc.id}:`, updates)
+        updated += 1
+      }
     }
 
-    if (!data.postedDate) {
-      updates.postedDate = new Date().toISOString().split('T')[0]
-    }
+    await writer.flush()
+    lastDoc = snap.docs[snap.docs.length - 1]
 
-    if (Object.keys(updates).length > 0) {
-      await doc.ref.update(updates)
-      console.log(`Updated ${doc.id}:`, updates)
-      updated += 1
-    }
+    console.log(`Progress: scanned ${scanned} documents, queued updates for ${updated}.`)
   }
 
-  console.log(`Backfill complete — updated ${updated} documents.`)
+  await writer.close()
+
+  console.log(`Backfill complete — scanned ${scanned} documents and updated ${updated} documents.`)
   process.exit(0)
 }
 
