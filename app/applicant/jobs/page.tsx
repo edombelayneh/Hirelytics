@@ -5,9 +5,10 @@ import { AvailableJobsList } from '../../components/AvailableJobsList'
 import { AvailableJob } from '../../data/availableJobs'
 import type { Role } from '../../utils/userRole'
 import { applyToAvailableJob } from '../../utils/applicationFirebase'
+import { toAvailableJobFromSnapshotDoc } from '../../utils/availableJobMapper'
 import { useAuth, useUser } from '@clerk/nextjs'
 import { db } from '../../lib/firebaseClient'
-import { collection, getDocs, onSnapshot } from 'firebase/firestore'
+import { collection, onSnapshot } from 'firebase/firestore'
 
 function Jobs() {
   // Get Clerk authentication state
@@ -21,13 +22,46 @@ function Jobs() {
   const { user } = useUser()
   const role = (user?.publicMetadata?.role as Role | undefined) ?? null
 
-  // Fetch all jobs from Firestore jobPostings collection
+  // Subscribe to jobPostings collection so new jobs appear in real-time
   useEffect(() => {
     const ref = collection(db, 'jobPostings')
-    getDocs(ref).then((snap) => {
-      const fetched = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as AvailableJob)
-      setJobs(fetched)
-    })
+    const unsub = onSnapshot(
+      ref,
+      (snap) => {
+        const fetched = snap.docs
+          .map((doc) => toAvailableJobFromSnapshotDoc(doc))
+          .filter((job): job is AvailableJob => job !== null)
+
+        setJobs(fetched)
+
+        // Dev-only: log jobs missing required fields so we can diagnose filtered-out items
+        if (process.env.NODE_ENV === 'development') {
+          const missing = fetched
+            .map((j) => ({
+              id: j.id,
+              title: Boolean(j.title),
+              company: Boolean(j.company),
+              location: Boolean(j.location),
+              salary: Boolean(j.salary),
+              description: Boolean(j.description),
+              postedDate: Boolean(j.postedDate),
+            }))
+            .filter(
+              (m) =>
+                !(m.title && m.company && m.location && m.salary && m.description && m.postedDate)
+            )
+
+          if (missing.length > 0) {
+            console.table(missing)
+          }
+        }
+      },
+      (err) => {
+        console.error('Failed to subscribe to jobPostings:', err)
+      }
+    )
+
+    return () => unsub()
   }, [])
 
   useEffect(() => {
@@ -38,16 +72,22 @@ function Jobs() {
     const ref = collection(db, 'users', userId, 'applications')
 
     // Listen for real-time updates
-    const unsub = onSnapshot(ref, (snap) => {
-      const ids = new Set<string>()
+    const unsub = onSnapshot(
+      ref,
+      (snap) => {
+        const ids = new Set<string>()
 
-      snap.docs.forEach((doc) => {
-        ids.add(doc.id)
-      })
+        snap.docs.forEach((doc) => {
+          ids.add(doc.id)
+        })
 
-      // Update state so Apply buttons disable correctly
-      setAppliedJobIds(ids)
-    })
+        // Update state so Apply buttons disable correctly
+        setAppliedJobIds(ids)
+      },
+      (err) => {
+        console.error('Failed to subscribe to applications:', err)
+      }
+    )
 
     // Cleanup listener when component unmounts
     return () => unsub()

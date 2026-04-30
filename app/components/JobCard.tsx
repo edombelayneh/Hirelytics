@@ -20,6 +20,8 @@ interface JobCardProps {
   showApplyButton?: boolean
   // Current user role for routing
   role?: 'applicant' | 'recruiter'
+  // Fields missing from the job document (used to show an 'Incomplete' badge)
+  incompleteFields?: string[]
 }
 
 // Adding color classes for different job types (Full-time, Part-time, etc.)
@@ -37,6 +39,7 @@ export const JobCard = memo(function JobCard({
   isApplied,
   showApplyButton = true,
   role = 'applicant',
+  incompleteFields = [],
 }: JobCardProps) {
   const requirements = Array.isArray(job.requirements) ? job.requirements : []
   const jobTypeKey = (job.type ?? '').trim().toLowerCase()
@@ -60,7 +63,17 @@ export const JobCard = memo(function JobCard({
       <CardHeader>
         <div className='flex items-start justify-between gap-4'>
           <div className='flex-1'>
-            <CardTitle className='text-xl mb-1'>{job.title}</CardTitle>
+            <div className='flex items-center gap-3'>
+              <CardTitle className='text-xl mb-1'>{job.title}</CardTitle>
+              {incompleteFields.length > 0 && (
+                <Badge
+                  variant='outline'
+                  className='text-xs'
+                >
+                  Incomplete
+                </Badge>
+              )}
+            </div>
             <CardDescription className='flex items-center gap-1'>
               <Briefcase className='h-4 w-4' />
               {job.company}
