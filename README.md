@@ -2,7 +2,7 @@
 
 A modern recruitment platform built with Next.js that connects job seekers with opportunities and helps recruiters manage applicants and job postings.
 
-**[Live Demo](http://localhost:3000)**
+**[Visit Hirelytics](https://hirelytics.work)**
 
 ## Overview
 
