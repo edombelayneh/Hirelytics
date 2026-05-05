@@ -2,12 +2,14 @@
 
 A modern recruitment platform built with Next.js that connects job seekers with opportunities and helps recruiters manage applicants and job postings.
 
+**[Live Demo](http://localhost:3000)**
+
 ## Overview
 
 Hirelytics is a full-stack recruitment application featuring:
 
 - **For Applicants:** Browse available jobs, track applications, manage profiles, and add external job postings
-- **For Recruiters:** Post new jobs, manage applicants, track candidates, and view job analytics
+- **For Recruiters:** Post new jobs, manage applicants, and track candidates
 - **Role-Based Access:** Secure authentication with Clerk and role-based UI rendering
 - **Job Data Integration:** Scrape and parse job postings from external sources
 - **Real-Time Updates:** Firebase integration for live data synchronization
@@ -16,7 +18,7 @@ Hirelytics is a full-stack recruitment application featuring:
 
 - **Frontend:** Next.js 16, React, TypeScript, Tailwind CSS
 - **Backend:** Next.js API Routes, Node.js
-- **Authentication:** Clerk
+- **Authentication:** Clerk with Firebase Auth
 - **Database:** Firebase Realtime Database & Firestore
 - **Testing:** Vitest, React Testing Library
 - **Build Tool:** Webpack (Next.js)
@@ -36,6 +38,25 @@ Hirelytics is a full-stack recruitment application featuring:
 ├── scripts/                    # Utility scripts (data migration, etc.)
 └── public/                     # Static assets
 ```
+
+## Key Features
+
+### Applicant Dashboard
+- Browse available job postings
+- Track application status
+- Manage user profile
+- Add external job postings for tracking
+
+### Recruiter Dashboard
+- Post and manage job listings
+- Review and track applicants
+- View application analytics
+- Access candidate profiles
+
+### Job Scraping
+- Parse job URLs and extract posting details
+- Support for multiple job sources
+- Automated job data enrichment
 
 ## Getting Started
 
@@ -76,14 +97,6 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-### Build
-
-Create an optimized production build:
-
-```bash
-npm run build
-```
-
 ### Testing
 
 Run the test suite:
@@ -97,25 +110,6 @@ Run tests in watch mode:
 ```bash
 npm run test:watch
 ```
-
-## Key Features
-
-### Applicant Dashboard
-- Browse available job postings
-- Track application status
-- Manage user profile
-- Add external job postings for tracking
-
-### Recruiter Dashboard
-- Post and manage job listings
-- Review and track applicants
-- View application analytics
-- Access candidate profiles
-
-### Job Scraping
-- Parse job URLs and extract posting details
-- Support for multiple job sources
-- Automated job data enrichment
 
 ## API Routes
 
@@ -131,17 +125,6 @@ npm run test:watch
 3. Run tests: `npm run test`
 4. Commit and push
 5. Create a pull request
-
-## Deployment
-
-The project is configured for deployment on Vercel:
-
-```bash
-npm run build
-npm run start
-```
-
-See [Next.js deployment docs](https://nextjs.org/docs/app/building-your-application/deploying) for more options.
 
 ## License
 
