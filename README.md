@@ -1,36 +1,131 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hirelytics
+
+A modern recruitment platform built with Next.js that connects job seekers with opportunities and helps recruiters manage applicants and job postings.
+
+**[Live Demo](http://localhost:3000)**
+
+## Overview
+
+Hirelytics is a full-stack recruitment application featuring:
+
+- **For Applicants:** Browse available jobs, track applications, manage profiles, and add external job postings
+- **For Recruiters:** Post new jobs, manage applicants, and track candidates
+- **Role-Based Access:** Secure authentication with Clerk and role-based UI rendering
+- **Job Data Integration:** Scrape and parse job postings from external sources
+- **Real-Time Updates:** Firebase integration for live data synchronization
+
+## Tech Stack
+
+- **Frontend:** Next.js 16, React, TypeScript, Tailwind CSS
+- **Backend:** Next.js API Routes, Node.js
+- **Authentication:** Clerk with Firebase Auth
+- **Database:** Firebase Realtime Database & Firestore
+- **Testing:** Vitest, React Testing Library
+- **Build Tool:** Webpack (Next.js)
+
+## Project Structure
+
+```
+├── app/
+│   ├── api/                    # API routes (Firebase, jobs, user management)
+│   ├── applicant/              # Applicant-facing pages (jobs, applications, profile)
+│   ├── recruiter/              # Recruiter-facing pages (job management, applicant tracking)
+│   ├── components/             # Reusable UI components
+│   ├── lib/                    # Firebase client/admin initialization
+│   ├── types/                  # TypeScript type definitions
+│   └── utils/                  # Utility functions
+├── __tests__/                  # Test files (mirroring app structure)
+├── scripts/                    # Utility scripts (data migration, etc.)
+└── public/                     # Static assets
+```
+
+## Key Features
+
+### Applicant Dashboard
+- Browse available job postings
+- Track application status
+- Manage user profile
+- Add external job postings for tracking
+
+### Recruiter Dashboard
+- Post and manage job listings
+- Review and track applicants
+- View application analytics
+- Access candidate profiles
+
+### Job Scraping
+- Parse job URLs and extract posting details
+- Support for multiple job sources
+- Automated job data enrichment
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ and npm
+- Firebase project setup
+- Clerk authentication setup
+- Environment variables configured
+
+### Installation
+
+```bash
+npm install
+```
+
+### Environment Setup
+
+Create a `.env.local` file in the root directory with:
+
+```
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_key
+CLERK_SECRET_KEY=your_key
+NEXT_PUBLIC_FIREBASE_API_KEY=your_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_id
+FIREBASE_ADMIN_PRIVATE_KEY=your_key
+FIREBASE_ADMIN_CLIENT_EMAIL=your_email
+```
+
+### Development
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Testing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run the test suite:
 
-## Learn More
+```bash
+npm run test
+```
 
-To learn more about Next.js, take a look at the following resources:
+Run tests in watch mode:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run test:watch
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## API Routes
 
-## Deploy on Vercel
+- `POST /api/firebase/custom-token` - Generate custom auth tokens
+- `POST /api/jobs/parse-url` - Parse job posting from URL
+- `POST /api/scrape-job` - Scrape job data
+- `GET /api/user/role` - Fetch user role
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Create a feature branch
+2. Make your changes
+3. Run tests: `npm run test`
+4. Commit and push
+5. Create a pull request
+
+## License
+
+MIT
